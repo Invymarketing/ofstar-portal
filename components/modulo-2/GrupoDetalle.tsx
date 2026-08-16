@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ArrowLeft, RefreshCw, Trash2, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Film } from 'lucide-react'
 import { Grupo, Cuenta, formatNum, ultimaMetrica } from './analytics-utils'
-import ReelsGrid from './ReelsGrid'
+import ReelsGrid, { OrdenReel } from './ReelsGrid'
 
 interface Props {
   grupo: Grupo
@@ -13,11 +13,13 @@ interface Props {
 }
 
 const PERIODOS = [7, 14, 30]
+const ORDENES: [OrdenReel, string][] = [['ganador', 'Mejores'], ['vistos', 'Más vistos'], ['engagement', 'Más engagement'], ['recientes', 'Más recientes']]
 
 export default function GrupoDetalle({ grupo, tipo, onBack, onRefresh }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(grupo.cuentas[0]?.id ?? null)
   const [syncingId, setSyncingId] = useState<string | null>(null)
   const [periodo, setPeriodo] = useState(7)
+  const [orden, setOrden] = useState<OrdenReel>('ganador')
 
   async function sincronizar(id: string) {
     setSyncingId(id)
@@ -103,14 +105,20 @@ export default function GrupoDetalle({ grupo, tipo, onBack, onRefresh }: Props) 
               {isExpanded && (
                 <div className="px-4 pb-4 border-t" style={{ borderColor: '#1E1E2E' }}>
                   <div className="pt-4 space-y-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs" style={{ color: '#8B8B9E' }}>Últimos:</span>
                       {PERIODOS.map(d => (
                         <button key={d} onClick={() => setPeriodo(d)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: periodo === d ? 'rgba(201,168,76,0.15)' : '#0D0D14', color: periodo === d ? '#C9A84C' : '#8B8B9E', border: periodo === d ? '1px solid rgba(201,168,76,0.25)' : '1px solid #1E1E2E' }}>{d} días</button>
                       ))}
                     </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs" style={{ color: '#8B8B9E' }}>Ordenar:</span>
+                      {ORDENES.map(([val, label]) => (
+                        <button key={val} onClick={() => setOrden(val)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: orden === val ? 'rgba(201,168,76,0.15)' : '#0D0D14', color: orden === val ? '#C9A84C' : '#8B8B9E', border: orden === val ? '1px solid rgba(201,168,76,0.25)' : '1px solid #1E1E2E' }}>{label}</button>
+                      ))}
+                    </div>
                     {(cuenta.reels_analytics ?? []).length > 0 ? (
-                      <ReelsGrid reels={cuenta.reels_analytics} dias={periodo} />
+                      <ReelsGrid reels={cuenta.reels_analytics} dias={periodo} orden={orden} />
                     ) : (
                       <div className="text-center py-6 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px dashed #1E1E2E' }}>
                         <Film size={18} className="mx-auto mb-2" style={{ color: '#8B8B9E' }} />
