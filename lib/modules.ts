@@ -117,3 +117,4 @@ export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
   if (role === 'admin') return MODULES
   return MODULES.filter((m) => m.allowedRoles.includes(role))
 }
+// deploy Sun Aug 16 20:49:27 +04 2026
