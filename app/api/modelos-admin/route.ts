@@ -30,7 +30,29 @@ export async function GET() {
     .order('full_name')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ modelos: data ?? [] })
+
+  const modelos = data ?? []
+
+  // Foto de perfil de la cuenta principal de cada modelo (viene de Analytics)
+  const ids = modelos.map((m: any) => m.id)
+  const fotos: Record<string, string | null> = {}
+  if (ids.length > 0) {
+    const { data: cuentas } = await auth.admin
+      .from('cuentas_analytics')
+      .select('modelo_id, profile_pic_url, es_principal')
+      .in('modelo_id', ids)
+
+    for (const c of cuentas ?? []) {
+      if (!c.modelo_id) continue
+      if (c.es_principal || !(c.modelo_id in fotos)) {
+        fotos[c.modelo_id] = c.profile_pic_url ?? null
+      }
+    }
+  }
+
+  const conFoto = modelos.map((m: any) => ({ ...m, foto_url: fotos[m.id] ?? null }))
+
+  return NextResponse.json({ modelos: conFoto })
 }
 
 // POST — crea una ficha de modelo (SIN login)

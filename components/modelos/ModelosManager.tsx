@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, X, Loader2, Trash2, FileText, StickyNote, FolderOpen, AtSign } from 'lucide-react'
+import ModeloPerfil from './ModeloPerfil'
 
 interface Nicho { id: string; nombre: string; color: string }
 interface Modelo {
@@ -13,6 +14,7 @@ interface Modelo {
   content_snare_url: string | null
   notion_url: string | null
   drive_url: string | null
+  foto_url: string | null
   nichos: Nicho | null
 }
 
@@ -20,6 +22,7 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
   const [modelos, setModelos] = useState<Modelo[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [perfilModelo, setPerfilModelo] = useState<Modelo | null>(null)
 
   async function cargar() {
     setLoading(true)
@@ -37,6 +40,10 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
     if (!confirm(`¿Eliminar la ficha de ${nombre}?`)) return
     await fetch(`/api/modelos-admin?id=${id}`, { method: 'DELETE' })
     await cargar()
+  }
+
+  if (perfilModelo) {
+    return <ModeloPerfil modeloId={perfilModelo.id} nombre={perfilModelo.model_name || perfilModelo.full_name} foto={perfilModelo.foto_url} onBack={() => { setPerfilModelo(null); cargar() }} />
   }
 
   return (
@@ -67,19 +74,19 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
           {modelos.map(m => {
             const nicho = m.nichos
             return (
-              <div key={m.id} className="rounded-2xl p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+              <div key={m.id} onClick={() => setPerfilModelo(m)} className="rounded-2xl p-4 cursor-pointer" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: nicho ? `${nicho.color}22` : 'rgba(201,168,76,0.15)', color: nicho?.color ?? '#C9A84C' }}>
-                    {m.full_name[0]?.toUpperCase()}
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold" style={{ backgroundColor: nicho ? `${nicho.color}22` : 'rgba(201,168,76,0.15)', color: nicho?.color ?? '#C9A84C' }}>
+                    {m.foto_url ? (<img src={m.foto_url} alt={m.full_name} className="w-full h-full object-cover" />) : (m.full_name[0]?.toUpperCase())}
                   </div>
-                  <button onClick={() => eliminar(m.id, m.full_name)} style={{ color: '#8B8B9E' }} className="p-1 rounded hover:bg-white/5 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); eliminar(m.id, m.full_name) }} style={{ color: '#8B8B9E' }} className="p-1 rounded hover:bg-white/5 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap mb-0.5">
                   <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>{m.model_name || m.full_name}</p>
                   {nicho && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${nicho.color}18`, color: nicho.color, border: `1px solid ${nicho.color}44` }}>{nicho.nombre}</span>}
                 </div>
                 {m.ig_username && <p className="text-xs mb-3" style={{ color: '#8B8B9E' }}>@{m.ig_username}</p>}
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
                   {m.content_snare_url && <a href={m.content_snare_url} target="_blank" rel="noopener noreferrer" title="Content Snare" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5"><FileText size={13} /></a>}
                   {m.notion_url && <a href={m.notion_url} target="_blank" rel="noopener noreferrer" title="Notion" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5"><StickyNote size={13} /></a>}
                   {m.drive_url && <a href={m.drive_url} target="_blank" rel="noopener noreferrer" title="Drive" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5"><FolderOpen size={13} /></a>}
