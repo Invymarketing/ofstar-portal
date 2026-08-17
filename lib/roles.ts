@@ -23,7 +23,7 @@ export const ROLE_COLORS: Record<UserRole, string> = {
 // Routes each role can access (beyond the dashboard home)
 export const ROLE_ACCESS: Record<UserRole, string[]> = {
   admin: ['*'],
-  creativo: ['/modulo-1', '/modulo-2'],
+  creativo: ['/modulo-1', '/modulo-2', '/modelos'],
   manager: [
     '/modulo-1', '/modulo-2', '/modulo-3', '/modulo-4',
     '/modulo-5', '/modulo-6', '/modulo-7', '/modulo-8',
