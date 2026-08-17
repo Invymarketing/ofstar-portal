@@ -11,7 +11,7 @@ async function checkAuth() {
   if (!user) return { ok: false as const, status: 401 }
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
-  if (!['admin', 'manager'].includes(profile?.role ?? '')) return { ok: false as const, status: 403 }
+  if (!['admin', 'manager', 'creativo'].includes(profile?.role ?? '')) return { ok: false as const, status: 403 }
   return { ok: true as const, user, admin }
 }
 

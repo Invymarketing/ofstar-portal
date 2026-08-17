@@ -13,7 +13,7 @@ export async function GET() {
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
 
-  if (!['admin', 'manager'].includes(profile?.role ?? '')) {
+  if (!['admin', 'manager', 'creativo'].includes(profile?.role ?? '')) {
     return NextResponse.json({ error: 'sin_permiso' }, { status: 403 })
   }
 

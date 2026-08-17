@@ -8,7 +8,7 @@ export const MODULES: ModuleDefinition[] = [
     description: 'Panel de control del bot de Instagram. Gestiona modelos, ejecuta el bot y revisa logs de ejecuciones.',
     icon: 'Bot',
     phase: 2,
-    allowedRoles: ['admin', 'manager'],
+    allowedRoles: ['admin', 'manager', 'creativo'],
     isBuilt: true,
   },
   {
@@ -18,7 +18,7 @@ export const MODULES: ModuleDefinition[] = [
     description: 'Métricas de cuentas propias e inteligencia de competencia por nicho. Ratio views/likes, top reels y banco de referencias.',
     icon: 'BarChart3',
     phase: 3,
-    allowedRoles: ['admin', 'manager'],
+    allowedRoles: ['admin', 'manager', 'creativo'],
     isBuilt: true,
   },
   {
@@ -28,7 +28,7 @@ export const MODULES: ModuleDefinition[] = [
     description: 'Genera facturas PDF, registra gastos por modelo y visualiza márgenes netos en tiempo real.',
     icon: 'DollarSign',
     phase: 4,
-    allowedRoles: ['admin', 'manager'],
+    allowedRoles: ['admin'],
     isBuilt: false,
   },
   {
