@@ -7,6 +7,9 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 interface PuntoSerie { fecha: string; seguidores: number; engagement: number }
 interface CuentaResumen { id: string; ig_username: string; profile_pic_url: string | null; es_principal: boolean }
 
+interface TareaContenido { texto: string; objetivo: number | null; entregado: number | null; tieneCarpeta: boolean; estado: string }
+interface ResumenContenido { total: number; completas: number; pct: number | null }
+
 export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
   modeloId: string; nombre: string; foto: string | null; onBack: () => void
 }) {
@@ -14,6 +17,9 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
   const [cuentas, setCuentas] = useState<CuentaResumen[]>([])
   const [loading, setLoading] = useState(true)
   const [periodo, setPeriodo] = useState<number>(0) // 0 = todo
+  const [tareas, setTareas] = useState<TareaContenido[]>([])
+  const [resumen, setResumen] = useState<ResumenContenido | null>(null)
+  const [loadingCont, setLoadingCont] = useState(true)
 
   useEffect(() => {
     let vivo = true
@@ -29,6 +35,24 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
         if (vivo) { setSerie([]); setCuentas([]) }
       }
       if (vivo) setLoading(false)
+    })()
+    return () => { vivo = false }
+  }, [modeloId])
+
+  useEffect(() => {
+    let vivo = true
+    ;(async () => {
+      setLoadingCont(true)
+      try {
+        const res = await fetch(`/api/modelos/${modeloId}/contenido`)
+        const data = await res.json()
+        if (!vivo) return
+        setTareas(data.tareas ?? [])
+        setResumen(data.resumen ?? null)
+      } catch {
+        if (vivo) { setTareas([]); setResumen(null) }
+      }
+      if (vivo) setLoadingCont(false)
     })()
     return () => { vivo = false }
   }, [modeloId])
@@ -52,7 +76,7 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
       </button>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center text-lg font-bold" style={{ backgroundColor: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}>
+        <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center text-lg font-bold shrink-0" style={{ backgroundColor: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}>
           {foto ? <img src={foto} alt={nombre} className="w-full h-full object-cover" /> : nombre[0]?.toUpperCase()}
         </div>
         <div>
@@ -60,6 +84,48 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
           <p className="text-sm" style={{ color: '#8B8B9E' }}>{cuentas.length} cuenta{cuentas.length === 1 ? '' : 's'} vinculada{cuentas.length === 1 ? '' : 's'}</p>
         </div>
       </div>
+
+          <div className="rounded-2xl p-4 mb-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>Control de contenido — esta semana</p>
+              {resumen && resumen.pct !== null && (
+                <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{
+                  backgroundColor: resumen.pct >= 100 ? 'rgba(74,222,128,0.15)' : resumen.pct >= 50 ? 'rgba(201,168,76,0.15)' : 'rgba(248,113,113,0.15)',
+                  color: resumen.pct >= 100 ? '#4ADE80' : resumen.pct >= 50 ? '#C9A84C' : '#F87171'
+                }}>{resumen.completas}/{resumen.total} tareas · {resumen.pct}%</span>
+              )}
+            </div>
+
+            {loadingCont ? (
+              <div className="flex items-center justify-center py-6" style={{ color: '#8B8B9E' }}>
+                <Loader2 size={18} className="animate-spin" />
+              </div>
+            ) : tareas.length === 0 ? (
+              <p className="text-sm py-4 text-center" style={{ color: '#8B8B9E' }}>No se encontraron tareas para esta modelo.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {tareas.map((t, i) => {
+                  const col = t.estado === 'completo' ? '#4ADE80' : t.estado === 'corta' ? '#F87171' : '#8B8B9E'
+                  const pct = (t.objetivo && t.entregado != null) ? Math.min(100, Math.round((t.entregado / t.objetivo) * 100)) : 0
+                  return (
+                    <div key={i} className="rounded-xl p-3" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E' }}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs pr-2" style={{ color: '#F0F0F5' }}>{t.texto}</span>
+                        <span className="text-xs font-semibold whitespace-nowrap" style={{ color: col }}>
+                          {t.objetivo != null ? `${t.entregado ?? 0}/${t.objetivo}` : (t.tieneCarpeta ? `${t.entregado ?? 0}` : '—')}
+                        </span>
+                      </div>
+                      {t.objetivo != null && (
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#1E1E2E' }}>
+                          <div className="h-full rounded-full" style={{ width: pct + '%', backgroundColor: col }} />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
 
       {loading && (
         <div className="flex items-center justify-center py-16"><Loader2 size={22} className="animate-spin" style={{ color: '#8B8B9E' }} /></div>
@@ -118,6 +184,8 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
               </LineChart>
             </ResponsiveContainer>
           </div>
+
+
         </>
       )}
     </div>

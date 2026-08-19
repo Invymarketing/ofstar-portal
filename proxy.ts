@@ -4,6 +4,12 @@ import { canAccessRoute } from '@/lib/roles'
 import type { UserRole } from '@/types'
 
 export async function proxy(request: NextRequest) {
+  // Las rutas de cron se protegen con CRON_SECRET dentro del endpoint,
+  // así que las dejamos pasar sin comprobar sesión de usuario.
+  if (request.nextUrl.pathname.startsWith('/api/cron/')) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
