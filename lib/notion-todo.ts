@@ -18,17 +18,62 @@ const folderId = (u: string): string | null => {
   return m ? m[1] : null
 }
 
-// Busca la página del TO-DO de una modelo: primero por URL de la ficha, si no por nombre
+// Devuelve el título de una página de Notion (busca la propiedad de tipo title)
+function tituloDePagina(p: any): string {
+  const props = p?.properties || {}
+  for (const k of Object.keys(props)) {
+    const v = props[k]
+    if (v?.type === 'title') {
+      return (v.title || []).map((t: any) => t.plain_text).join('').trim()
+    }
+  }
+  return ''
+}
+
+// Normaliza texto para comparar: minúsculas, sin acentos, sin espacios de más
+function norm(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim()
+}
+
+// Busca la página del TO-DO de una modelo.
+// 1) Si la ficha tiene notion_url con id → se usa ese id directo.
+// 2) Si no, busca entre TODAS las páginas una cuyo título EMPIECE por "to-do" (o "to do")
+//    Y contenga el nombre de la modelo. Si no hay ninguna así → null (nunca agarra otra).
 export async function encontrarTodoPageId(nombre: string, notionUrl: string | null): Promise<string | null> {
   if (notionUrl) {
     const m = notionUrl.match(/([a-f0-9]{32})/i)
     if (m) return m[1]
   }
-  const res: any = await notion.search({ query: `TO-DO List ${nombre}`, page_size: 5 })
-  const page = res.results.find((r: any) =>
-    r.properties?.title?.title?.[0]?.plain_text?.toLowerCase().includes(nombre.toLowerCase())
-  ) || res.results[0]
-  return page?.id || null
+
+  const objetivo = norm(nombre)
+  if (!objetivo) return null
+
+  // Recorremos todas las páginas que ve la integración (paginado)
+  let cursor: string | undefined = undefined
+  const candidatas: { id: string; titulo: string }[] = []
+  do {
+    const res: any = await notion.search({
+      page_size: 100,
+      start_cursor: cursor,
+      filter: { property: 'object', value: 'page' },
+    })
+    for (const p of res.results) {
+      const titulo = tituloDePagina(p)
+      const t = norm(titulo)
+      // Debe ser una página de TO-DO (empieza por "to-do" o "to do") y mencionar a la modelo
+      const esTodo = t.startsWith('to-do') || t.startsWith('to do')
+      if (esTodo && t.includes(objetivo)) {
+        candidatas.push({ id: p.id, titulo })
+      }
+    }
+    cursor = res.has_more ? res.next_cursor : undefined
+  } while (cursor)
+
+  if (candidatas.length === 0) return null
+
+  // Si hay varias, preferimos la coincidencia más exacta (título más corto = menos ruido)
+  candidatas.sort((a, b) => a.titulo.length - b.titulo.length)
+  return candidatas[0].id
 }
 
 // Lee todos los bloques de la página y arma la lista de tareas

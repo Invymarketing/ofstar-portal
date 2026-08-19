@@ -86,6 +86,7 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
                   {nicho && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${nicho.color}18`, color: nicho.color, border: `1px solid ${nicho.color}44` }}>{nicho.nombre}</span>}
                 </div>
                 {m.ig_username && <p className="text-xs mb-3" style={{ color: '#8B8B9E' }}>@{m.ig_username}</p>}
+                <BadgeContenido modeloId={m.id} />
                 <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
                   {m.content_snare_url && <a href={m.content_snare_url} target="_blank" rel="noopener noreferrer" title="Content Snare" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5"><FileText size={13} /></a>}
                   {m.notion_url && <a href={m.notion_url} target="_blank" rel="noopener noreferrer" title="Notion" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5"><StickyNote size={13} /></a>}
@@ -98,6 +99,45 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
       )}
 
       {showModal && <AddModeloModal nichos={nichos} onClose={() => setShowModal(false)} onAdded={() => { setShowModal(false); cargar() }} />}
+    </div>
+  )
+}
+
+function BadgeContenido({ modeloId }: { modeloId: string }) {
+  const [estado, setEstado] = useState<'cargando' | 'ok' | 'error'>('cargando')
+  const [resumen, setResumen] = useState<{ total: number; completas: number; pct: number } | null>(null)
+
+  useEffect(() => {
+    let vivo = true
+    fetch(`/api/modelos/${modeloId}/contenido`)
+      .then(r => (r.ok ? r.json() : Promise.reject()))
+      .then(data => { if (vivo) { setResumen(data.resumen ?? null); setEstado('ok') } })
+      .catch(() => { if (vivo) setEstado('error') })
+    return () => { vivo = false }
+  }, [modeloId])
+
+  if (estado === 'cargando') {
+    return (
+      <div className="flex items-center gap-1.5 mb-3">
+        <Loader2 size={12} className="animate-spin" style={{ color: '#8B8B9E' }} />
+        <span className="text-[11px]" style={{ color: '#8B8B9E' }}>Contando…</span>
+      </div>
+    )
+  }
+  if (estado === 'error' || !resumen || resumen.total === 0) {
+    return <div className="mb-3"><span className="text-[11px]" style={{ color: '#6B6B7E' }}>Sin tareas esta semana</span></div>
+  }
+
+  const { completas, total, pct } = resumen
+  const color = pct >= 100 ? '#4ADE80' : pct >= 60 ? '#FBBF24' : '#F87171'
+  return (
+    <div className="mb-3">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[11px] font-medium" style={{ color }}>{completas}/{total} tareas · {Math.round(pct)}%</span>
+      </div>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#1E1E2E' }}>
+        <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }} />
+      </div>
     </div>
   )
 }
