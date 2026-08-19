@@ -76,8 +76,8 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
       </button>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center text-lg font-bold shrink-0" style={{ backgroundColor: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}>
-          {foto ? <img src={foto} alt={nombre} className="w-full h-full object-cover" /> : nombre[0]?.toUpperCase()}
+        <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center text-2xl font-bold shrink-0" style={{ backgroundColor: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}>
+          {foto ? <img src={foto} alt={nombre} className="w-full h-full object-cover object-center" /> : nombre[0]?.toUpperCase()}
         </div>
         <div>
           <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>{nombre}</h1>
