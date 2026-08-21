@@ -94,3 +94,45 @@ export async function csFetch(path: string): Promise<any> {
   if (!res.ok) throw new Error(`Content Snare ${path} -> ${res.status}: ${await res.text()}`)
   return res.json()
 }
+
+// --- Conteo de contenido OnlyFans por modelo ---
+
+// Dado el id de cliente (acc_XXXX), devuelve su solicitud ACTIVA de la semana
+// (published o waiting). Si tiene varias, coge la de fecha límite más reciente.
+export async function solicitudActivaDeCliente(accId: string): Promise<any | null> {
+  // El listado /requests NO trae primary_client_id ni los conteos (solo id/status/name/due).
+  // Así que: 1) listamos, 2) filtramos las activas, 3) pedimos el detalle de cada una
+  //          (que sí trae primary_client_id + conteos) y nos quedamos con las de este cliente.
+  const data = await csFetch('/requests')
+  const reqs: any[] = Array.isArray(data) ? data : (data.results ?? [])
+  const activas = reqs.filter((r) => ['published', 'waiting'].includes(r.status))
+
+  const detalles = await Promise.all(
+    activas.map((r) => csFetch('/requests/' + r.id).catch(() => null))
+  )
+  const mias = detalles.filter(
+    (d): d is any => d != null && d.primary_client_id === accId
+  )
+  if (mias.length === 0) return null
+  // si tuviera varias activas, la de fecha límite más reciente
+  mias.sort((a, b) => (b.due ?? '').localeCompare(a.due ?? ''))
+  return mias[0]
+}
+
+// Devuelve el conteo de OnlyFans para una modelo, a partir de su acc de CS.
+export async function contenidoOnlyFans(accId: string) {
+  const solicitud = await solicitudActivaDeCliente(accId)
+  if (!solicitud) {
+    return { encontrado: false as const }
+  }
+  // el listado ya trae fields_count/done_fields_count/completion_percentage
+  return {
+    encontrado: true as const,
+    nombre: solicitud.name as string,
+    total: (solicitud.fields_count ?? 0) as number,
+    entregado: (solicitud.done_fields_count ?? 0) as number,
+    porcentaje: (solicitud.completion_percentage ?? 0) as number,
+    limite: (solicitud.due ?? null) as string | null,
+    estado: solicitud.status as string,
+  }
+}
