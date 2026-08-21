@@ -87,10 +87,11 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
                 </div>
                 {m.ig_username && <p className="text-xs mb-3" style={{ color: '#8B8B9E' }}>@{m.ig_username}</p>}
                 <BadgeContenido modeloId={m.id} />
-                <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
-                  {m.content_snare_url && <a href={m.content_snare_url} target="_blank" rel="noopener noreferrer" title="Content Snare" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5"><FileText size={13} /></a>}
-                  {m.notion_url && <a href={m.notion_url} target="_blank" rel="noopener noreferrer" title="Notion" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5"><StickyNote size={13} /></a>}
-                  {m.drive_url && <a href={m.drive_url} target="_blank" rel="noopener noreferrer" title="Drive" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5"><FolderOpen size={13} /></a>}
+                <BadgeOnlyFans modeloId={m.id} />
+                <div className="flex gap-2 mt-2 items-center" onClick={(e) => e.stopPropagation()}>
+                  {m.content_snare_url && <span title="Content Snare (vinculado)" className="p-1 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1E1E2E' }}><img src="/content-snare.svg" alt="Content Snare" width={16} height={16} className="rounded" /></span>}
+                  {m.notion_url && <a href={m.notion_url} target="_blank" rel="noopener noreferrer" title="Notion" className="p-1 rounded-lg hover:bg-white/5 flex items-center justify-center"><img src="/notion.svg" alt="Notion" width={16} height={16} /></a>}
+                  {m.drive_url && <a href={m.drive_url} target="_blank" rel="noopener noreferrer" title="Google Drive" className="p-1 rounded-lg hover:bg-white/5 flex items-center justify-center"><img src="/drive.svg" alt="Google Drive" width={16} height={16} /></a>}
                 </div>
               </div>
             )
@@ -137,6 +138,45 @@ function BadgeContenido({ modeloId }: { modeloId: string }) {
       </div>
       <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#1E1E2E' }}>
         <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }} />
+      </div>
+    </div>
+  )
+}
+
+function BadgeOnlyFans({ modeloId }: { modeloId: string }) {
+  const [estado, setEstado] = useState<'cargando' | 'ok' | 'error'>('cargando')
+  const [datos, setDatos] = useState<{ total: number; entregado: number; porcentaje: number } | null>(null)
+
+  useEffect(() => {
+    let vivo = true
+    fetch(`/api/modelos/${modeloId}/onlyfans`)
+      .then(r => (r.ok ? r.json() : Promise.reject()))
+      .then(data => { if (vivo) { setDatos(data.encontrado ? data : null); setEstado('ok') } })
+      .catch(() => { if (vivo) setEstado('error') })
+    return () => { vivo = false }
+  }, [modeloId])
+
+  if (estado === 'cargando') {
+    return (
+      <div className="flex items-center gap-1.5 mb-3">
+        <Loader2 size={12} className="animate-spin" style={{ color: '#38BDF8' }} />
+        <span className="text-[11px]" style={{ color: '#8B8B9E' }}>OF · contando…</span>
+      </div>
+    )
+  }
+  if (estado === 'error' || !datos || datos.total === 0) {
+    return <div className="mb-3"><span className="text-[11px]" style={{ color: '#6B6B7E' }}>OF · sin solicitud</span></div>
+  }
+
+  const { entregado, total, porcentaje } = datos
+  const color = porcentaje >= 100 ? '#4ADE80' : porcentaje >= 60 ? '#FBBF24' : '#38BDF8'
+  return (
+    <div className="mb-3">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[11px] font-medium" style={{ color }}>OF: {entregado}/{total} · {Math.round(porcentaje)}%</span>
+      </div>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#1E1E2E' }}>
+        <div className="h-full rounded-full" style={{ width: `${Math.min(porcentaje, 100)}%`, backgroundColor: color }} />
       </div>
     </div>
   )

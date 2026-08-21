@@ -29,7 +29,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const pageId = await encontrarTodoPageId(nombre, modelo.notion_url)
     if (!pageId) return NextResponse.json({ ok: true, encontrado: false, tareas: [] })
 
-    const tareas = await leerTareas(pageId)
+    // El contenido de OnlyFans se cuenta aparte (Content Snare), así que lo excluimos
+    // del control de Notion para que no salga duplicado ni sin dato.
+    const tareas = (await leerTareas(pageId)).filter(t => !/only/i.test(t.texto ?? ''))
 
     const resultado = []
     for (const t of tareas) {

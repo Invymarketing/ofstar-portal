@@ -99,20 +99,35 @@ export async function csFetch(path: string): Promise<any> {
 
 // Dado el id de cliente (acc_XXXX), devuelve su solicitud ACTIVA de la semana
 // (published o waiting). Si tiene varias, coge la de fecha límite más reciente.
-export async function solicitudActivaDeCliente(accId: string): Promise<any | null> {
-  // El listado /requests NO trae primary_client_id ni los conteos (solo id/status/name/due).
-  // Así que: 1) listamos, 2) filtramos las activas, 3) pedimos el detalle de cada una
-  //          (que sí trae primary_client_id + conteos) y nos quedamos con las de este cliente.
-  const data = await csFetch('/requests')
-  const reqs: any[] = Array.isArray(data) ? data : (data.results ?? [])
-  const activas = reqs.filter((r) => ['published', 'waiting'].includes(r.status))
+// Cache compartido (en memoria del servidor) de las solicitudes activas YA detalladas.
+// Evita que cada modelo pida la lista + los detalles por su cuenta (saturaría Content Snare).
+// Guardamos la PROMESA en vuelo: si 12 modelos preguntan a la vez, comparten la misma consulta.
+let _cachePromesa: Promise<any[]> | null = null
+let _cacheTs = 0
+const _CACHE_MS = 60 * 1000
 
-  const detalles = await Promise.all(
-    activas.map((r) => csFetch('/requests/' + r.id).catch(() => null))
-  )
-  const mias = detalles.filter(
-    (d): d is any => d != null && d.primary_client_id === accId
-  )
+function _traerActivasDetalladas(): Promise<any[]> {
+  return csFetch('/requests').then((data) => {
+    const reqs: any[] = Array.isArray(data) ? data : (data.results ?? [])
+    const activas = reqs.filter((r: any) => ['published', 'waiting'].includes(r.status))
+    return Promise.all(
+      activas.map((r: any) => csFetch('/requests/' + r.id).catch(() => null))
+    ).then((detalles) => detalles.filter((d): d is any => d != null))
+  })
+}
+
+async function getActivasDetalladas(): Promise<any[]> {
+  const fresco = _cachePromesa && Date.now() - _cacheTs < _CACHE_MS
+  if (!fresco) {
+    _cacheTs = Date.now()
+    _cachePromesa = _traerActivasDetalladas().catch((e) => { _cachePromesa = null; throw e })
+  }
+  return _cachePromesa!
+}
+
+export async function solicitudActivaDeCliente(accId: string): Promise<any | null> {
+  const detalles = await getActivasDetalladas()
+  const mias = detalles.filter((d) => d.primary_client_id === accId)
   if (mias.length === 0) return null
   // si tuviera varias activas, la de fecha límite más reciente
   mias.sort((a, b) => (b.due ?? '').localeCompare(a.due ?? ''))

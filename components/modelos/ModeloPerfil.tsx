@@ -39,6 +39,25 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
     return () => { vivo = false }
   }, [modeloId])
 
+  const [of, setOf] = useState<{ encontrado: boolean; entregado?: number; total?: number; porcentaje?: number; limite?: string | null } | null>(null)
+  const [loadingOf, setLoadingOf] = useState(true)
+
+  useEffect(() => {
+    let vivo = true
+    ;(async () => {
+      setLoadingOf(true)
+      try {
+        const res = await fetch(`/api/modelos/${modeloId}/onlyfans`)
+        const data = await res.json()
+        if (vivo) setOf(data.encontrado ? data : null)
+      } catch {
+        if (vivo) setOf(null)
+      }
+      if (vivo) setLoadingOf(false)
+    })()
+    return () => { vivo = false }
+  }, [modeloId])
+
   useEffect(() => {
     let vivo = true
     ;(async () => {
@@ -47,7 +66,12 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
         const res = await fetch(`/api/modelos/${modeloId}/contenido`)
         const data = await res.json()
         if (!vivo) return
-        setTareas(data.tareas ?? [])
+        // El contenido de OnlyFans se cuenta aparte (Content Snare), así que
+        // ocultamos del control de Notion cualquier tarea que hable de "only".
+        const tareasFiltradas = (data.tareas ?? []).filter(
+          (t: any) => !/only/i.test(t.texto ?? '')
+        )
+        setTareas(tareasFiltradas)
         setResumen(data.resumen ?? null)
       } catch {
         if (vivo) { setTareas([]); setResumen(null) }
@@ -123,6 +147,35 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
                     </div>
                   )
                 })}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl p-4 mb-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <img src="/content-snare.svg" alt="Content Snare" width={18} height={18} className="rounded" />
+                <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>Contenido OnlyFans — esta semana</p>
+              </div>
+              {of && of.total != null && (
+                <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{
+                  backgroundColor: (of.porcentaje ?? 0) >= 100 ? 'rgba(74,222,128,0.15)' : 'rgba(56,189,248,0.15)',
+                  color: (of.porcentaje ?? 0) >= 100 ? '#4ADE80' : '#38BDF8'
+                }}>{of.entregado}/{of.total} · {Math.round(of.porcentaje ?? 0)}%</span>
+              )}
+            </div>
+            {loadingOf ? (
+              <div className="flex items-center justify-center py-4" style={{ color: '#8B8B9E' }}><Loader2 size={16} className="animate-spin" /></div>
+            ) : !of || of.total === 0 ? (
+              <p className="text-sm py-3 text-center" style={{ color: '#8B8B9E' }}>No hay solicitud de Content Snare activa esta semana.</p>
+            ) : (
+              <div>
+                <div className="h-2 rounded-full overflow-hidden mb-2" style={{ backgroundColor: '#1E1E2E' }}>
+                  <div className="h-full rounded-full" style={{ width: Math.min(100, of.porcentaje ?? 0) + '%', backgroundColor: (of.porcentaje ?? 0) >= 100 ? '#4ADE80' : '#38BDF8' }} />
+                </div>
+                <p className="text-xs" style={{ color: '#8B8B9E' }}>
+                  {of.entregado} de {of.total} elementos entregados{of.limite ? ` · límite ${of.limite}` : ''}
+                </p>
               </div>
             )}
           </div>
