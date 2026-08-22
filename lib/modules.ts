@@ -38,8 +38,8 @@ export const MODULES: ModuleDefinition[] = [
     description: 'Registro de calidad, reportes de ventas por turno y métricas de rendimiento con Infloww.',
     icon: 'MessageSquare',
     phase: 8,
-    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter'],
-    isBuilt: false,
+   allowedRoles: ['admin', 'manager', 'team_leader'],
+    isBuilt: true,
   },
   {
     id: 5,
