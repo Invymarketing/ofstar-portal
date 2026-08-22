@@ -41,6 +41,15 @@ export async function toggleChatter(id: string, activo: boolean) {
   revalidatePath('/modulo-4')
 }
 
+export async function deleteChatter(id: string) {
+  await requireStaff()
+  const admin = createAdminClient()
+  // Ojo: borra también los errores de ese chatter (FK on delete cascade)
+  const { error } = await admin.from('chatters').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/modulo-4')
+}
+
 // ============================================================
 // ERRORES
 // ============================================================

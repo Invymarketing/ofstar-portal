@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import GestionChatters from '@/components/modulo-4/GestionChatters'
 import RegistrarErrorForm from '@/components/modulo-4/RegistrarErrorForm'
 import PanelCalidad from '@/components/modulo-4/PanelCalidad'
 import HistorialErrores from '@/components/modulo-4/HistorialErrores'
@@ -114,6 +115,12 @@ export default async function Modulo4Page() {
 
       {tablesReady && (
         <div className="space-y-10">
+          {/* Gestión de chatters */}
+          <section>
+            <h2 className="text-sm font-semibold mb-4" style={{ color: '#F0F0F5' }}>Chatters</h2>
+            <GestionChatters chatters={chatters ?? []} />
+          </section>
+
           {/* Registrar error */}
           <section>
             <h2 className="text-sm font-semibold mb-4" style={{ color: '#F0F0F5' }}>Registrar error</h2>
