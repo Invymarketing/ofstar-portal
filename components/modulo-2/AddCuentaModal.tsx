@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, AtSign, Loader2, Star } from 'lucide-react'
+import { X, AtSign, Loader2, Star, Check } from 'lucide-react'
 import { Nicho } from './analytics-utils'
 
 interface Modelo { id: string; nombre: string }
@@ -15,7 +15,8 @@ interface Props {
 export default function AddCuentaModal({ tipo, nichos, onClose, onAdded }: Props) {
   const [username, setUsername] = useState('')
   const [nichoId, setNichoId] = useState('')
-  const [modeloId, setModeloId] = useState('')
+  const [modeloId, setModeloId] = useState('')                 // propia: 1 modelo
+  const [modelosRef, setModelosRef] = useState<Set<string>>(new Set()) // competencia: varias
   const [grupoComp, setGrupoComp] = useState('')
   const [esPrincipal, setEsPrincipal] = useState(false)
   const [notas, setNotas] = useState('')
@@ -24,12 +25,28 @@ export default function AddCuentaModal({ tipo, nichos, onClose, onAdded }: Props
   const [error, setError] = useState('')
 
   const [modelos, setModelos] = useState<Modelo[]>([])
-  const [loadingModelos, setLoadingModelos] = useState(tipo === 'propia')
+  const [loadingModelos, setLoadingModelos] = useState(true)
 
+  // Cargamos las modelos SIEMPRE (propia usa /api/modelos; competencia también las necesita para vincular)
   useEffect(() => {
-    if (tipo !== 'propia') return
-    fetch('/api/modelos').then(r => r.json()).then(d => setModelos(d.modelos ?? [])).catch(() => setModelos([])).finally(() => setLoadingModelos(false))
+    const url = tipo === 'propia' ? '/api/modelos' : '/api/modelos-admin'
+    fetch(url)
+      .then(r => r.json())
+      .then(d => {
+        const lista = (d.modelos ?? []).map((m: any) => ({ id: m.id, nombre: m.model_name || m.nombre || m.full_name }))
+        setModelos(lista)
+      })
+      .catch(() => setModelos([]))
+      .finally(() => setLoadingModelos(false))
   }, [tipo])
+
+  function toggleModeloRef(id: string) {
+    setModelosRef(prev => {
+      const s = new Set(prev)
+      if (s.has(id)) s.delete(id); else s.add(id)
+      return s
+    })
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -54,6 +71,15 @@ export default function AddCuentaModal({ tipo, nichos, onClose, onAdded }: Props
         if (data.error === 'cuenta_duplicada') setError('Esta cuenta ya está registrada')
         else setError('Error: ' + (data.error ?? 'desconocido'))
         setLoading(false); setStatusMsg(''); return
+      }
+
+      // Competencia: vincular las modelos de referencia elegidas
+      if (tipo === 'competencia' && modelosRef.size > 0 && data.cuenta?.id) {
+        setStatusMsg('Vinculando modelos...')
+        await fetch('/api/competencia-modelos', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cuenta_id: data.cuenta.id, modelo_ids: Array.from(modelosRef) }),
+        }).catch(() => {})
       }
 
       setStatusMsg('Trayendo datos de Instagram...')
@@ -116,15 +142,31 @@ export default function AddCuentaModal({ tipo, nichos, onClose, onAdded }: Props
             </div>
           )}
 
-          {/* Nicho */}
-          <div>
-            <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Nicho</label>
-            <div className="flex flex-wrap gap-2">
-              {nichos.map(n => (
-                <button key={n.id} type="button" onClick={() => setNichoId(nichoId === n.id ? '' : n.id)} disabled={loading} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: nichoId === n.id ? `${n.color}22` : '#0D0D14', color: nichoId === n.id ? n.color : '#8B8B9E', border: nichoId === n.id ? `1px solid ${n.color}66` : '1px solid #1E1E2E' }}>{n.nombre}</button>
-              ))}
+          {/* Competencia: ¿de qué modelos es referencia? (selección múltiple) */}
+          {tipo === 'competencia' && (
+            <div>
+              <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Referencia de… <span style={{ color: 'rgba(139,139,158,0.6)' }}>(puedes elegir varias)</span></label>
+              {loadingModelos ? (
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E' }}>
+                  <Loader2 size={13} className="animate-spin" style={{ color: '#8B8B9E' }} /><span className="text-xs" style={{ color: '#8B8B9E' }}>Cargando modelos...</span>
+                </div>
+              ) : modelos.length === 0 ? (
+                <p className="text-xs px-1" style={{ color: '#8B8B9E' }}>No hay modelos para vincular.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {modelos.map(m => {
+                    const activa = modelosRef.has(m.id)
+                    return (
+                      <button key={m.id} type="button" onClick={() => toggleModeloRef(m.id)} disabled={loading} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: activa ? 'rgba(201,168,76,0.15)' : '#0D0D14', color: activa ? '#C9A84C' : '#8B8B9E', border: activa ? '1px solid rgba(201,168,76,0.35)' : '1px solid #1E1E2E' }}>
+                        {activa && <Check size={11} />}{m.nombre}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+              {modelosRef.size > 0 && <p className="text-[10px] mt-1.5" style={{ color: '#C9A84C' }}>{modelosRef.size} modelo{modelosRef.size === 1 ? '' : 's'} seleccionada{modelosRef.size === 1 ? '' : 's'}</p>}
             </div>
-          </div>
+          )}
 
           {/* Marcar como principal */}
           <button type="button" onClick={() => setEsPrincipal(!esPrincipal)} disabled={loading} className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs w-full transition-all" style={{ backgroundColor: esPrincipal ? 'rgba(201,168,76,0.1)' : '#0D0D14', border: esPrincipal ? '1px solid rgba(201,168,76,0.25)' : '1px solid #1E1E2E', color: esPrincipal ? '#C9A84C' : '#8B8B9E' }}>

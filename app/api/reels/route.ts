@@ -34,6 +34,26 @@ export async function GET(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // Vínculos cuenta→modelos (tabla puente). Solo relevante para competencia.
+  // Construimos un mapa cuenta_id -> [{id, nombre}] con las modelos vinculadas.
+  const cuentaIds = Array.from(
+    new Set((data ?? []).map((r: any) => r.cuentas_analytics?.id).filter(Boolean))
+  )
+  const vinculosPorCuenta = new Map<string, { id: string; nombre: string }[]>()
+  if (tipo === 'competencia' && cuentaIds.length > 0) {
+    const { data: vinc } = await admin
+      .from('competencia_modelos')
+      .select('cuenta_id, modelos ( id, full_name, model_name )')
+      .in('cuenta_id', cuentaIds)
+    for (const v of (vinc ?? []) as any[]) {
+      const m = v.modelos
+      if (!m) continue
+      const arr = vinculosPorCuenta.get(v.cuenta_id) ?? []
+      arr.push({ id: m.id, nombre: m.model_name || m.full_name })
+      vinculosPorCuenta.set(v.cuenta_id, arr)
+    }
+  }
+
   const reels = (data ?? []).map((r: any) => {
     const cuenta = r.cuentas_analytics
     const modelo = cuenta?.modelos
@@ -53,6 +73,7 @@ export async function GET(request: NextRequest) {
       nicho_id: nicho?.id ?? null,
       nicho_nombre: nicho?.nombre ?? 'Sin nicho',
       nicho_color: nicho?.color ?? '#8B8B9E',
+      modelos_ref: vinculosPorCuenta.get(cuenta?.id) ?? [],
     }
   })
 

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, RefreshCw, Trash2, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Film } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Trash2, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Film, Sparkles } from 'lucide-react'
+import ReferenciaModelosModal from './ReferenciaModelosModal'
 import { Grupo, Cuenta, formatNum, ultimaMetrica } from './analytics-utils'
 import ReelsGrid, { OrdenReel } from './ReelsGrid'
 
@@ -20,6 +21,7 @@ export default function GrupoDetalle({ grupo, tipo, onBack, onRefresh }: Props) 
   const [syncingId, setSyncingId] = useState<string | null>(null)
   const [periodo, setPeriodo] = useState(7)
   const [orden, setOrden] = useState<OrdenReel>('ganador')
+  const [modalRef, setModalRef] = useState(false)
 
   async function sincronizar(id: string) {
     setSyncingId(id)
@@ -58,7 +60,20 @@ export default function GrupoDetalle({ grupo, tipo, onBack, onRefresh }: Props) 
           </div>
           <p className="text-xs" style={{ color: '#8B8B9E' }}>{grupo.totalCuentas} cuentas · {formatNum(grupo.totalSeguidores)} seguidores · {grupo.engagementMedio}% engagement</p>
         </div>
+        {tipo === 'competencia' && grupo.cuentas[0] && (
+          <button onClick={() => setModalRef(true)} className="ml-auto flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all" style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', color: '#C9A84C' }}>
+            <Sparkles size={13} /> Referencia de…
+          </button>
+        )}
       </div>
+
+      {modalRef && grupo.cuentas[0] && (
+        <ReferenciaModelosModal
+          cuentaId={grupo.cuentas[0].id}
+          nombreCompetidor={grupo.nombre}
+          onClose={() => setModalRef(false)}
+        />
+      )}
 
       {/* Lista de cuentas de esta modelo */}
       <div className="space-y-3">

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Users, Sparkles } from 'lucide-react'
 import GaleriaModelos from './GaleriaModelos'
-import ReferenciasPorNicho from './ReferenciasPorNicho'
+import ReferenciasPorModelo from './ReferenciasPorModelo'
 import { Nicho } from './analytics-utils'
 
 export default function CompetenciaTab({ nichos }: { nichos: Nicho[] }) {
@@ -17,14 +17,14 @@ export default function CompetenciaTab({ nichos }: { nichos: Nicho[] }) {
           <Users size={13} /> Competidores
         </button>
         <button onClick={() => setVista('referencias')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all" style={{ backgroundColor: vista === 'referencias' ? 'rgba(201,168,76,0.12)' : 'transparent', color: vista === 'referencias' ? '#C9A84C' : '#8B8B9E' }}>
-          <Sparkles size={13} /> Referencias por nicho
+          <Sparkles size={13} /> Referencias por modelo
         </button>
       </div>
 
       {vista === 'competidores' ? (
         <GaleriaModelos key="competencia" tipo="competencia" nichos={nichos} />
       ) : (
-        <ReferenciasPorNicho />
+        <ReferenciasPorModelo />
       )}
     </div>
   )
