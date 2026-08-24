@@ -1,10 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import GestionChatters from '@/components/modulo-4/GestionChatters'
-import RegistrarErrorForm from '@/components/modulo-4/RegistrarErrorForm'
-import PanelCalidad from '@/components/modulo-4/PanelCalidad'
-import HistorialErrores from '@/components/modulo-4/HistorialErrores'
+import Modulo4Tabs from '@/components/modulo-4/Modulo4Tabs'
 import { MessageSquare, Info } from 'lucide-react'
 import type { UserRole } from '@/types'
 
@@ -114,35 +111,13 @@ export default async function Modulo4Page() {
       )}
 
       {tablesReady && (
-        <div className="space-y-10">
-          {/* Gestión de chatters */}
-          <section>
-            <h2 className="text-sm font-semibold mb-4" style={{ color: '#F0F0F5' }}>Chatters</h2>
-            <GestionChatters chatters={chatters ?? []} />
-          </section>
-
-          {/* Registrar error */}
-          <section>
-            <h2 className="text-sm font-semibold mb-4" style={{ color: '#F0F0F5' }}>Registrar error</h2>
-            <RegistrarErrorForm chatters={chatters ?? []} categorias={categorias ?? []} modelos={modelos ?? []} />
-          </section>
-
-          {/* Panel de calidad / ranking */}
-          <section>
-            <h2 className="text-sm font-semibold mb-4" style={{ color: '#F0F0F5' }}>
-              Panel de calidad — quincena actual
-            </h2>
-            <PanelCalidad ranking={ranking} />
-          </section>
-
-          {/* Historial */}
-          <section>
-            <h2 className="text-sm font-semibold mb-4" style={{ color: '#F0F0F5' }}>
-              Historial de errores
-            </h2>
-            <HistorialErrores errores={erroresView} />
-          </section>
-        </div>
+        <Modulo4Tabs
+          chatters={chatters ?? []}
+          categorias={categorias ?? []}
+          modelos={modelos ?? []}
+          ranking={ranking}
+          errores={erroresView}
+        />
       )}
     </div>
   )
