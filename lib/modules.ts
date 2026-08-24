@@ -24,12 +24,12 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 3,
     slug: 'modulo-3',
-    name: 'Finanzas y Facturación',
-    description: 'Genera facturas PDF, registra gastos por modelo y visualiza márgenes netos en tiempo real.',
+    name: 'Caja, Ventas & Fans',
+    description: 'Ventas de Infloww en tiempo real, comisiones y CRM de fans con detección de ballenas.',
     icon: 'DollarSign',
     phase: 4,
-    allowedRoles: ['admin'],
-    isBuilt: false,
+    allowedRoles: ['admin', 'manager'],
+    isBuilt: true,
   },
   {
     id: 4,
