@@ -28,43 +28,27 @@ export default async function Modulo3Page() {
 
   const quincena = quincenaActual()
 
-  const [{ data: modelos }, { data: ventas }, { data: cajaQ }, { data: fans }] = await Promise.all([
+  // Ventas de los últimos 35 días (suficiente para Hoy / Semana / Mes)
+  const desde35 = new Date(Date.now() - 35 * 24 * 3600 * 1000).toISOString()
+
+  const [{ data: modelos }, { data: ventas }, { data: fans }] = await Promise.all([
     admin.from('modelos').select('id, model_name, activa').order('model_name'),
     admin.from('ventas')
       .select('id, fecha, fan_name, fan_id, monto_bruto, comision, venta_neto, tipo, estado, origen, modelo_id, creator_id_infloww')
+      .gte('fecha', desde35)
       .order('fecha', { ascending: false })
-      .limit(60),
-    admin.from('v_caja_quincena').select('*').eq('quincena', quincena),
+      .limit(5000),
     admin.from('v_fans').select('*').order('ltv', { ascending: false }).limit(300),
   ])
 
   const tablesReady = ventas !== null && fans !== null
   const modeloMap = new Map((modelos ?? []).map((m) => [m.id, m.model_name]))
 
-  // KPIs de la quincena (suma de todos los modelos)
-  const kpis = (cajaQ ?? []).reduce(
-    (acc, r) => ({
-      bruto: acc.bruto + Number(r.bruto ?? 0),
-      comision: acc.comision + Number(r.comision ?? 0),
-      neto: acc.neto + Number(r.neto ?? 0),
-      ventas: acc.ventas + Number(r.ventas_ok ?? 0),
-    }),
-    { bruto: 0, comision: 0, neto: 0, ventas: 0 }
-  )
-
-  // Caja por modelo (para el desglose)
-  const porModelo = (cajaQ ?? [])
-    .map((r) => ({
-      modelo: r.modelo_id ? (modeloMap.get(r.modelo_id) ?? '—') : 'Sin modelo',
-      bruto: Number(r.bruto ?? 0),
-      comision: Number(r.comision ?? 0),
-      neto: Number(r.neto ?? 0),
-      ventas: Number(r.ventas_ok ?? 0),
-    }))
-    .sort((a, b) => b.bruto - a.bruto)
-
   const ventasView = (ventas ?? []).map((v) => ({
     ...v,
+    monto_bruto: Number(v.monto_bruto ?? 0),
+    comision: Number(v.comision ?? 0),
+    venta_neto: Number(v.venta_neto ?? 0),
     modelo: v.modelo_id ? (modeloMap.get(v.modelo_id) ?? null) : null,
   }))
 
@@ -106,9 +90,6 @@ export default async function Modulo3Page() {
           modelos={(modelos ?? []).map((m) => ({ id: m.id, model_name: m.model_name, activa: m.activa }))}
           ventas={ventasView}
           fans={fansView}
-          kpis={kpis}
-          porModelo={porModelo}
-          quincena={quincena}
         />
       )}
     </div>
