@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     .from('metricas_analytics').select('cuenta_id').eq('fecha', hoy)
   const yaHechasHoy = new Set((hechas ?? []).map((r: any) => r.cuenta_id))
 
-  const pkPorCuenta = new Map<string, number>()
+  const pkPorCuenta = new Map<string, string>()
 
   // ---------- FASE 1: SEGUIDORES (solo las que faltan hoy) ----------
   let metricasOk = 0
