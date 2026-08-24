@@ -204,7 +204,8 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
                 tickFormatter={(v) => `$${v}`} />
               <Tooltip
                 contentStyle={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: '#F0F0F5' }} formatter={(v: number) => [money(v), 'Ventas']} />
+                labelStyle={{ color: '#F0F0F5' }}
+                formatter={(value) => [money(Number(value) || 0), 'Ventas'] as [string, string]} />
               <Area type="monotone" dataKey="total" stroke="#C9A84C" strokeWidth={2} fill="url(#gVentas)" />
             </AreaChart>
           </ResponsiveContainer>
