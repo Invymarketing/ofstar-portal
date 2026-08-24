@@ -3,6 +3,7 @@
 // Reemplaza el escenario de Make "Infloww → Caja | Ventas".
 // Protegido con CRON_SECRET, igual que /api/cron/sync-all.
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCreators, getTransactions, mapTransaction, type VentaRow } from '@/lib/infloww'
 
@@ -12,10 +13,27 @@ export const maxDuration = 300 // hasta 5 min
 // el upsert por infloww_id evita duplicados). Configurable con INFLOWW_LOOKBACK_HOURS.
 const LOOKBACK_HOURS = Number(process.env.INFLOWW_LOOKBACK_HOURS ?? '8')
 
-export async function GET(request: NextRequest) {
+// Autoriza si (a) trae el Bearer del cron, o (b) es un admin/manager logueado
+// en el CRM (para poder disparar el sync desde el navegador o un botón).
+async function autorizado(request: NextRequest): Promise<boolean> {
   const auth = request.headers.get('authorization')
   const secret = process.env.CRON_SECRET
-  if (!secret || auth !== `Bearer ${secret}`) {
+  if (secret && auth === `Bearer ${secret}`) return true
+
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return false
+    const admin = createAdminClient()
+    const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
+    return !!me && ['admin', 'manager'].includes(me.role)
+  } catch {
+    return false
+  }
+}
+
+export async function GET(request: NextRequest) {
+  if (!(await autorizado(request))) {
     return NextResponse.json({ error: 'no_autorizado' }, { status: 401 })
   }
 
