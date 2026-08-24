@@ -20,16 +20,10 @@ export interface Fan {
   dias_sin_comprar: number | null; tier: string; estado_fan: string
   en_potencia: string; ballena_enfriandose: string
 }
-export interface Kpis { bruto: number; comision: number; neto: number; ventas: number }
-export interface ModeloCaja { modelo: string; bruto: number; comision: number; neto: number; ventas: number }
-
 interface Props {
   modelos: Modelo[]
   ventas: Venta[]
   fans: Fan[]
-  kpis: Kpis
-  porModelo: ModeloCaja[]
-  quincena: string
 }
 
 const TABS = [
@@ -39,7 +33,7 @@ const TABS = [
   { id: 'registrar', label: 'Registrar venta', icon: PlusCircle },
 ] as const
 
-export default function Modulo3Tabs({ modelos, ventas, fans, kpis, porModelo, quincena }: Props) {
+export default function Modulo3Tabs({ modelos, ventas, fans }: Props) {
   const [tab, setTab] = useState<string>('ventas')
   const ballenas = fans.filter((f) => f.tier === '🐋 Ballena')
 
@@ -66,9 +60,7 @@ export default function Modulo3Tabs({ modelos, ventas, fans, kpis, porModelo, qu
         })}
       </div>
 
-      {tab === 'ventas' && (
-        <VentasPanel ventas={ventas} kpis={kpis} porModelo={porModelo} quincena={quincena} />
-      )}
+      {tab === 'ventas' && <VentasPanel ventas={ventas} />}
       {tab === 'ballenas' && <BallenasPanel fans={fans} />}
       {tab === 'fans' && <FansPanel fans={fans} />}
       {tab === 'registrar' && <RegistrarVentaForm modelos={modelos} />}
