@@ -111,6 +111,16 @@ export const MODULES: ModuleDefinition[] = [
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo'],
     isBuilt: false,
   },
+  {
+    id: 12,
+    slug: 'modulo-12',
+    name: 'Mis Ventas',
+    description: 'Reporta tus ventas; se confirman automáticamente contra Infloww.',
+    icon: 'DollarSign',
+    phase: 8,
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter'],
+    isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
