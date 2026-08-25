@@ -4,65 +4,63 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// Solo staff financiero puede registrar ventas manuales
-async function requireStaff() {
+// Resuelve la identidad de chatter (roster) del usuario logueado:
+// 1) por profile_id vinculado, 2) por nombre como respaldo.
+async function chatterDelUsuario(admin: ReturnType<typeof createAdminClient>, userId: string) {
+  const { data: ch } = await admin.from('chatters').select('id, nombre').eq('profile_id', userId).maybeSingle()
+  if (ch) return ch
+  const { data: prof } = await admin.from('profiles').select('full_name').eq('id', userId).single()
+  if (prof?.full_name) {
+    const { data: byName } = await admin.from('chatters').select('id, nombre').ilike('nombre', prof.full_name).maybeSingle()
+    if (byName) return byName
+  }
+  return null
+}
+
+export async function reportarVenta(data: {
+  modelo_id?: string | null
+  fan_name?: string
+  monto: number
+  tipo?: string
+  fecha_venta?: string
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+
+  if (!data.monto || data.monto <= 0) throw new Error('El monto debe ser mayor que 0')
+
+  const admin = createAdminClient()
+  const ch = await chatterDelUsuario(admin, user.id)
+
+  const { error } = await admin.from('ventas_reportadas').insert({
+    reported_by: user.id,
+    chatter_id: ch?.id ?? null,
+    modelo_id: data.modelo_id || null,
+    fan_name: data.fan_name?.trim() || null,
+    monto: data.monto,
+    tipo: data.tipo?.trim() || 'subscription',
+    fecha_venta: data.fecha_venta || new Date().toISOString(),
+  })
+  if (error) throw new Error(error.message)
+
+  // Intenta cruzar de inmediato con las ventas de Infloww ya cargadas
+  try { await admin.rpc('reconciliar_ventas') } catch { /* la venta puede llegar luego */ }
+
+  revalidatePath('/modulo-12')
+}
+
+export async function eliminarReporte(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
   const admin = createAdminClient()
+  // Solo puede borrar su propio reporte (o staff)
   const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
-  if (!me || !['admin', 'manager'].includes(me.role)) throw new Error('Sin permiso')
-  return user
-}
-
-export async function registrarVenta(data: {
-  modelo_id?: string | null
-  fan_name?: string
-  fan_id?: string
-  monto_bruto: number
-  tipo?: string
-  fecha?: string
-  estado?: 'Completado' | 'Reverso' | 'Revision'
-}) {
-  const user = await requireStaff()
-  const admin = createAdminClient()
-
-  if (!data.monto_bruto || data.monto_bruto <= 0) throw new Error('El monto debe ser mayor que 0')
-
-  const { error } = await admin.from('ventas').insert({
-    modelo_id: data.modelo_id || null,
-    fan_name: data.fan_name?.trim() || null,
-    fan_id: data.fan_id?.trim() || null,
-    monto_bruto: data.monto_bruto,
-    tipo: data.tipo?.trim() || 'manual',
-    fecha: data.fecha || new Date().toISOString(),
-    estado: data.estado || 'Completado',
-    created_by: user.id,
-    // infloww_id queda NULL → origen se marca 🖋️ Manual automáticamente
-  })
+  const esStaff = me && ['admin', 'manager', 'team_leader'].includes(me.role)
+  const q = admin.from('ventas_reportadas').delete().eq('id', id)
+  if (!esStaff) q.eq('reported_by', user.id)
+  const { error } = await q
   if (error) throw new Error(error.message)
-  revalidatePath('/modulo-3')
-}
-
-export async function eliminarVenta(id: string) {
-  await requireStaff()
-  const admin = createAdminClient()
-  const { error } = await admin.from('ventas').delete().eq('id', id)
-  if (error) throw new Error(error.message)
-  revalidatePath('/modulo-3')
-}
-
-// Mapear manualmente un creator de Infloww a un modelo (para las ventas "sin modelo")
-export async function mapearCreator(modeloId: string, creatorId: string) {
-  await requireStaff()
-  const admin = createAdminClient()
-  const { error: e1 } = await admin
-    .from('modelos').update({ creator_id_infloww: creatorId }).eq('id', modeloId)
-  if (e1) throw new Error(e1.message)
-  // Reasigna las ventas huérfanas de ese creator
-  const { error: e2 } = await admin
-    .from('ventas').update({ modelo_id: modeloId })
-    .eq('creator_id_infloww', creatorId).is('modelo_id', null)
-  if (e2) throw new Error(e2.message)
-  revalidatePath('/modulo-3')
+  revalidatePath('/modulo-12')
 }
