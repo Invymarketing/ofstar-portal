@@ -31,18 +31,20 @@ export default async function Modulo3Page() {
   // Ventas de los últimos 35 días (suficiente para Hoy / Semana / Mes)
   const desde35 = new Date(Date.now() - 35 * 24 * 3600 * 1000).toISOString()
 
-  const [{ data: modelos }, { data: ventas }, { data: fans }] = await Promise.all([
+  const [{ data: modelos }, { data: ventas }, { data: fans }, { data: chatters }] = await Promise.all([
     admin.from('modelos').select('id, model_name, activa').order('model_name'),
     admin.from('ventas')
-      .select('id, fecha, fan_name, fan_id, monto_bruto, comision, venta_neto, tipo, estado, origen, modelo_id, creator_id_infloww')
+      .select('id, fecha, fan_name, fan_id, monto_bruto, comision, venta_neto, tipo, estado, origen, modelo_id, creator_id_infloww, chatter_id')
       .gte('fecha', desde35)
       .order('fecha', { ascending: false })
       .limit(5000),
     admin.from('v_fans').select('*').order('ltv', { ascending: false }).limit(300),
+    admin.from('chatters').select('id, nombre'),
   ])
 
   const tablesReady = ventas !== null && fans !== null
   const modeloMap = new Map((modelos ?? []).map((m) => [m.id, m.model_name]))
+  const chatterMap = new Map((chatters ?? []).map((c) => [c.id, c.nombre]))
 
   const ventasView = (ventas ?? []).map((v) => ({
     ...v,
@@ -50,6 +52,7 @@ export default async function Modulo3Page() {
     comision: Number(v.comision ?? 0),
     venta_neto: Number(v.venta_neto ?? 0),
     modelo: v.modelo_id ? (modeloMap.get(v.modelo_id) ?? null) : null,
+    chatter: v.chatter_id ? (chatterMap.get(v.chatter_id) ?? null) : null,
   }))
 
   const fansView = (fans ?? []).map((fn) => ({
