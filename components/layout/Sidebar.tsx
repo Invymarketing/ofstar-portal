@@ -145,7 +145,6 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
           )}
 
           <div className="mt-3 mb-2 px-3">
-          <div className="mt-3 mb-2 px-3">
             <p className="text-xs font-semibold text-muted uppercase tracking-wider">
               Módulos
             </p>
