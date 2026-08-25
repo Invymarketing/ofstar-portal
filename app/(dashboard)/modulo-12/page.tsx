@@ -17,17 +17,31 @@ export default async function Modulo12Page() {
   const role = profile?.role as UserRole
   if (!['admin', 'manager', 'team_leader', 'chatter'].includes(role)) redirect('/')
 
-  // Modelos activas para el formulario
+  // Identidad de chatter del usuario (para sus ventas atribuidas)
+  const { data: ch } = await admin.from('chatters').select('id').eq('profile_id', user.id).maybeSingle()
+  const chId = ch?.id ?? null
+
+  const desde35 = new Date(Date.now() - 35 * 24 * 3600 * 1000).toISOString()
+
   const { data: modelos } = await admin
     .from('modelos').select('id, model_name, activa').eq('activa', true).order('model_name')
 
-  // ¿Existe la tabla de reportes? (migración 008)
   const { data: reportes, error: repErr } = await admin
     .from('ventas_reportadas')
     .select('id, modelo_id, fan_name, monto, tipo, fecha_venta, estado, created_at')
     .eq('reported_by', user.id)
     .order('created_at', { ascending: false })
     .limit(50)
+
+  // Ventas reales ya atribuidas a este chatter (para sus totales)
+  const { data: misVentas } = chId
+    ? await admin.from('ventas')
+        .select('id, fecha, fan_name, monto_bruto, venta_neto, tipo, estado, modelo_id')
+        .eq('chatter_id', chId)
+        .gte('fecha', desde35)
+        .order('fecha', { ascending: false })
+        .limit(2000)
+    : { data: [] }
 
   const tablesReady = !repErr
 
@@ -37,9 +51,19 @@ export default async function Modulo12Page() {
     monto: Number(r.monto ?? 0),
     modelo: r.modelo_id ? (modeloMap.get(r.modelo_id) ?? null) : null,
   }))
+  const ventasView = (misVentas ?? []).map((v) => ({
+    id: v.id,
+    fecha: v.fecha,
+    fan_name: v.fan_name,
+    monto_bruto: Number(v.monto_bruto ?? 0),
+    venta_neto: Number(v.venta_neto ?? 0),
+    tipo: v.tipo,
+    estado: v.estado,
+    modelo: v.modelo_id ? (modeloMap.get(v.modelo_id) ?? null) : null,
+  }))
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="flex items-start gap-3 mb-8">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
           style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)' }}>
@@ -48,7 +72,7 @@ export default async function Modulo12Page() {
         <div>
           <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Mis Ventas</h1>
           <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>
-            Reporta tus ventas · se confirman automáticamente contra Infloww
+            Reporta tus ventas y mira tus totales · se confirman contra Infloww
           </p>
         </div>
       </div>
@@ -68,6 +92,7 @@ export default async function Modulo12Page() {
         <MisVentas
           modelos={(modelos ?? []).map((m) => ({ id: m.id, model_name: m.model_name }))}
           reportes={reportesView}
+          ventas={ventasView}
         />
       )}
     </div>
