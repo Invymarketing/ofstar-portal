@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { reportarVenta, eliminarReporte } from '@/app/(dashboard)/modulo-12/actions'
 import { Plus, Trash2, CheckCircle2, Clock, XCircle } from 'lucide-react'
 
@@ -9,9 +9,19 @@ interface Reporte {
   id: string; modelo: string | null; fan_name: string | null
   monto: number; tipo: string | null; fecha_venta: string; estado: string
 }
+interface VentaAtribuida {
+  id: string; fecha: string; fan_name: string | null; monto_bruto: number
+  venta_neto: number; tipo: string | null; estado: string; modelo: string | null
+}
 
 const TIPOS = ['subscription', 'tip', 'message']
 const money = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })
+
+const RANGOS = [
+  { id: 'hoy', label: 'Hoy', dias: 1 },
+  { id: 'semana', label: 'Esta semana', dias: 7 },
+  { id: 'mes', label: 'Este mes', dias: 30 },
+] as const
 
 const ESTADO = {
   confirmada: { label: 'Confirmada', color: '#22C55E', icon: CheckCircle2 },
@@ -19,11 +29,14 @@ const ESTADO = {
   no_encontrada: { label: 'No encontrada', color: '#EF4444', icon: XCircle },
 } as const
 
-export default function MisVentas({ modelos, reportes }: { modelos: Modelo[]; reportes: Reporte[] }) {
+export default function MisVentas({
+  modelos, reportes, ventas,
+}: { modelos: Modelo[]; reportes: Reporte[]; ventas: VentaAtribuida[] }) {
   const [modeloId, setModeloId] = useState('')
   const [fanName, setFanName] = useState('')
   const [monto, setMonto] = useState('')
   const [tipo, setTipo] = useState('subscription')
+  const [rango, setRango] = useState<string>('mes')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState(false)
@@ -31,12 +44,28 @@ export default function MisVentas({ modelos, reportes }: { modelos: Modelo[]; re
   const bruto = Number(monto) || 0
   const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
 
+  const dias = RANGOS.find((r) => r.id === rango)?.dias ?? 30
+  const inicio = useMemo(() => {
+    const d = new Date(); d.setHours(0, 0, 0, 0)
+    if (dias > 1) d.setDate(d.getDate() - (dias - 1))
+    return d
+  }, [dias])
+
+  const totales = useMemo(() => {
+    const enRango = ventas.filter((v) => v.estado !== 'Reverso' && new Date(v.fecha) >= inicio)
+    return {
+      n: enRango.length,
+      bruto: enRango.reduce((a, v) => a + v.monto_bruto, 0),
+    }
+  }, [ventas, inicio])
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(null); setOk(false); setSaving(true)
     try {
       await reportarVenta({ modelo_id: modeloId || null, fan_name: fanName, monto: bruto, tipo })
       setOk(true); setFanName(''); setMonto(''); setTipo('subscription')
+      setTimeout(() => window.location.reload(), 1200)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar')
     } finally {
@@ -46,6 +75,32 @@ export default function MisVentas({ modelos, reportes }: { modelos: Modelo[]; re
 
   return (
     <div className="space-y-6">
+      {/* Totales del chatter */}
+      <div>
+        <div className="flex gap-1 p-1 rounded-xl mb-3 w-fit" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+          {RANGOS.map((r) => (
+            <button key={r.id} onClick={() => setRango(r.id)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={{
+                backgroundColor: rango === r.id ? 'rgba(201,168,76,0.15)' : 'transparent',
+                color: rango === r.id ? '#C9A84C' : '#8B8B9E',
+              }}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border p-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+            <p className="text-xs mb-1" style={{ color: '#6B6B80' }}>Tus ventas confirmadas</p>
+            <p className="text-2xl font-bold" style={{ color: '#F0F0F5' }}>{totales.n}</p>
+          </div>
+          <div className="rounded-2xl border p-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+            <p className="text-xs mb-1" style={{ color: '#6B6B80' }}>Total vendido</p>
+            <p className="text-2xl font-bold" style={{ color: '#C9A84C' }}>{money(totales.bruto)}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Formulario */}
       <form onSubmit={submit}
         className="rounded-2xl border p-5 grid grid-cols-1 sm:grid-cols-2 gap-4"
