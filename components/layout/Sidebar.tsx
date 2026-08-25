@@ -127,7 +127,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
           )}
 
           {/* Usuarios — solo admin */}
-          {role === 'admin' && (
+          {(role === 'admin' || role === 'manager') && (
             <Link
               href="/usuarios"
               onClick={onClose}
