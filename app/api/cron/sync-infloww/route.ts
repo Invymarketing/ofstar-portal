@@ -37,6 +37,28 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'no_autorizado' }, { status: 401 })
   }
 
+  // Modo debug: muestra los campos crudos de una transacción de Infloww
+  // (para ver si ya viene el empleado/chatter). Uso: ...?debug=1
+  if (new URL(request.url).searchParams.get('debug')) {
+    try {
+      const creators = await getCreators()
+      const since = new Date(Date.now() - 72 * 3600 * 1000).toISOString()
+      for (const c of creators) {
+        const txs = await getTransactions(c.id, since)
+        if (txs.length > 0) {
+          return NextResponse.json({
+            creator_sample: c,
+            transaction_keys: Object.keys(txs[0]),
+            transaction_sample: txs[0],
+          })
+        }
+      }
+      return NextResponse.json({ creators: creators.length, nota: 'sin transacciones en 72h' })
+    } catch (err) {
+      return NextResponse.json({ error: 'debug', detalle: String(err) }, { status: 502 })
+    }
+  }
+
   const admin = createAdminClient()
 
   // Modelos: mapa por creator_id_infloww y por nombre normalizado (para auto-mapear)
@@ -100,6 +122,15 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Cruza reportes de chatters pendientes con las ventas reales recién llegadas
+  let atribuidas = 0
+  try {
+    const { data } = await admin.rpc('reconciliar_ventas')
+    atribuidas = (data as number) ?? 0
+  } catch {
+    // si aún no existe la función/tabla, no rompe el sync
+  }
+
   return NextResponse.json({
     ok: true,
     desde: sinceISO,
@@ -107,6 +138,7 @@ export async function GET(request: NextRequest) {
     modelos_automapeados: automapeados,
     ventas_procesadas: insertadas,
     ventas_sin_modelo_mapeado: sinModelo,
+    ventas_atribuidas_a_chatter: atribuidas,
     fallidos: fallos.length,
     fallos,
   })
