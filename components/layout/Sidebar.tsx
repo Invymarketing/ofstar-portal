@@ -140,7 +140,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
               `}
             >
               <Users size={16} className="flex-shrink-0" />
-              <span>Usuarios</span>
+              <span>Empleados</span>
             </Link>
           )}
 
