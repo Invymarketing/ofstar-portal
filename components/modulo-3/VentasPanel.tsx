@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { RefreshCw, CreditCard, Gift, MessageSquare, FileText, Repeat, Radio } from 'lucide-react'
+import { RefreshCw, CreditCard, Gift, MessageSquare } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import type { Venta } from '@/components/modulo-3/Modulo3Tabs'
 
@@ -14,20 +14,18 @@ const RANGOS = [
   { id: 'mes', label: 'Este mes', dias: 30 },
 ] as const
 
-// Agrupa el `tipo` de Infloww en categorías con ícono (como el panel de Infloww)
+// Categorías principales con ícono (como el panel de Infloww)
 const TIPOS = [
   { key: 'subscription', label: 'Suscripciones', icon: CreditCard, color: '#22C55E' },
   { key: 'tip', label: 'Propinas', icon: Gift, color: '#C9A84C' },
   { key: 'message', label: 'Mensajes', icon: MessageSquare, color: '#A855F7' },
-  { key: 'post', label: 'Posts', icon: FileText, color: '#3B82F6' },
-  { key: 'referral', label: 'Referidos', icon: Repeat, color: '#EF4444' },
-  { key: 'stream', label: 'Streams', icon: Radio, color: '#06B6D4' },
 ] as const
 
 const ESTADO_COLOR: Record<string, string> = { Completado: '#22C55E', Reverso: '#EF4444', Revision: '#EAB308' }
 
 export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
   const [rango, setRango] = useState<string>('mes')
+  const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [syncing, setSyncing] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
 
@@ -105,9 +103,20 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
     return [...m.entries()].map(([modelo, x]) => ({ modelo, ...x })).sort((a, b) => b.bruto - a.bruto)
   }, [enRango])
 
+  // Tipos presentes (para los chips del filtro de "Últimas ventas")
+  const tiposPresentes = useMemo(() => {
+    const s = new Set<string>()
+    for (const v of enRango) if (v.tipo) s.add(v.tipo)
+    return [...s].sort()
+  }, [enRango])
+
   const recientes = useMemo(
-    () => [...enRango].sort((a, b) => +new Date(b.fecha) - +new Date(a.fecha)).slice(0, 30),
-    [enRango]
+    () =>
+      [...enRango]
+        .filter((v) => filtroTipo === 'todos' || v.tipo === filtroTipo)
+        .sort((a, b) => +new Date(b.fecha) - +new Date(a.fecha))
+        .slice(0, 40),
+    [enRango, filtroTipo]
   )
 
   async function sincronizar() {
@@ -245,8 +254,18 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
 
       {/* Últimas ventas */}
       <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: '#6B6B80', borderBottom: '1px solid #1E1E2E' }}>
-          Últimas ventas
+        <div className="px-4 py-2.5 flex items-center gap-2 flex-wrap" style={{ borderBottom: '1px solid #1E1E2E' }}>
+          <span className="text-xs font-medium mr-1" style={{ color: '#6B6B80' }}>Últimas ventas</span>
+          {['todos', ...tiposPresentes].map((t) => (
+            <button key={t} onClick={() => setFiltroTipo(t)}
+              className="rounded-full px-2.5 py-1 text-[11px] font-medium capitalize"
+              style={{
+                backgroundColor: filtroTipo === t ? 'rgba(201,168,76,0.15)' : '#1E1E2E',
+                color: filtroTipo === t ? '#C9A84C' : '#6B6B80',
+              }}>
+              {t === 'todos' ? 'Todos' : t}
+            </button>
+          ))}
         </div>
         {recientes.length === 0 ? (
           <p className="text-sm px-4 py-6 text-center" style={{ color: '#6B6B80' }}>Sin ventas en este rango.</p>
@@ -257,6 +276,7 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
                 <th className="text-left font-normal px-4 py-2 text-xs">Fecha</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Fan</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Modelo</th>
+                <th className="text-left font-normal px-4 py-2 text-xs">Chatter</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Tipo</th>
                 <th className="text-right font-normal px-4 py-2 text-xs">Bruto</th>
                 <th className="text-right font-normal px-4 py-2 text-xs">Neto</th>
@@ -272,6 +292,7 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
                   </td>
                   <td className="px-4 py-2">{v.fan_name ?? '—'}</td>
                   <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{v.modelo ?? '—'}</td>
+                  <td className="px-4 py-2" style={{ color: v.chatter ? '#C9A84C' : '#6B6B80' }}>{v.chatter ?? '—'}</td>
                   <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{v.tipo ?? '—'}</td>
                   <td className="px-4 py-2 text-right">{money(v.monto_bruto)}</td>
                   <td className="px-4 py-2 text-right" style={{ color: '#22C55E' }}>{money(v.venta_neto)}</td>

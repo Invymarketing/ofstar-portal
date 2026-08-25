@@ -13,6 +13,7 @@ export interface Venta {
   monto_bruto: number; comision: number; venta_neto: number
   tipo: string | null; estado: string; origen: string
   modelo: string | null; creator_id_infloww: string | null
+  chatter: string | null
 }
 export interface Fan {
   fan_id: string; fan_name: string | null; modelo: string | null
