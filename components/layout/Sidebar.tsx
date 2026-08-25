@@ -126,6 +126,25 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
             </Link>
           )}
 
+          {/* Usuarios — solo admin */}
+          {role === 'admin' && (
+            <Link
+              href="/usuarios"
+              onClick={onClose}
+              className={`
+                flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm font-medium transition-all
+                ${pathname.startsWith('/usuarios')
+                  ? 'bg-gold/10 text-gold border border-gold/20'
+                  : 'text-zinc-300 hover:text-white hover:bg-surface'
+                }
+              `}
+            >
+              <Users size={16} className="flex-shrink-0" />
+              <span>Usuarios</span>
+            </Link>
+          )}
+
+          <div className="mt-3 mb-2 px-3">
           <div className="mt-3 mb-2 px-3">
             <p className="text-xs font-semibold text-muted uppercase tracking-wider">
               Módulos
