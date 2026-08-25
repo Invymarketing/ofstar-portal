@@ -14,7 +14,8 @@ export default async function UsuariosPage() {
 
   const admin = createAdminClient()
   const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
-  if ((me?.role as UserRole) !== 'admin') redirect('/')
+  const miRole = me?.role as UserRole
+  if (!['admin', 'manager'].includes(miRole)) redirect('/')
 
   // Perfiles + emails/estado desde auth
   const [{ data: profiles }, authList] = await Promise.all([
@@ -45,14 +46,14 @@ export default async function UsuariosPage() {
           <Users size={18} style={{ color: '#C9A84C' }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Empleados</h1>
+          <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Usuarios</h1>
           <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>
             Crea cuentas, asigna roles y activa o elimina — sin tocar la base de datos
           </p>
         </div>
       </div>
 
-      <GestionUsuarios usuarios={usuarios} miId={user.id} />
+      <GestionUsuarios usuarios={usuarios} miId={user.id} miRole={miRole} />
     </div>
   )
 }
