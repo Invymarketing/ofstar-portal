@@ -13,7 +13,12 @@ const ROL_LABEL: Record<Rol, string> = {
 
 interface Usuario { id: string; full_name: string; role: string; email: string; activo: boolean }
 
-export default function GestionUsuarios({ usuarios, miId }: { usuarios: Usuario[]; miId: string }) {
+export default function GestionUsuarios(
+  { usuarios, miId, miRole }: { usuarios: Usuario[]; miId: string; miRole: string }
+) {
+  const esAdmin = miRole === 'admin'
+  const rolesDisponibles = esAdmin ? ROLES : ROLES.filter((r) => r !== 'admin')
+
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -73,7 +78,7 @@ export default function GestionUsuarios({ usuarios, miId }: { usuarios: Usuario[
           <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Rol</label>
           <select value={role} onChange={(e) => setRole(e.target.value as Rol)}
             className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
-            {ROLES.map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
+            {rolesDisponibles.map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
           </select>
         </div>
         <div className="sm:col-span-2 lg:col-span-4 flex items-center gap-3">
@@ -103,18 +108,24 @@ export default function GestionUsuarios({ usuarios, miId }: { usuarios: Usuario[
             </tr>
           </thead>
           <tbody>
-            {usuarios.map((u) => (
+            {usuarios.map((u) => {
+              const bloqueado = !esAdmin && u.role === 'admin' // manager no toca cuentas admin
+              return (
               <tr key={u.id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
                 <td className="px-4 py-2">{u.full_name}</td>
                 <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{u.email}</td>
                 <td className="px-4 py-2">
-                  <select
-                    defaultValue={u.role}
-                    onChange={async (e) => { await cambiarRol(u.id, e.target.value as Rol); window.location.reload() }}
-                    className="rounded-lg px-2 py-1 text-xs"
-                    style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }}>
-                    {ROLES.map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
-                  </select>
+                  {bloqueado ? (
+                    <span className="text-xs" style={{ color: '#6B6B80' }}>{ROL_LABEL[u.role as Rol] ?? u.role}</span>
+                  ) : (
+                    <select
+                      defaultValue={u.role}
+                      onChange={async (e) => { await cambiarRol(u.id, e.target.value as Rol); window.location.reload() }}
+                      className="rounded-lg px-2 py-1 text-xs"
+                      style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }}>
+                      {rolesDisponibles.map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
+                    </select>
+                  )}
                 </td>
                 <td className="px-4 py-2 text-center">
                   <span className="text-xs" style={{ color: u.activo ? '#22C55E' : '#EF4444' }}>
@@ -123,12 +134,14 @@ export default function GestionUsuarios({ usuarios, miId }: { usuarios: Usuario[
                 </td>
                 <td className="px-4 py-2">
                   <div className="flex items-center justify-end gap-3">
-                    <button title={u.activo ? 'Desactivar' : 'Activar'}
-                      onClick={async () => { await toggleUsuario(u.id, !u.activo); window.location.reload() }}
-                      style={{ color: u.activo ? '#EAB308' : '#22C55E' }}>
-                      <Power size={15} />
-                    </button>
-                    {u.id !== miId && (
+                    {!bloqueado && (
+                      <button title={u.activo ? 'Desactivar' : 'Activar'}
+                        onClick={async () => { await toggleUsuario(u.id, !u.activo); window.location.reload() }}
+                        style={{ color: u.activo ? '#EAB308' : '#22C55E' }}>
+                        <Power size={15} />
+                      </button>
+                    )}
+                    {u.id !== miId && !bloqueado && (
                       <button title="Eliminar"
                         onClick={async () => {
                           if (!confirm(`¿Eliminar a ${u.full_name}? Esto borra su cuenta.`)) return
@@ -141,7 +154,8 @@ export default function GestionUsuarios({ usuarios, miId }: { usuarios: Usuario[
                   </div>
                 </td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </div>
