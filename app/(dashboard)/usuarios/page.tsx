@@ -45,7 +45,7 @@ export default async function UsuariosPage() {
           <Users size={18} style={{ color: '#C9A84C' }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Usuarios</h1>
+          <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Empleados</h1>
           <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>
             Crea cuentas, asigna roles y activa o elimina — sin tocar la base de datos
           </p>
