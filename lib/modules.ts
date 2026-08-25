@@ -108,7 +108,7 @@ export const MODULES: ModuleDefinition[] = [
     description: 'Tablón de briefings e instrucciones con confirmación de lectura. Lo que se pierde en WhatsApp, aquí queda.',
     icon: 'Megaphone',
     phase: 12,
-    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo'],
+    allowedRoles: ['admin', 'manager', 'team_leader', 'va', 'modelo'],
     isBuilt: false,
   },
   {
