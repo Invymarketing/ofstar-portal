@@ -100,13 +100,23 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Reasigna las ventas viejas de este creator que quedaron sin modelo
+      if (modeloId) {
+        await admin.from('ventas')
+          .update({ modelo_id: modeloId })
+          .eq('creator_id_infloww', String(c.id))
+          .is('modelo_id', null)
+      }
+
       const txs = await getTransactions(c.id, sinceISO)
       if (txs.length === 0) continue
 
+      const creatorName = c.name || c.username || null
       const filas = txs.map((t) => {
-        const row: VentaRow & { modelo_id: string | null } = {
+        const row: VentaRow & { modelo_id: string | null; creator_name: string | null } = {
           ...mapTransaction(c.id, t),
           modelo_id: modeloId,
+          creator_name: creatorName,
         }
         if (!row.modelo_id) sinModelo++
         return row
