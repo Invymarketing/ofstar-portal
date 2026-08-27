@@ -86,6 +86,32 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ ok: true, modelo: data })
 }
 
+// PATCH — edita una ficha existente (nombre real, nombre OF/portal, nicho, IG)
+export async function PATCH(request: NextRequest) {
+  const auth = await checkAdmin()
+  if (!auth.ok) return NextResponse.json({ error: 'sin_permiso' }, { status: auth.status })
+
+  const body = await request.json()
+  const { id, full_name, model_name, nicho_id, ig_username } = body
+  if (!id) return NextResponse.json({ error: 'falta_id', message: 'Falta el id' }, { status: 400 })
+
+  const patch: Record<string, unknown> = {}
+  if (full_name !== undefined) patch.full_name = String(full_name).trim()
+  if (model_name !== undefined) patch.model_name = String(model_name).trim() || null
+  if (nicho_id !== undefined) patch.nicho_id = nicho_id || null
+  if (ig_username !== undefined) patch.ig_username = ig_username ? String(ig_username).replace('@', '').trim() : null
+
+  const { data, error } = await auth.admin
+    .from('modelos')
+    .update(patch)
+    .eq('id', id)
+    .select('*, nichos ( id, nombre, color )')
+    .single()
+
+  if (error) return NextResponse.json({ error: 'db_error', message: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true, modelo: data })
+}
+
 // DELETE — elimina una ficha de modelo
 export async function DELETE(request: NextRequest) {
   const auth = await checkAdmin()
