@@ -8,7 +8,7 @@ import PanelCalidad from '@/components/modulo-4/PanelCalidad'
 import HistorialErrores from '@/components/modulo-4/HistorialErrores'
 import HorariosBoard from '@/components/modulo-4/HorariosBoard'
 
-interface Chatter { id: string; nombre: string; turno: string | null; equipo: number | null; activo: boolean }
+interface Chatter { id: string; nombre: string; turno: string | null; equipo: number | null; activo: boolean; dias_descanso: number[] | null }
 interface Categoria { id: string; nombre: string; grupo_gravedad: string; valor_sancion: number }
 interface Modelo { id: string; model_name: string; activa: boolean }
 interface RankingRow {
