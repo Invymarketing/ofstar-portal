@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Wallet, Fish, Users, PlusCircle } from 'lucide-react'
+import { Wallet, Fish, Users, PlusCircle, Link2 } from 'lucide-react'
 import VentasPanel from '@/components/modulo-3/VentasPanel'
 import BallenasPanel from '@/components/modulo-3/BallenasPanel'
 import FansPanel from '@/components/modulo-3/FansPanel'
 import RegistrarVentaForm from '@/components/modulo-3/RegistrarVentaForm'
+import MapearCreators from '@/components/modulo-3/MapearCreators'
 
 export interface Modelo { id: string; model_name: string; activa: boolean }
 export interface Venta {
@@ -21,10 +22,15 @@ export interface Fan {
   dias_sin_comprar: number | null; tier: string; estado_fan: string
   en_potencia: string; ballena_enfriandose: string
 }
+export interface CreatorSinMapear {
+  creator_id: string; creator_name: string | null; ventas: number; ejemplos: string[]
+}
+
 interface Props {
   modelos: Modelo[]
   ventas: Venta[]
   fans: Fan[]
+  sinMapear: CreatorSinMapear[]
 }
 
 const TABS = [
@@ -32,20 +38,23 @@ const TABS = [
   { id: 'ballenas', label: 'Ballenas', icon: Fish },
   { id: 'fans', label: 'Fans', icon: Users },
   { id: 'registrar', label: 'Registrar venta', icon: PlusCircle },
+  { id: 'mapear', label: 'Sin mapear', icon: Link2 },
 ] as const
 
-export default function Modulo3Tabs({ modelos, ventas, fans }: Props) {
+export default function Modulo3Tabs({ modelos, ventas, fans, sinMapear }: Props) {
   const [tab, setTab] = useState<string>('ventas')
   const ballenas = fans.filter((f) => f.tier === '🐋 Ballena')
 
   return (
     <div>
       <div className="flex gap-1 mb-6 overflow-x-auto border-b" style={{ borderColor: '#1E1E2E' }}>
-        {TABS.map((t) => {
+        {TABS.filter((t) => t.id !== 'mapear' || sinMapear.length > 0).map((t) => {
           const Icon = t.icon
           const active = tab === t.id
           const badge =
-            t.id === 'ballenas' ? ballenas.length : t.id === 'fans' ? fans.length : null
+            t.id === 'ballenas' ? ballenas.length
+            : t.id === 'fans' ? fans.length
+            : t.id === 'mapear' ? sinMapear.length : null
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
               className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors"
@@ -65,6 +74,7 @@ export default function Modulo3Tabs({ modelos, ventas, fans }: Props) {
       {tab === 'ballenas' && <BallenasPanel fans={fans} />}
       {tab === 'fans' && <FansPanel fans={fans} />}
       {tab === 'registrar' && <RegistrarVentaForm modelos={modelos} />}
+      {tab === 'mapear' && <MapearCreators modelos={modelos} sinMapear={sinMapear} />}
     </div>
   )
 }
