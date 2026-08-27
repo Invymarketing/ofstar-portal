@@ -55,13 +55,14 @@ export async function deleteChatter(id: string) {
 // Editar turno y/o equipo de un chatter
 export async function actualizarChatterHorario(
   id: string,
-  data: { turno?: string | null; equipo?: number | null }
+  data: { turno?: string | null; equipo?: number | null; dias_descanso?: number[] | null }
 ) {
   await requireStaff()
   const admin = createAdminClient()
   const patch: Record<string, unknown> = {}
   if (data.turno !== undefined) patch.turno = data.turno || null
   if (data.equipo !== undefined) patch.equipo = data.equipo ?? null
+  if (data.dias_descanso !== undefined) patch.dias_descanso = data.dias_descanso ?? null
   const { error } = await admin.from('chatters').update(patch).eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/modulo-4')
