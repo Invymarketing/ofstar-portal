@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, AlertCircle, Gauge, History } from 'lucide-react'
+import { Users, AlertCircle, Gauge, History, CalendarClock } from 'lucide-react'
 import GestionChatters from '@/components/modulo-4/GestionChatters'
 import RegistrarErrorForm from '@/components/modulo-4/RegistrarErrorForm'
 import PanelCalidad from '@/components/modulo-4/PanelCalidad'
 import HistorialErrores from '@/components/modulo-4/HistorialErrores'
+import HorariosBoard from '@/components/modulo-4/HorariosBoard'
 
-interface Chatter { id: string; nombre: string; turno: string | null; activo: boolean }
+interface Chatter { id: string; nombre: string; turno: string | null; equipo: number | null; activo: boolean }
 interface Categoria { id: string; nombre: string; grupo_gravedad: string; valor_sancion: number }
 interface Modelo { id: string; model_name: string; activa: boolean }
 interface RankingRow {
@@ -30,6 +31,7 @@ interface Props {
 
 const TABS = [
   { id: 'chatters', label: 'Chatters', icon: Users },
+  { id: 'horarios', label: 'Horarios', icon: CalendarClock },
   { id: 'registrar', label: 'Registrar error', icon: AlertCircle },
   { id: 'sanciones', label: 'Sanciones', icon: Gauge },
   { id: 'historial', label: 'Historial', icon: History },
@@ -63,6 +65,7 @@ export default function Modulo4Tabs({ chatters, categorias, modelos, ranking, er
 
       {/* Contenido de la pestaña activa */}
       {tab === 'chatters' && <GestionChatters chatters={chatters} />}
+      {tab === 'horarios' && <HorariosBoard chatters={chatters} />}
       {tab === 'registrar' && (
         <RegistrarErrorForm chatters={chatters} categorias={categorias} modelos={modelos} />
       )}
