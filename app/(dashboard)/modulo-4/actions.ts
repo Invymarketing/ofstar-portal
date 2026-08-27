@@ -9,7 +9,9 @@ async function requireStaff() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
-  const { data: me } = await supabase
+  // Leemos el rol con el cliente admin (salta RLS), igual que en page.tsx
+  const admin = createAdminClient()
+  const { data: me } = await admin
     .from('profiles').select('role').eq('id', user.id).single()
   if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) {
     throw new Error('Sin permiso')
