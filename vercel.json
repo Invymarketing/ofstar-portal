@@ -1,6 +1,6 @@
 {
   "crons": [
     { "path": "/api/cron/sync-all", "schedule": "*/30 * * * *" },
-    { "path": "/api/cron/sync-infloww", "schedule": "0 */3 * * *" }
+    { "path": "/api/cron/sync-infloww", "schedule": "0 * * * *" }
   ]
 }
