@@ -34,7 +34,7 @@ export default async function Modulo3Page() {
   const [{ data: modelos }, { data: ventas }, { data: fans }, { data: chatters }] = await Promise.all([
     admin.from('modelos').select('id, model_name, activa').order('model_name'),
     admin.from('ventas')
-      .select('id, fecha, fan_name, fan_id, monto_bruto, comision, venta_neto, tipo, estado, origen, modelo_id, creator_id_infloww, chatter_id')
+      .select('id, fecha, fan_name, fan_id, monto_bruto, comision, venta_neto, tipo, estado, origen, modelo_id, creator_id_infloww, creator_name, chatter_id')
       .gte('fecha', desde35)
       .order('fecha', { ascending: false })
       .limit(5000),
@@ -59,6 +59,21 @@ export default async function Modulo3Page() {
     ...fn,
     modelo: fn.modelo_id ? (modeloMap.get(fn.modelo_id) ?? null) : null,
   }))
+
+  // Creators de Infloww que llegaron SIN modelo mapeado (para asignarlos a mano)
+  const sinMapearMap = new Map<string, { creator_id: string; creator_name: string | null; ventas: number; ejemplos: Set<string> }>()
+  for (const v of ventas ?? []) {
+    if (v.modelo_id || !v.creator_id_infloww) continue
+    const key = String(v.creator_id_infloww)
+    const cur = sinMapearMap.get(key) ?? { creator_id: key, creator_name: v.creator_name ?? null, ventas: 0, ejemplos: new Set<string>() }
+    cur.ventas += 1
+    if (!cur.creator_name && v.creator_name) cur.creator_name = v.creator_name
+    if (v.fan_name && cur.ejemplos.size < 3) cur.ejemplos.add(v.fan_name)
+    sinMapearMap.set(key, cur)
+  }
+  const sinMapear = [...sinMapearMap.values()]
+    .map((c) => ({ creator_id: c.creator_id, creator_name: c.creator_name, ventas: c.ventas, ejemplos: [...c.ejemplos] }))
+    .sort((a, b) => b.ventas - a.ventas)
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -93,6 +108,7 @@ export default async function Modulo3Page() {
           modelos={(modelos ?? []).map((m) => ({ id: m.id, model_name: m.model_name, activa: m.activa }))}
           ventas={ventasView}
           fans={fansView}
+          sinMapear={sinMapear}
         />
       )}
     </div>
