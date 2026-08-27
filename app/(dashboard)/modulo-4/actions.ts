@@ -9,9 +9,7 @@ async function requireStaff() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
-  // Leemos el rol con el cliente admin (salta RLS), igual que en page.tsx
-  const admin = createAdminClient()
-  const { data: me } = await admin
+  const { data: me } = await supabase
     .from('profiles').select('role').eq('id', user.id).single()
   if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) {
     throw new Error('Sin permiso')
@@ -22,7 +20,7 @@ async function requireStaff() {
 // ============================================================
 // CHATTERS
 // ============================================================
-export async function addChatter(data: { nombre: string; grupo?: string; turno?: string }) {
+export async function addChatter(data: { nombre: string; grupo?: string; turno?: string; equipo?: number | null }) {
   await requireStaff()
   const admin = createAdminClient()
   if (!data.nombre.trim()) throw new Error('El nombre es obligatorio')
@@ -30,6 +28,7 @@ export async function addChatter(data: { nombre: string; grupo?: string; turno?:
     nombre: data.nombre.trim(),
     grupo: data.grupo?.trim() || null,
     turno: data.turno?.trim() || null,
+    equipo: data.equipo ?? null,
   })
   if (error) throw new Error(error.message)
   revalidatePath('/modulo-4')
@@ -46,8 +45,22 @@ export async function toggleChatter(id: string, activo: boolean) {
 export async function deleteChatter(id: string) {
   await requireStaff()
   const admin = createAdminClient()
-  // Ojo: borra también los errores de ese chatter (FK on delete cascade)
   const { error } = await admin.from('chatters').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/modulo-4')
+}
+
+// Editar turno y/o equipo de un chatter
+export async function actualizarChatterHorario(
+  id: string,
+  data: { turno?: string | null; equipo?: number | null }
+) {
+  await requireStaff()
+  const admin = createAdminClient()
+  const patch: Record<string, unknown> = {}
+  if (data.turno !== undefined) patch.turno = data.turno || null
+  if (data.equipo !== undefined) patch.equipo = data.equipo ?? null
+  const { error } = await admin.from('chatters').update(patch).eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/modulo-4')
 }
@@ -80,7 +93,6 @@ export async function registrarError(data: {
   })
   if (error) throw new Error(error.message)
 
-  // Alerta: ¿esta categoría llegó justo a un múltiplo de 3 en la quincena? → 1 sanción
   await checkSancionAlert(admin, data.chatter_id, data.categoria_id)
 
   revalidatePath('/modulo-4')
@@ -128,6 +140,5 @@ async function checkSancionAlert(
       module_id: 4,
       link: '/modulo-4',
     })
-    // Opcional: fetch a un webhook de Slack aquí con SLACK_WEBHOOK_URL
   }
 }
