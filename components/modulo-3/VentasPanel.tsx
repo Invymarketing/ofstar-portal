@@ -26,8 +26,16 @@ const ESTADO_COLOR: Record<string, string> = { Completado: '#22C55E', Reverso: '
 export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
   const [rango, setRango] = useState<string>('mes')
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
+  const [filtroModelo, setFiltroModelo] = useState<string>('')
   const [syncing, setSyncing] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
+
+  // Modelos presentes en las ventas (para el selector)
+  const modelosPresentes = useMemo(() => {
+    const s = new Set<string>()
+    for (const v of ventas) if (v.modelo) s.add(v.modelo)
+    return [...s].sort()
+  }, [ventas])
 
   const dias = RANGOS.find((r) => r.id === rango)?.dias ?? 30
 
@@ -41,8 +49,12 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
 
   // Ventas del rango, excluyendo reembolsos (igual que "Net earnings" de Infloww)
   const enRango = useMemo(
-    () => ventas.filter((v) => v.estado !== 'Reverso' && new Date(v.fecha) >= inicio),
-    [ventas, inicio]
+    () => ventas.filter((v) =>
+      v.estado !== 'Reverso'
+      && new Date(v.fecha) >= inicio
+      && (!filtroModelo || v.modelo === filtroModelo)
+    ),
+    [ventas, inicio, filtroModelo]
   )
 
   const total = useMemo(
@@ -59,10 +71,22 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
     [enRango]
   )
 
-  // Desglose por tipo
+  // Clasifica el tipo de Infloww (Subscription, RecurringSubscription, Tips, Messages…)
+  function categoria(tipo: string | null): string {
+    const t = (tipo ?? '').toLowerCase()
+    if (t.includes('subscription')) return 'subscription'
+    if (t.includes('tip')) return 'tip'
+    if (t.includes('message')) return 'message'
+    return 'otro'
+  }
+
+  // Desglose por categoría
   const porTipo = useMemo(() => {
     const m = new Map<string, number>()
-    for (const v of enRango) m.set(v.tipo ?? 'otro', (m.get(v.tipo ?? 'otro') ?? 0) + v.monto_bruto)
+    for (const v of enRango) {
+      const c = categoria(v.tipo)
+      m.set(c, (m.get(c) ?? 0) + v.monto_bruto)
+    }
     return m
   }, [enRango])
 
@@ -150,7 +174,13 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3">
+        <select value={filtroModelo} onChange={(e) => setFiltroModelo(e.target.value)}
+          className="rounded-lg px-3 py-1.5 text-xs"
+          style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E', color: filtroModelo ? '#C9A84C' : '#8B8B9E' }}>
+          <option value="">Todos los modelos</option>
+          {modelosPresentes.map((m) => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <div className="flex items-center gap-3 ml-auto">
           {msg && <span className="text-xs" style={{ color: '#C9A84C' }}>{msg}</span>}
           <button onClick={sincronizar} disabled={syncing}
             className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50"
@@ -281,7 +311,6 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
                 <th className="text-right font-normal px-4 py-2 text-xs">Bruto</th>
                 <th className="text-right font-normal px-4 py-2 text-xs">Neto</th>
                 <th className="text-center font-normal px-4 py-2 text-xs">Estado</th>
-                <th className="text-center font-normal px-4 py-2 text-xs">Origen</th>
               </tr>
             </thead>
             <tbody>
@@ -297,7 +326,6 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
                   <td className="px-4 py-2 text-right">{money(v.monto_bruto)}</td>
                   <td className="px-4 py-2 text-right" style={{ color: '#22C55E' }}>{money(v.venta_neto)}</td>
                   <td className="px-4 py-2 text-center text-xs" style={{ color: ESTADO_COLOR[v.estado] ?? '#6B6B80' }}>{v.estado}</td>
-                  <td className="px-4 py-2 text-center text-xs" style={{ color: '#6B6B80' }}>{v.origen}</td>
                 </tr>
               ))}
             </tbody>
