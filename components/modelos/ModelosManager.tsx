@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, X, Loader2, Trash2, FileText, StickyNote, FolderOpen, AtSign } from 'lucide-react'
+import { Plus, X, Loader2, Trash2, Pencil, AtSign } from 'lucide-react'
 import ModeloPerfil from './ModeloPerfil'
 
 interface Nicho { id: string; nombre: string; color: string }
@@ -15,6 +15,7 @@ interface Modelo {
   notion_url: string | null
   drive_url: string | null
   foto_url: string | null
+  created_at?: string | null
   nichos: Nicho | null
 }
 
@@ -22,6 +23,7 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
   const [modelos, setModelos] = useState<Modelo[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [editModelo, setEditModelo] = useState<Modelo | null>(null)
   const [perfilModelo, setPerfilModelo] = useState<Modelo | null>(null)
 
   async function cargar() {
@@ -79,13 +81,24 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
                   <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold" style={{ backgroundColor: nicho ? `${nicho.color}22` : 'rgba(201,168,76,0.15)', color: nicho?.color ?? '#C9A84C' }}>
                     {m.foto_url ? (<img src={m.foto_url} alt={m.full_name} className="w-full h-full object-cover" />) : (m.full_name[0]?.toUpperCase())}
                   </div>
-                  <button onClick={(e) => { e.stopPropagation(); eliminar(m.id, m.full_name) }} style={{ color: '#8B8B9E' }} className="p-1 rounded hover:bg-white/5 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => setEditModelo(m)} title="Editar nombre" style={{ color: '#8B8B9E' }} className="p-1 rounded hover:bg-white/5 hover:text-white transition-colors"><Pencil size={14} /></button>
+                    <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: '#8B8B9E' }} className="p-1 rounded hover:bg-white/5 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap mb-0.5">
                   <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>{m.model_name || m.full_name}</p>
                   {nicho && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${nicho.color}18`, color: nicho.color, border: `1px solid ${nicho.color}44` }}>{nicho.nombre}</span>}
                 </div>
-                {m.ig_username && <p className="text-xs mb-3" style={{ color: '#8B8B9E' }}>@{m.ig_username}</p>}
+                {m.full_name && m.model_name && m.full_name !== m.model_name && (
+                  <p className="text-[11px]" style={{ color: '#6B6B7E' }}>Real: {m.full_name}</p>
+                )}
+                {m.ig_username && <p className="text-xs" style={{ color: '#8B8B9E' }}>@{m.ig_username}</p>}
+                {m.created_at && (
+                  <p className="text-[11px] mb-2" style={{ color: '#6B6B7E' }}>
+                    Ficha desde {new Date(m.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </p>
+                )}
                 <BadgeContenido modeloId={m.id} />
                 <BadgeOnlyFans modeloId={m.id} />
                 <div className="flex gap-2 mt-2 items-center" onClick={(e) => e.stopPropagation()}>
@@ -100,6 +113,7 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
       )}
 
       {showModal && <AddModeloModal nichos={nichos} onClose={() => setShowModal(false)} onAdded={() => { setShowModal(false); cargar() }} />}
+      {editModelo && <EditModeloModal nichos={nichos} modelo={editModelo} onClose={() => setEditModelo(null)} onSaved={() => { setEditModelo(null); cargar() }} />}
     </div>
   )
 }
@@ -223,8 +237,8 @@ function AddModeloModal({ nichos, onClose, onAdded }: { nichos: Nicho[]; onClose
             <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nombre de la modelo" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
           </div>
           <div>
-            <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Nombre artístico</label>
-            <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder="Cómo aparece en el portal (opcional)" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+            <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Nombre en OnlyFans</label>
+            <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder="Cómo aparece en OF (opcional)" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Nicho</label>
@@ -260,6 +274,78 @@ function AddModeloModal({ nichos, onClose, onAdded }: { nichos: Nicho[]; onClose
             <button type="button" onClick={onClose} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#8B8B9E' }}>Cancelar</button>
             <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium disabled:opacity-70" style={{ backgroundColor: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)', color: '#C9A84C' }}>
               {loading && <Loader2 size={14} className="animate-spin" />} {loading ? 'Creando...' : 'Crear modelo'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function EditModeloModal({ nichos, modelo, onClose, onSaved }: { nichos: Nicho[]; modelo: Modelo; onClose: () => void; onSaved: () => void }) {
+  const [fullName, setFullName] = useState(modelo.full_name ?? '')
+  const [modelName, setModelName] = useState(modelo.model_name ?? '')
+  const [nichoId, setNichoId] = useState(modelo.nicho_id ?? '')
+  const [igUsername, setIgUsername] = useState(modelo.ig_username ?? '')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!fullName.trim()) { setError('El nombre es obligatorio'); return }
+    setLoading(true); setError('')
+    try {
+      const res = await fetch('/api/modelos-admin', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: modelo.id, full_name: fullName, model_name: modelName, nicho_id: nichoId, ig_username: igUsername }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.message || 'Error al guardar'); setLoading(false); return }
+      onSaved()
+    } catch (err) { setError('Error: ' + String(err)); setLoading(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }} onClick={(e) => e.target === e.currentTarget && !loading && onClose()}>
+      <div className="w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-base font-semibold" style={{ color: '#F0F0F5' }}>Editar modelo</h2>
+          <button onClick={onClose} disabled={loading} style={{ color: '#8B8B9E' }} className="hover:text-white disabled:opacity-30"><X size={18} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Nombre real *</label>
+            <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+          </div>
+          <div>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Nombre en OnlyFans</label>
+            <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder="Cómo aparece en OF" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+            <p className="text-[11px] mt-1" style={{ color: '#6B6B7E' }}>Este es el nombre que se ve en el portal y con el que se cruzan las ventas de Infloww.</p>
+          </div>
+          <div>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Nicho</label>
+            <div className="flex flex-wrap gap-2">
+              {nichos.map(n => (
+                <button key={n.id} type="button" onClick={() => setNichoId(nichoId === n.id ? '' : n.id)} disabled={loading} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all disabled:opacity-50" style={{ backgroundColor: nichoId === n.id ? `${n.color}22` : '#0D0D14', color: nichoId === n.id ? n.color : '#8B8B9E', border: nichoId === n.id ? `1px solid ${n.color}66` : '1px solid #1E1E2E' }}>{n.nombre}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Instagram</label>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E' }}>
+              <AtSign size={15} style={{ color: '#8B8B9E' }} />
+              <input type="text" value={igUsername} onChange={e => setIgUsername(e.target.value)} placeholder="username" disabled={loading} className="flex-1 bg-transparent text-sm outline-none" style={{ color: '#F0F0F5' }} />
+            </div>
+          </div>
+
+          {error && <p className="text-xs" style={{ color: '#F87171' }}>{error}</p>}
+
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={onClose} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#8B8B9E' }}>Cancelar</button>
+            <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium disabled:opacity-70" style={{ backgroundColor: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)', color: '#C9A84C' }}>
+              {loading && <Loader2 size={14} className="animate-spin" />} {loading ? 'Guardando...' : 'Guardar cambios'}
             </button>
           </div>
         </form>
