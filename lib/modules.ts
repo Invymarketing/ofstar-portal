@@ -121,6 +121,16 @@ export const MODULES: ModuleDefinition[] = [
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter'],
     isBuilt: true,
   },
+  {
+    id: 13,
+    slug: 'modulo-13',
+    name: 'Programación Telegram',
+    description: 'Programa mensajes (texto, foto o video) al grupo de Telegram de cada modelo.',
+    icon: 'Megaphone',
+    phase: 12,
+    allowedRoles: ['admin', 'manager', 'team_leader'],
+    isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
