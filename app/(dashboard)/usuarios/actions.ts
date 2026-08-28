@@ -64,14 +64,24 @@ export async function cambiarRol(id: string, role: Rol) {
   const admin = createAdminClient()
 
   // Un manager no puede tocar cuentas admin ni ascender a nadie a admin
-  const { data: target } = await admin.from('profiles').select('role').eq('id', id).single()
+  const { data: target } = await admin.from('profiles').select('role, full_name').eq('id', id).single()
   if (actorRole !== 'admin' && (role === 'admin' || target?.role === 'admin')) {
     throw new Error('Solo un admin puede gestionar cuentas admin')
   }
 
   await admin.from('profiles').update({ role }).eq('id', id)
   await admin.auth.admin.updateUserById(id, { user_metadata: { role } })
+
+  // Si pasa a Chatter, crea su ficha en Control de Chatters (si no existe)
+  if (role === 'chatter') {
+    const { data: existente } = await admin.from('chatters').select('id').eq('profile_id', id).maybeSingle()
+    if (!existente) {
+      await admin.from('chatters').insert({ nombre: target?.full_name ?? 'Chatter', profile_id: id, activo: true })
+    }
+  }
+
   revalidatePath('/usuarios')
+  revalidatePath('/modulo-4')
 }
 
 export async function toggleUsuario(id: string, activar: boolean) {
