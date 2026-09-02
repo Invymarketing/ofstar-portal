@@ -1,11 +1,11 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
-import { crearMensaje, eliminarMensaje } from '@/app/(dashboard)/modulo-13/actions'
+import { crearMensaje, editarMensaje, eliminarMensaje } from '@/app/(dashboard)/modulo-13/actions'
 import { createClient } from '@/lib/supabase/client'
 import {
   Send, Trash2, Clock, CheckCircle2, XCircle, RefreshCw, Plus, X,
-  MessageSquare, Image as ImageIcon, Video, ImagePlus,
+  MessageSquare, Image as ImageIcon, Video, ImagePlus, Pencil,
 } from 'lucide-react'
 
 interface Modelo { id: string; model_name: string; tiene_grupo: boolean }
@@ -34,8 +34,13 @@ const ESTADO = {
 }
 
 export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Modelo[]; mensajes: Mensaje[] }) {
-  const [sel, setSel] = useState<string>(modelos[0]?.id ?? '')
+  // Solo modelos con Telegram activado (grupo configurado)
+  const modelosTg = useMemo(() => modelos.filter((m) => m.tiene_grupo), [modelos])
+  const [sel, setSel] = useState<string>(modelosTg[0]?.id ?? '')
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [desde, setDesde] = useState('')
+  const [hasta, setHasta] = useState('')
   const [tipo, setTipo] = useState<'texto' | 'foto' | 'video'>('texto')
   const [texto, setTexto] = useState('')
   const [archivoUrl, setArchivoUrl] = useState('')
@@ -58,10 +63,13 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
     return m
   }, [mensajes])
 
-  // Mensajes del modelo seleccionado, agrupados por día
+  // Mensajes del modelo seleccionado, agrupados por día (con filtro de fechas)
   const agenda = useMemo(() => {
+    const desdeT = desde ? +new Date(desde + 'T00:00:00') : -Infinity
+    const hastaT = hasta ? +new Date(hasta + 'T23:59:59') : Infinity
     const delModelo = mensajes
       .filter((x) => x.modelo_id === sel)
+      .filter((x) => { const t = +new Date(x.fecha_programada); return t >= desdeT && t <= hastaT })
       .sort((a, b) => +new Date(a.fecha_programada) - +new Date(b.fecha_programada))
     const grupos: { dia: string; label: string; items: Mensaje[] }[] = []
     const idx = new Map<string, number>()
@@ -75,7 +83,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
       grupos[idx.get(dia)!].items.push(x)
     }
     return grupos
-  }, [mensajes, sel])
+  }, [mensajes, sel, desde, hasta])
 
   async function subirArchivo(file: File | null) {
     setError(null)
@@ -102,19 +110,31 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
   }
 
   function limpiarForm() {
-    setTexto(''); setArchivoUrl(''); setPreview(''); setTipo('texto'); setFecha(fechaLocalDefault())
+    setTexto(''); setArchivoUrl(''); setPreview(''); setTipo('texto'); setFecha(fechaLocalDefault()); setEditingId(null)
     if (inputRef.current) inputRef.current.value = ''
+  }
+
+  function editar(x: Mensaje) {
+    setEditingId(x.id)
+    setTipo((x.tipo as 'texto' | 'foto' | 'video') || 'texto')
+    setTexto(x.texto ?? '')
+    setArchivoUrl(x.archivo_url ?? '')
+    setPreview(x.tipo === 'foto' && x.archivo_url ? x.archivo_url : '')
+    const d = new Date(x.fecha_programada); const off = d.getTimezoneOffset()
+    setFecha(new Date(d.getTime() - off * 60000).toISOString().slice(0, 16))
+    setShowForm(true)
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function crear(e: React.FormEvent) {
     e.preventDefault()
     setError(null); setSaving(true)
     try {
-      await crearMensaje({
-        modelo_id: sel, tipo, texto,
-        archivo_url: archivoUrl,
-        fecha_programada: new Date(fecha).toISOString(),
-      })
+      if (editingId) {
+        await editarMensaje(editingId, { tipo, texto, archivo_url: archivoUrl, fecha_programada: new Date(fecha).toISOString() })
+      } else {
+        await crearMensaje({ modelo_id: sel, tipo, texto, archivo_url: archivoUrl, fecha_programada: new Date(fecha).toISOString() })
+      }
       limpiarForm(); setShowForm(false)
       setTimeout(() => window.location.reload(), 700)
     } catch (err) {
@@ -145,9 +165,17 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
 
   return (
     <div>
-      {/* Selector de modelo */}
+      {modelosTg.length === 0 && (
+        <div className="rounded-2xl border p-4 mb-4" style={{ backgroundColor: 'rgba(234,179,8,0.05)', borderColor: 'rgba(234,179,8,0.2)' }}>
+          <p className="text-xs" style={{ color: '#EAB308' }}>
+            Ningún modelo tiene grupo de Telegram configurado. Ve a <span style={{ color: '#C9A84C' }}>Modelos</span> (✏️) y pega el chat id del grupo.
+          </p>
+        </div>
+      )}
+
+      {/* Selector de modelo (solo con Telegram activado) */}
       <div className="flex gap-1.5 mb-5 overflow-x-auto pb-1">
-        {modelos.map((m) => {
+        {modelosTg.map((m) => {
           const active = m.id === sel
           const pend = pendientesPorModelo.get(m.id) ?? 0
           return (
@@ -253,12 +281,25 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
             <button type="submit" disabled={saving || uploading}
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 self-end"
               style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
-              <Send size={15} /> {saving ? 'Programando…' : 'Programar'}
+              <Send size={15} /> {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Programar'}
             </button>
             {error && <span className="text-xs self-end" style={{ color: '#EF4444' }}>{error}</span>}
           </div>
         </form>
       )}
+
+      {/* Filtro por fechas */}
+      <div className="flex items-center gap-2 mb-4 flex-wrap text-xs" style={{ color: '#6B6B80' }}>
+        <span>Filtrar:</span>
+        <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)}
+          className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+        <span>→</span>
+        <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)}
+          className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+        {(desde || hasta) && (
+          <button onClick={() => { setDesde(''); setHasta('') }} className="underline" style={{ color: '#C9A84C' }}>limpiar</button>
+        )}
+      </div>
 
       {/* Agenda del modelo */}
       {agenda.length === 0 ? (
@@ -294,6 +335,11 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
                       <span className="inline-flex items-center gap-1 text-xs flex-shrink-0" style={{ color: est.color }} title={x.error ?? ''}>
                         <est.Icon size={13} /> {est.label}
                       </span>
+                      {!x.enviado && (
+                        <button onClick={() => editar(x)} title="Editar" style={{ color: '#8B8B9E' }} className="flex-shrink-0">
+                          <Pencil size={14} />
+                        </button>
+                      )}
                       <button onClick={async () => { if (confirm('¿Eliminar este mensaje?')) { await eliminarMensaje(x.id); window.location.reload() } }}
                         title="Eliminar" style={{ color: '#6B6B80' }} className="flex-shrink-0">
                         <Trash2 size={14} />
