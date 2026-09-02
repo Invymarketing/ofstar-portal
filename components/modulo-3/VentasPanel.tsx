@@ -75,6 +75,19 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
     [enRango]
   )
 
+  // Reembolsos / reversos del rango. Infloww los INCLUYE en "Gross earnings";
+  // nosotros los mostramos aparte para poder cuadrar los dos números.
+  const reembolsos = useMemo(
+    () => ventas
+      .filter((v) =>
+        v.estado === 'Reverso'
+        && new Date(v.fecha) >= inicio
+        && (!filtroModelo || v.modelo === filtroModelo)
+      )
+      .reduce((a, v) => ({ monto: a.monto + v.monto_bruto, n: a.n + 1 }), { monto: 0, n: 0 }),
+    [ventas, inicio, filtroModelo]
+  )
+
   // Clasifica el tipo de Infloww (Subscription, RecurringSubscription, Tips, Messages…)
   function categoria(tipo: string | null): string {
     const t = (tipo ?? '').toLowerCase()
@@ -198,13 +211,20 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
       <div className="rounded-2xl border p-6 mb-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
         <div className="flex flex-wrap items-end gap-8">
           <div>
-            <p className="text-xs mb-1" style={{ color: '#6B6B80' }}>Ingresos totales</p>
+            <p className="text-xs mb-1" style={{ color: '#6B6B80' }}>Ingresos totales <span style={{ color: 'rgba(107,107,128,0.7)' }}>(sin reembolsos)</span></p>
             <p className="text-4xl font-bold" style={{ color: '#F0F0F5' }}>{money(total.bruto)}</p>
             <p className="text-xs mt-2" style={{ color: '#6B6B80' }}>
               Comisión <span style={{ color: '#C9A84C' }}>{money(total.comision)}</span> ·
               Neto modelos <span style={{ color: '#22C55E' }}> {money(total.neto)}</span> ·
               {total.n} ventas
             </p>
+            {reembolsos.n > 0 && (
+              <p className="text-[11px] mt-1" style={{ color: '#6B6B80' }}>
+                Reembolsos <span style={{ color: '#EF4444' }}>−{money(reembolsos.monto)}</span> ({reembolsos.n}) ·
+                Bruto con reembolsos <span style={{ color: '#F0F0F5' }}>{money(total.bruto + reembolsos.monto)}</span>
+                <span style={{ color: 'rgba(107,107,128,0.7)' }}> = "Gross" de Infloww</span>
+              </p>
+            )}
           </div>
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 min-w-[260px]">
             {TIPOS.map((t) => {
