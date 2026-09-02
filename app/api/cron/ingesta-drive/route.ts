@@ -1,129 +1,106 @@
-// app/api/modelos-admin/route.ts
-// Gestión de modelos como fichas internas (sin login obligatorio)
-
+// app/api/cron/ingesta-drive/route.ts
+// Revisa la carpeta de Drive de cada modelo; por cada archivo NUEVO genera con
+// Claude un "buenos días" (8:00) y un CTA con la foto (20:00) del día siguiente,
+// y los deja programados en mensajes_telegram. Reemplaza el bot "Prueba claude".
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { listarArchivos, descargarArchivo, extraerFolderId } from '@/lib/google-drive'
+import { generarBuenosDias, generarCTA } from '@/lib/anthropic'
 
-async function checkAdmin() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false as const, status: 401 }
+export const maxDuration = 300
 
-  const admin = createAdminClient()
-  const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
-
-  if (!['admin', 'manager'].includes(profile?.role ?? '')) {
-    return { ok: false as const, status: 403 }
-  }
-  return { ok: true as const, admin, userId: user.id }
+async function autorizado(request: NextRequest): Promise<boolean> {
+  const auth = request.headers.get('authorization')
+  const secret = process.env.CRON_SECRET
+  if (secret && auth === `Bearer ${secret}`) return true
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return false
+    const admin = createAdminClient()
+    const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
+    return !!me && ['admin', 'manager', 'team_leader'].includes(me.role)
+  } catch { return false }
 }
 
-// GET — lista todas las modelos con su nicho
-export async function GET() {
-  const auth = await checkAdmin()
-  if (!auth.ok) return NextResponse.json({ error: 'sin_permiso' }, { status: auth.status })
+// Devuelve una Date en UTC para el día (+n) a la hora dada
+function diaAHora(base: Date, addDays: number, hora: number): string {
+  const d = new Date(base)
+  d.setUTCDate(d.getUTCDate() + addDays)
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), hora, 0, 0)).toISOString()
+}
 
-  const { data, error } = await auth.admin
+export async function GET(request: NextRequest) {
+  if (!(await autorizado(request))) return NextResponse.json({ error: 'no_autorizado' }, { status: 401 })
+
+  const admin = createAdminClient()
+  const { data: modelos } = await admin
     .from('modelos')
-    .select('*, nichos ( id, nombre, color )')
-    .order('full_name')
+    .select('id, model_name, drive_content_folder_id, telegram_group_id, of_trial_link')
+    .eq('activa', true)
+    .not('drive_content_folder_id', 'is', null)
+    .not('telegram_group_id', 'is', null)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  const resumen: { modelo: string; nuevos: number }[] = []
+  const fallos: { modelo: string; motivo: string }[] = []
+  let totalNuevos = 0
 
-  const modelos = data ?? []
+  for (const m of modelos ?? []) {
+    try {
+      const folderId = extraerFolderId(String(m.drive_content_folder_id))
+      if (!folderId) continue
 
-  // Foto de perfil de la cuenta principal de cada modelo (viene de Analytics)
-  const ids = modelos.map((m: any) => m.id)
-  const fotos: Record<string, string | null> = {}
-  if (ids.length > 0) {
-    const { data: cuentas } = await auth.admin
-      .from('cuentas_analytics')
-      .select('modelo_id, profile_pic_url, es_principal')
-      .in('modelo_id', ids)
+      const archivos = await listarArchivos(folderId)
+      if (archivos.length === 0) continue
 
-    for (const c of cuentas ?? []) {
-      if (!c.modelo_id) continue
-      if (c.es_principal || !(c.modelo_id in fotos)) {
-        fotos[c.modelo_id] = c.profile_pic_url ?? null
+      // Cuáles ya se procesaron
+      const { data: ya } = await admin
+        .from('contenido_ingerido').select('drive_file_id')
+        .in('drive_file_id', archivos.map((a) => a.id))
+      const procesados = new Set((ya ?? []).map((x) => x.drive_file_id))
+      const nuevos = archivos.filter((a) => !procesados.has(a.id))
+      if (nuevos.length === 0) continue
+
+      // Día base = último programado del modelo, o hoy
+      const { data: ult } = await admin
+        .from('mensajes_telegram').select('fecha_programada')
+        .eq('modelo_id', m.id).order('fecha_programada', { ascending: false }).limit(1)
+      let cursor = ult && ult[0] ? new Date(ult[0].fecha_programada) : new Date()
+
+      for (const f of nuevos) {
+        // Subir el archivo a Storage (URL pública para Telegram)
+        const buffer = await descargarArchivo(f.id)
+        const ext = (f.name.split('.').pop() || (f.mimeType.includes('video') ? 'mp4' : 'jpg')).toLowerCase()
+        const path = `${m.id}/${f.id}.${ext}`
+        const { error: upErr } = await admin.storage.from('telegram')
+          .upload(path, buffer, { contentType: f.mimeType, upsert: true })
+        if (upErr) throw new Error('storage: ' + upErr.message)
+        const url = admin.storage.from('telegram').getPublicUrl(path).data.publicUrl
+        const tipo = f.mimeType.includes('video') ? 'video' : 'foto'
+
+        // Captions con Claude
+        const buenosDias = await generarBuenosDias()
+        const cta = await generarCTA()
+        const ctaFull = m.of_trial_link ? `${cta}\n${m.of_trial_link}` : cta
+
+        // Siguiente día: texto 08:00, imagen 20:00
+        const fechaTexto = diaAHora(cursor, 1, 8)
+        const fechaImg = diaAHora(cursor, 1, 20)
+        cursor = new Date(fechaImg)
+
+        await admin.from('mensajes_telegram').insert([
+          { modelo_id: m.id, tipo: 'texto', texto: buenosDias, fecha_programada: fechaTexto, enviado: false },
+          { modelo_id: m.id, tipo, texto: ctaFull, archivo_url: url, fecha_programada: fechaImg, enviado: false },
+        ])
+        await admin.from('contenido_ingerido').insert({ drive_file_id: f.id, modelo_id: m.id })
+        totalNuevos++
       }
+      resumen.push({ modelo: m.model_name, nuevos: nuevos.length })
+    } catch (err) {
+      fallos.push({ modelo: m.model_name, motivo: err instanceof Error ? err.message : String(err) })
     }
   }
 
-  const conFoto = modelos.map((m: any) => ({ ...m, foto_url: fotos[m.id] ?? null }))
-
-  return NextResponse.json({ modelos: conFoto })
-}
-
-// POST — crea una ficha de modelo (SIN login)
-export async function POST(request: NextRequest) {
-  const auth = await checkAdmin()
-  if (!auth.ok) return NextResponse.json({ error: 'sin_permiso' }, { status: auth.status })
-
-  const body = await request.json()
-  const { full_name, model_name, nicho_id, ig_username, content_snare_url, notion_url, drive_url } = body
-
-  if (!full_name) {
-    return NextResponse.json({ error: 'falta_nombre', message: 'El nombre es obligatorio' }, { status: 400 })
-  }
-
-  const { data, error } = await auth.admin
-    .from('modelos')
-    .insert({
-      full_name,
-      model_name: model_name || full_name,
-      nicho_id: nicho_id || null,
-      ig_username: ig_username ? ig_username.replace('@', '').trim() : null,
-      content_snare_url: content_snare_url || null,
-      notion_url: notion_url || null,
-      drive_url: drive_url || null,
-      created_by: auth.userId,
-    })
-    .select('*, nichos ( id, nombre, color )')
-    .single()
-
-  if (error) return NextResponse.json({ error: 'db_error', message: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true, modelo: data })
-}
-
-// PATCH — edita una ficha existente (nombre real, nombre OF/portal, nicho, IG)
-export async function PATCH(request: NextRequest) {
-  const auth = await checkAdmin()
-  if (!auth.ok) return NextResponse.json({ error: 'sin_permiso' }, { status: auth.status })
-
-  const body = await request.json()
-  const { id, full_name, model_name, nicho_id, ig_username, telegram_group_id, drive_content_folder_id, of_trial_link } = body
-  if (!id) return NextResponse.json({ error: 'falta_id', message: 'Falta el id' }, { status: 400 })
-
-  const patch: Record<string, unknown> = {}
-  if (full_name !== undefined) patch.full_name = String(full_name).trim()
-  if (model_name !== undefined) patch.model_name = String(model_name).trim() || null
-  if (nicho_id !== undefined) patch.nicho_id = nicho_id || null
-  if (ig_username !== undefined) patch.ig_username = ig_username ? String(ig_username).replace('@', '').trim() : null
-  if (telegram_group_id !== undefined) patch.telegram_group_id = String(telegram_group_id).trim() || null
-  if (drive_content_folder_id !== undefined) patch.drive_content_folder_id = String(drive_content_folder_id).trim() || null
-  if (of_trial_link !== undefined) patch.of_trial_link = String(of_trial_link).trim() || null
-
-  const { data, error } = await auth.admin
-    .from('modelos')
-    .update(patch)
-    .eq('id', id)
-    .select('*, nichos ( id, nombre, color )')
-    .single()
-
-  if (error) return NextResponse.json({ error: 'db_error', message: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true, modelo: data })
-}
-
-// DELETE — elimina una ficha de modelo
-export async function DELETE(request: NextRequest) {
-  const auth = await checkAdmin()
-  if (!auth.ok) return NextResponse.json({ error: 'sin_permiso' }, { status: auth.status })
-
-  const id = request.nextUrl.searchParams.get('id')
-  if (!id) return NextResponse.json({ error: 'falta_id' }, { status: 400 })
-
-  const { error } = await auth.admin.from('modelos').delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, archivos_nuevos: totalNuevos, resumen, fallidos: fallos.length, fallos })
 }
