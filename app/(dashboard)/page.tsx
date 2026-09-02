@@ -82,31 +82,37 @@ export default async function DashboardPage() {
   let staff: null | {
     online: { nombre: string; enBreak: boolean; desde: string }[]
     ventasHoy: number
+    ventasAyer: number
+    ranking: { nombre: string; total: number }[]
     tareasPend: number
     metaPct: number | null
     metaChatters: number
     alertas: { nombre: string; min: number }[]
+    sinFichar: string[]
+    turnosLargos: { nombre: string; horas: number }[]
     novedades: { texto: string; created_at: string; equipo: number | null }[]
   } = null
 
   if (esStaff) {
     const inicioHoy = inicioHoyISO()
+    const inicioAyer = new Date(new Date(inicioHoy).getTime() - 86400000).toISOString()
     const { start: qStart, end: qEnd } = quincena()
 
-    const [jAbiertas, dAbiertos, ventasHoyRows, tareasPendRows, chattersAct, ventasQ, handoffs, personas] = await Promise.all([
+    const [jAbiertas, dAbiertos, ventasHoyRows, ventasAyerRows, tareasPendRows, chattersAct, ventasQ, handoffs, personas, jornadasHoy] = await Promise.all([
       admin.from('jornadas').select('user_id, inicio').is('fin', null),
       admin.from('descansos').select('user_id, inicio').is('fin', null),
-      admin.from('ventas').select('monto_bruto, estado').gte('fecha', inicioHoy),
+      admin.from('ventas').select('chatter_id, monto_bruto, estado').gte('fecha', inicioHoy),
+      admin.from('ventas').select('monto_bruto, estado').gte('fecha', inicioAyer).lt('fecha', inicioHoy),
       admin.from('tareas').select('id').is('completada_at', null),
-      admin.from('chatters').select('id, meta_quincena').eq('activo', true),
+      admin.from('chatters').select('id, nombre, profile_id, meta_quincena').eq('activo', true),
       admin.from('ventas').select('chatter_id, monto_bruto, estado').gte('fecha', qStart).lt('fecha', qEnd),
       admin.from('handoffs').select('texto, created_at, equipo').order('created_at', { ascending: false }).limit(4),
       admin.from('profiles').select('id, full_name'),
+      admin.from('jornadas').select('user_id').gte('inicio', inicioHoy),
     ])
 
     const nombreDe = new Map((personas.data ?? []).map((p) => [p.id, p.full_name]))
     const enBreakSet = new Set((dAbiertos.data ?? []).map((d) => d.user_id))
-    const breakDesde = new Map((dAbiertos.data ?? []).map((d) => [d.user_id, d.inicio]))
 
     const online = (jAbiertas.data ?? []).map((j) => ({
       nombre: nombreDe.get(j.user_id) ?? '—',
@@ -114,7 +120,23 @@ export default async function DashboardPage() {
       desde: j.inicio,
     })).sort((a, b) => Number(a.enBreak) - Number(b.enBreak))
 
-    const ventasHoy = (ventasHoyRows.data ?? [])
+    // Ventas de hoy (total) + ranking por chatter
+    const chatterNombre = new Map((chattersAct.data ?? []).map((c) => [c.id, c.nombre]))
+    const ventasHoyPorChatter = new Map<string, number>()
+    let ventasHoy = 0
+    for (const v of ventasHoyRows.data ?? []) {
+      if (v.estado === 'Reverso') continue
+      const monto = Number(v.monto_bruto ?? 0)
+      ventasHoy += monto
+      if (v.chatter_id) ventasHoyPorChatter.set(v.chatter_id, (ventasHoyPorChatter.get(v.chatter_id) ?? 0) + monto)
+    }
+    const ranking = [...ventasHoyPorChatter.entries()]
+      .map(([id, total]) => ({ nombre: chatterNombre.get(id) ?? '—', total }))
+      .filter((r) => r.total > 0)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5)
+
+    const ventasAyer = (ventasAyerRows.data ?? [])
       .filter((v) => v.estado !== 'Reverso')
       .reduce((s, v) => s + Number(v.monto_bruto ?? 0), 0)
 
@@ -128,19 +150,33 @@ export default async function DashboardPage() {
     const pcts = conMeta.map((c) => Math.min((ventasPorChatter.get(c.id) ?? 0) / Number(c.meta_quincena), 2))
     const metaPct = pcts.length ? Math.round((pcts.reduce((a, b) => a + b, 0) / pcts.length) * 100) : null
 
-    // Alertas: breaks abiertos de más de 30 min
+    // Cumplimiento de HOY (basado en fichaje)
     const alertas = (dAbiertos.data ?? [])
       .map((d) => ({ nombre: nombreDe.get(d.user_id) ?? '—', min: minutosDesde(d.inicio) }))
       .filter((a) => a.min >= 30)
       .sort((a, b) => b.min - a.min)
 
+    const ficharonHoy = new Set((jornadasHoy.data ?? []).map((j) => j.user_id))
+    const sinFichar = (chattersAct.data ?? [])
+      .filter((c) => c.profile_id && !ficharonHoy.has(c.profile_id))
+      .map((c) => c.nombre)
+
+    const turnosLargos = (jAbiertas.data ?? [])
+      .map((j) => ({ nombre: nombreDe.get(j.user_id) ?? '—', horas: Math.round(minutosDesde(j.inicio) / 60 * 10) / 10 }))
+      .filter((t) => t.horas >= 10)
+      .sort((a, b) => b.horas - a.horas)
+
     staff = {
       online,
       ventasHoy,
+      ventasAyer,
+      ranking,
       tareasPend: (tareasPendRows.data ?? []).length,
       metaPct,
       metaChatters: conMeta.length,
       alertas,
+      sinFichar,
+      turnosLargos,
       novedades: (handoffs.data ?? []).map((h) => ({ texto: h.texto, created_at: h.created_at, equipo: h.equipo ?? null })),
     }
   }
@@ -208,7 +244,13 @@ export default async function DashboardPage() {
               value={String(staff.online.filter((o) => !o.enBreak).length)}
               sub={`${staff.online.filter((o) => o.enBreak).length} en break`} />
             <Kpi icon={<DollarSign size={14} />} label="Ventas de hoy" tone="gold"
-              value={money(staff.ventasHoy)} />
+              value={money(staff.ventasHoy)}
+              sub={(() => {
+                const d = staff.ventasHoy - staff.ventasAyer
+                const pct = staff.ventasAyer > 0 ? Math.round((d / staff.ventasAyer) * 100) : null
+                const flecha = d > 0 ? '▲' : d < 0 ? '▼' : '='
+                return `${flecha} ${money(Math.abs(d))}${pct != null ? ` (${pct > 0 ? '+' : ''}${pct}%)` : ''} vs ayer`
+              })()} />
             <Kpi icon={<CheckSquare size={14} />} label="Tareas pendientes"
               value={String(staff.tareasPend)} />
             <Kpi icon={<Target size={14} />} label="Meta quincena (prom.)"
@@ -217,18 +259,63 @@ export default async function DashboardPage() {
               tone={staff.metaPct != null && staff.metaPct >= 100 ? 'green' : 'default'} />
           </div>
 
-          {/* Alertas */}
-          {staff.alertas.length > 0 && (
+          {/* Cumplimiento de hoy (basado en fichaje) */}
+          {(staff.alertas.length > 0 || staff.sinFichar.length > 0 || staff.turnosLargos.length > 0) && (
             <div className="rounded-2xl border p-4" style={{ backgroundColor: 'rgba(248,113,113,0.06)', borderColor: 'rgba(248,113,113,0.25)' }}>
               <div className="flex items-center gap-2 mb-3" style={{ color: '#F87171' }}>
                 <AlertTriangle size={15} />
-                <p className="text-xs font-semibold uppercase tracking-wider">Alertas · breaks largos</p>
+                <p className="text-xs font-semibold uppercase tracking-wider">Cumplimiento de hoy</p>
               </div>
-              <div className="space-y-1.5">
-                {staff.alertas.map((a, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span style={{ color: '#F0F0F5' }}>{a.nombre}</span>
-                    <span style={{ color: '#F87171' }}>{a.min} min en break</span>
+              <div className="space-y-3">
+                {staff.sinFichar.length > 0 && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: '#6B6B80' }}>Sin fichar hoy</p>
+                    <p className="text-sm" style={{ color: '#F0F0F5' }}>{staff.sinFichar.join(' · ')}</p>
+                  </div>
+                )}
+                {staff.alertas.length > 0 && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: '#6B6B80' }}>Breaks largos (+30 min)</p>
+                    <div className="space-y-1">
+                      {staff.alertas.map((a, i) => (
+                        <div key={i} className="flex items-center justify-between text-sm">
+                          <span style={{ color: '#F0F0F5' }}>{a.nombre}</span>
+                          <span style={{ color: '#F87171' }}>{a.min} min</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {staff.turnosLargos.length > 0 && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: '#6B6B80' }}>Turno abierto +10h (¿sin cerrar?)</p>
+                    <div className="space-y-1">
+                      {staff.turnosLargos.map((t, i) => (
+                        <div key={i} className="flex items-center justify-between text-sm">
+                          <span style={{ color: '#F0F0F5' }}>{t.nombre}</span>
+                          <span style={{ color: '#EAB308' }}>{t.horas} h</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Ranking del día */}
+          {staff.ranking.length > 0 && (
+            <div>
+              <SectionTitle>Ranking del día · ventas</SectionTitle>
+              <div className="rounded-2xl border divide-y" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+                {staff.ranking.map((r, i) => (
+                  <div key={i} className="flex items-center justify-between px-4 py-2.5" style={{ borderColor: '#1E1E2E' }}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold w-5 text-center" style={{ color: i === 0 ? '#C9A84C' : '#6B6B80' }}>{i + 1}</span>
+                      <span className="text-sm" style={{ color: '#F0F0F5' }}>{r.nombre}</span>
+                      {i === 0 && <span className="text-xs">🏆</span>}
+                    </div>
+                    <span className="text-sm font-semibold" style={{ color: '#C9A84C' }}>{money(r.total)}</span>
                   </div>
                 ))}
               </div>
