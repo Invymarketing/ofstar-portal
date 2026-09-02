@@ -17,7 +17,13 @@ export default function GestionUsuarios(
   { usuarios, miId, miRole }: { usuarios: Usuario[]; miId: string; miRole: string }
 ) {
   const esAdmin = miRole === 'admin'
-  const rolesDisponibles = esAdmin ? ROLES : ROLES.filter((r) => r !== 'admin')
+  const esTeamLeader = miRole === 'team_leader'
+  // Roles que este actor puede asignar: admin=todos · manager=todos menos admin · team_leader=solo chatter
+  const rolesDisponibles: Rol[] = esAdmin
+    ? ROLES
+    : esTeamLeader
+      ? ['chatter']
+      : ROLES.filter((r) => r !== 'admin')
 
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
@@ -76,16 +82,20 @@ export default function GestionUsuarios(
         </div>
         <div>
           <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Rol</label>
-          <select value={role} onChange={(e) => setRole(e.target.value as Rol)}
-            className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
-            {rolesDisponibles.map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
-          </select>
+          {esTeamLeader ? (
+            <div className="w-full rounded-lg px-3 py-2 text-sm" style={{ ...inputStyle, color: '#6B6B80' }}>Chatter</div>
+          ) : (
+            <select value={role} onChange={(e) => setRole(e.target.value as Rol)}
+              className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
+              {rolesDisponibles.map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
+            </select>
+          )}
         </div>
         <div className="sm:col-span-2 lg:col-span-4 flex items-center gap-3">
           <button type="submit" disabled={saving}
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
             style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
-            <UserPlus size={15} /> {saving ? 'Creando…' : 'Añadir usuario'}
+            <UserPlus size={15} /> {saving ? 'Creando…' : esTeamLeader ? 'Añadir chatter' : 'Añadir usuario'}
           </button>
           {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}
           {ok && <span className="text-xs" style={{ color: '#22C55E' }}>{ok}</span>}
@@ -95,7 +105,7 @@ export default function GestionUsuarios(
       {/* Lista */}
       <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
         <div className="px-4 py-2.5 text-xs font-medium" style={{ color: '#6B6B80', borderBottom: '1px solid #1E1E2E' }}>
-          {usuarios.length} usuarios
+          {usuarios.length} {esTeamLeader ? 'chatters' : 'usuarios'}
         </div>
         <table className="w-full text-sm">
           <thead>
@@ -109,13 +119,14 @@ export default function GestionUsuarios(
           </thead>
           <tbody>
             {usuarios.map((u) => {
-              const bloqueado = !esAdmin && u.role === 'admin' // manager no toca cuentas admin
+              // El team_leader solo puede tocar chatters; el manager no toca admins
+              const bloqueado = esTeamLeader ? u.role !== 'chatter' : (!esAdmin && u.role === 'admin')
               return (
               <tr key={u.id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
                 <td className="px-4 py-2">{u.full_name}</td>
                 <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{u.email}</td>
                 <td className="px-4 py-2">
-                  {bloqueado ? (
+                  {bloqueado || esTeamLeader ? (
                     <span className="text-xs" style={{ color: '#6B6B80' }}>{ROL_LABEL[u.role as Rol] ?? u.role}</span>
                   ) : (
                     <select
