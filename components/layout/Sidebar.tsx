@@ -15,6 +15,7 @@ import {
   FolderOpen,
   UserPlus,
   Megaphone,
+  PhoneCall,
   LayoutDashboard,
   UserCircle2,
   X,
@@ -34,6 +35,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   FolderOpen,
   UserPlus,
   Megaphone,
+  PhoneCall,
 }
 
 // Orden y etiqueta de las áreas en el menú. (topbar no se muestra en el sidebar)
