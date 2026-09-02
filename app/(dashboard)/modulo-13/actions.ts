@@ -41,6 +41,27 @@ export async function crearMensaje(data: {
   revalidatePath('/modulo-13')
 }
 
+export async function editarMensaje(id: string, data: {
+  tipo?: 'texto' | 'foto' | 'video'
+  texto?: string
+  archivo_url?: string
+  fecha_programada?: string
+}) {
+  await requireStaff()
+  const admin = createAdminClient()
+  const patch: Record<string, unknown> = {}
+  if (data.tipo !== undefined) patch.tipo = data.tipo
+  if (data.texto !== undefined) patch.texto = data.texto?.trim() || null
+  if (data.archivo_url !== undefined) patch.archivo_url = data.archivo_url?.trim() || null
+  if (data.fecha_programada !== undefined) patch.fecha_programada = data.fecha_programada
+  // al editar, se vuelve a marcar como pendiente y se limpia el error
+  patch.enviado = false
+  patch.error = null
+  const { error } = await admin.from('mensajes_telegram').update(patch).eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/modulo-13')
+}
+
 export async function eliminarMensaje(id: string) {
   await requireStaff()
   const admin = createAdminClient()
