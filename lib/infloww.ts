@@ -61,15 +61,42 @@ export async function getCreators(): Promise<InflowwCreator[]> {
   return r?.data?.list ?? []
 }
 
-// Transacciones de un creator desde `sinceISO`
+const PAGE_SIZE = 100
+const MAX_PAGES = 60 // tope de seguridad: hasta 6.000 transacciones por modelo/corrida
+
+// Transacciones de un creator desde `sinceISO`, recorriendo TODAS las páginas.
+// Manda varios nombres de parámetro de paginación (page/pageNo, size/pageSize/limit)
+// porque la doc de Infloww requiere auth; los que no existan, la API los ignora.
+// Freno anti-bucle: si dos páginas seguidas devuelven el mismo primer id (la API
+// no está paginando), corta para no repetir infinito.
 export async function getTransactions(creatorId: string, sinceISO: string): Promise<InflowwTransaction[]> {
-  const r = await inflowwGet<{ data: { list: InflowwTransaction[] } }>('/transactions', {
-    creatorId,
-    platformCode: 'OnlyFans',
-    startTime: sinceISO,
-    limit: '100',
-  })
-  return r?.data?.list ?? []
+  const all: InflowwTransaction[] = []
+  let lastFirstId: string | null = null
+
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const r = await inflowwGet<{ data: { list: InflowwTransaction[]; total?: number } }>('/transactions', {
+      creatorId,
+      platformCode: 'OnlyFans',
+      startTime: sinceISO,
+      page: String(page),
+      pageNo: String(page),
+      size: String(PAGE_SIZE),
+      pageSize: String(PAGE_SIZE),
+      limit: String(PAGE_SIZE),
+    })
+    const list = r?.data?.list ?? []
+    if (list.length === 0) break
+
+    const firstId = list[0]?.id != null ? String(list[0].id) : null
+    if (firstId && firstId === lastFirstId) break // la API no avanzó de página → cortar
+    lastFirstId = firstId
+
+    all.push(...list)
+
+    if (list.length < PAGE_SIZE) break // última página
+  }
+
+  return all
 }
 
 function mapEstado(status?: string): VentaRow['estado'] {
