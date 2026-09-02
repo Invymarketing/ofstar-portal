@@ -29,9 +29,11 @@ const ESTADO = {
   no_encontrada: { label: 'No encontrada', color: '#EF4444', icon: XCircle },
 } as const
 
+interface Meta { meta: number | null; vendido: number; quincena: string }
+
 export default function MisVentas({
-  modelos, reportes, ventas,
-}: { modelos: Modelo[]; reportes: Reporte[]; ventas: VentaAtribuida[] }) {
+  modelos, reportes, ventas, meta,
+}: { modelos: Modelo[]; reportes: Reporte[]; ventas: VentaAtribuida[]; meta?: Meta }) {
   const [modeloId, setModeloId] = useState('')
   const [fanName, setFanName] = useState('')
   const [monto, setMonto] = useState('')
@@ -73,8 +75,37 @@ export default function MisVentas({
     }
   }
 
+  const pct = meta?.meta ? Math.round((meta.vendido / meta.meta) * 100) : null
+  const falta = meta?.meta ? Math.max(meta.meta - meta.vendido, 0) : 0
+  const metaColor = pct == null ? '#6B6B80' : pct >= 100 ? '#22C55E' : pct >= 60 ? '#EAB308' : '#EF4444'
+
   return (
     <div className="space-y-6">
+      {/* Meta de la quincena */}
+      {meta && meta.meta ? (
+        <div className="rounded-2xl border p-5" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+          <div className="flex items-end justify-between mb-2 flex-wrap gap-2">
+            <div>
+              <p className="text-xs" style={{ color: '#6B6B80' }}>Meta de la quincena {meta.quincena}</p>
+              <p className="text-2xl font-bold" style={{ color: '#F0F0F5' }}>
+                {money(meta.vendido)} <span className="text-sm font-normal" style={{ color: '#6B6B80' }}>de {money(meta.meta)}</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold" style={{ color: metaColor }}>{pct}%</p>
+              <p className="text-xs" style={{ color: '#6B6B80' }}>{falta > 0 ? `te faltan ${money(falta)}` : '¡meta cumplida! 🎉'}</p>
+            </div>
+          </div>
+          <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: '#1E1E2E' }}>
+            <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pct ?? 0, 100)}%`, backgroundColor: metaColor }} />
+          </div>
+        </div>
+      ) : meta ? (
+        <div className="rounded-2xl border p-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+          <p className="text-xs" style={{ color: '#6B6B80' }}>Aún no tienes meta asignada para esta quincena.</p>
+        </div>
+      ) : null}
+
       {/* Totales del chatter */}
       <div>
         <div className="flex gap-1 p-1 rounded-xl mb-3 w-fit" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
