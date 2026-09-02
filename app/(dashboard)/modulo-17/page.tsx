@@ -23,7 +23,7 @@ export default async function Modulo17Page() {
 
   // Pedidos: el chatter ve los suyos; el staff ve todos
   let q = admin.from('custom_vc')
-    .select('id, created_by, chatter_nombre, modelo_id, fan, tipo, precio, duracion, estado, notas, seguimiento, fecha, created_at')
+    .select('id, created_by, chatter_nombre, modelo_id, fan, tipo, precio, duracion, estado, notas, seguimiento, imagen_url, fecha, created_at')
     .order('created_at', { ascending: false }).limit(200)
   if (!esStaff) q = q.eq('created_by', user.id)
   const { data: customs, error } = await q

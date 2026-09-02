@@ -14,7 +14,7 @@ async function getUser() {
 const money = (n: number | null | undefined) =>
   n != null ? '$' + Number(n).toLocaleString('en-US') : '$0'
 
-// El chatter registra un custom/videollamada → se guarda y le llega tarea al manager.
+// El chatter registra un custom/videollamada → se guarda y le llega tarea al MANAGER.
 export async function crearCustom(data: {
   modelo_id?: string | null
   fan?: string
@@ -23,6 +23,7 @@ export async function crearCustom(data: {
   duracion?: string
   fecha?: string
   notas?: string
+  imagen_url?: string | null
 }) {
   const user = await getUser()
   const admin = createAdminClient()
@@ -30,10 +31,9 @@ export async function crearCustom(data: {
   const { data: me } = await admin.from('profiles').select('full_name').eq('id', user.id).single()
   const nombre = me?.full_name ?? 'Chatter'
 
-  if (!data.tipo) throw new Error('Elige el tipo (Videollamada, Custom, etc.)')
+  if (!data.tipo) throw new Error('Elige el tipo (Videollamada o Custom)')
   if (!data.modelo_id) throw new Error('Elige la modelo')
 
-  // Nombre de la modelo para el título de la tarea
   const { data: modelo } = await admin.from('modelos').select('model_name').eq('id', data.modelo_id).maybeSingle()
   const modeloNombre = modelo?.model_name ?? 'Modelo'
 
@@ -47,19 +47,28 @@ export async function crearCustom(data: {
     duracion: data.duracion || null,
     fecha: data.fecha || null,
     notas: data.notas?.trim() || null,
+    imagen_url: data.imagen_url || null,
     estado: 'Pendiente',
   }).select('id').single()
   if (error) throw new Error(error.message)
 
-  // Tarea + notificación a cada manager/admin
-  const { data: jefes } = await admin.from('profiles').select('id').in('role', ['admin', 'manager'])
+  // Tarea + notificación SOLO a managers (no admins)
+  const { data: jefes } = await admin.from('profiles').select('id').eq('role', 'manager')
+
   const titulo = `Custom/VC: ${data.tipo} — ${modeloNombre} — ${money(data.precio)}`
+  // Cuerpo con formato copiable (estilo mensaje)
   const descripcion = [
-    data.fan ? `Fan: ${data.fan}` : null,
-    data.duracion ? `Duración: ${data.duracion}` : null,
-    `Chatter: ${nombre}`,
-    data.notas ? `Notas: ${data.notas}` : null,
-  ].filter(Boolean).join(' · ')
+    '🔴 PENDIENTE',
+    `👤 Chatter: ${nombre}`,
+    `⚙️ Tipo: ${data.tipo}`,
+    `👸 Modelo: ${modeloNombre}`,
+    data.fan ? `🧑 Fan: ${data.fan}` : null,
+    '📱 App: OnlyFans',
+    `💰 Precio: ${money(data.precio)}`,
+    data.duracion ? `⏱️ Duración: ${data.duracion}` : null,
+    data.notas ? `📝 Notas: ${data.notas}` : null,
+    data.imagen_url ? `🖼️ Referencia: ${data.imagen_url}` : null,
+  ].filter(Boolean).join('\n')
 
   for (const j of jefes ?? []) {
     await admin.from('tareas').insert({
