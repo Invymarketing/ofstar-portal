@@ -104,6 +104,12 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'PhoneCall', phase: 8, area: 'comercial',
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter'], isBuilt: true,
   },
+  {
+    id: 18, slug: 'modulo-18', name: 'Metadata',
+    description: 'Cambia la metadata de una imagen o video y genera varias versiones únicas.',
+    icon: 'Sparkles', phase: 8, area: 'contenido',
+    allowedRoles: ['admin', 'manager', 'creativo'], isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
