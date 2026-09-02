@@ -2,8 +2,9 @@
 import { google } from 'googleapis'
 
 function getDrive() {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
-  if (!raw) throw new Error('Falta GOOGLE_SERVICE_ACCOUNT_JSON')
+  // Prefiere la variable nueva GOOGLE_DRIVE_JSON; si no, cae a la vieja.
+  const raw = process.env.GOOGLE_DRIVE_JSON || process.env.GOOGLE_SERVICE_ACCOUNT_JSON
+  if (!raw) throw new Error('Falta GOOGLE_DRIVE_JSON')
   const creds = JSON.parse(raw)
   const auth = new google.auth.GoogleAuth({
     credentials: creds,
