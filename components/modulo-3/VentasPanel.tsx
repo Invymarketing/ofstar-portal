@@ -112,7 +112,7 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
       if (i != null) buckets[i].total += v.monto_bruto
     }
     return buckets
-  }, [enRango, dias])
+  }, [enRango, inicio])
 
   // Caja por modelo (en el rango)
   const porModelo = useMemo(() => {
