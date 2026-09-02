@@ -47,16 +47,17 @@ export async function GET(request: NextRequest) {
   if (Number.isFinite(hoursParam) && hoursParam > 0) lookbackHours = hoursParam
   else if (Number.isFinite(daysParam) && daysParam > 0) lookbackHours = daysParam * 24
 
+  const sinceISO = new Date(Date.now() - lookbackHours * 3600 * 1000).toISOString()
+
   // Modo debug: muestra los campos crudos de una transacción de Infloww. Uso: ...?debug=1
   if (url.searchParams.get('debug')) {
     try {
       const creators = await getCreators()
-      const since = new Date(Date.now() - lookbackHours * 3600 * 1000).toISOString()
       for (const c of creators) {
-        const txs = await getTransactions(c.id, since)
+        const txs = await getTransactions(c.id, sinceISO)
         if (txs.length > 0) {
           return NextResponse.json({
-            desde: since,
+            desde: sinceISO,
             horas_ventana: lookbackHours,
             creator_sample: c,
             transaction_keys: Object.keys(txs[0]),
@@ -68,6 +69,64 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ creators: creators.length, nota: `sin transacciones en ${lookbackHours}h` })
     } catch (err) {
       return NextResponse.json({ error: 'debug', detalle: String(err) }, { status: 502 })
+    }
+  }
+
+  // Modo resumen: suma lo que la API devuelve, por modelo, distinguiendo el mes actual.
+  // Sirve para comparar directo contra el "Creator earnings overview" de Infloww. Uso: ...?resumen=1&hours=800
+  if (url.searchParams.get('resumen')) {
+    try {
+      const now = new Date()
+      const inicioMes = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+      const creators = await getCreators()
+      const out: Record<string, unknown>[] = []
+      let granVentana = 0, granMes = 0
+
+      for (const c of creators) {
+        const txs = await getTransactions(c.id, sinceISO)
+        let sum = 0, sumMes = 0, nMes = 0, subs = 0, tips = 0, msgs = 0, otros = 0
+        const estados = new Set<string>()
+        const tipos = new Set<string>()
+        for (const t of txs) {
+          const amt = Number(t.amount ?? 0) / 100
+          const ms = typeof t.createdTime === 'string' ? Number(t.createdTime) : t.createdTime
+          sum += amt
+          if (t.status) estados.add(t.status)
+          if (t.type) tipos.add(t.type)
+          if (ms >= +inicioMes) {
+            sumMes += amt; nMes++
+            const ty = (t.type ?? '').toLowerCase()
+            if (ty.includes('tip')) tips += amt
+            else if (ty.includes('subscription')) subs += amt
+            else if (ty.includes('message')) msgs += amt
+            else otros += amt
+          }
+        }
+        granVentana += sum; granMes += sumMes
+        out.push({
+          creator: c.name || c.username || c.id,
+          tx: txs.length,
+          bruto_ventana: Math.round(sum),
+          bruto_mes: Math.round(sumMes),
+          n_mes: nMes,
+          subs_mes: Math.round(subs),
+          tips_mes: Math.round(tips),
+          msgs_mes: Math.round(msgs),
+          otros_mes: Math.round(otros),
+          estados: [...estados],
+          tipos: [...tipos],
+        })
+      }
+
+      return NextResponse.json({
+        inicio_mes: inicioMes.toISOString(),
+        desde: sinceISO,
+        gran_total_ventana: Math.round(granVentana),
+        gran_total_mes: Math.round(granMes),
+        creators: out.sort((a, b) => (b.bruto_mes as number) - (a.bruto_mes as number)),
+      })
+    } catch (err) {
+      return NextResponse.json({ error: 'resumen', detalle: String(err) }, { status: 502 })
     }
   }
 
@@ -84,8 +143,6 @@ export async function GET(request: NextRequest) {
     if (m.creator_id_infloww) modeloPorCreator.set(String(m.creator_id_infloww), m.id)
     if (m.model_name) modeloPorNombre.set(norm(m.model_name), m.id)
   }
-
-  const sinceISO = new Date(Date.now() - lookbackHours * 3600 * 1000).toISOString()
 
   let creators: { id: string; name?: string; username?: string }[] = []
   try {
