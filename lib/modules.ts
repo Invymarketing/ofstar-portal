@@ -141,6 +141,16 @@ export const MODULES: ModuleDefinition[] = [
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo'],
     isBuilt: true,
   },
+  {
+    id: 15,
+    slug: 'modulo-15',
+    name: 'Fichaje',
+    description: 'Marca de turno y breaks del equipo, con panel de tiempo en vivo.',
+    icon: 'Calendar',
+    phase: 8,
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va'],
+    isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
