@@ -8,7 +8,7 @@ interface Estado { enTurno: boolean; enBreak: boolean; inicioTurno: string | nul
 interface Periodo { inicio: string; fin: string | null }
 interface Fila { user_id: string; inicio: string; fin: string | null }
 interface Persona { id: string; full_name: string; role: string }
-interface Handoff { id: string; texto: string; created_at: string; autor: string }
+interface Handoff { id: string; texto: string; created_at: string; autor: string; equipo: number | null }
 
 const fmt = (ms: number) => {
   if (ms < 0) ms = 0
@@ -20,15 +20,17 @@ const fmt = (ms: number) => {
 const dur = (p: Periodo, now: number) => (p.fin ? +new Date(p.fin) : now) - +new Date(p.inicio)
 
 export default function Fichaje({
-  estado, misJornadas, misDescansos, esStaff, jornadas, descansos, personas, handoffs,
+  estado, misJornadas, misDescansos, esStaff, jornadas, descansos, personas, handoffs, miEquipo,
 }: {
   estado: Estado; misJornadas: Periodo[]; misDescansos: Periodo[]
   esStaff: boolean; jornadas: Fila[]; descansos: Fila[]; personas: Persona[]; handoffs: Handoff[]
+  miEquipo: number | null
 }) {
   const [now, setNow] = useState(Date.now())
   const [busy, setBusy] = useState(false)
   const [cerrando, setCerrando] = useState(false)
   const [nota, setNota] = useState('')
+  const [filtroEquipo, setFiltroEquipo] = useState<number | 'todos'>(esStaff ? 'todos' : (miEquipo ?? 'todos'))
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t) }, [])
 
   async function accion(fn: () => Promise<void>) {
@@ -216,29 +218,49 @@ export default function Fichaje({
         </>
       )}
 
-      {/* Novedades del equipo (handoffs) */}
+      {/* Novedades por equipo (handoffs) */}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#6B6B80' }}>
-          <ClipboardList size={13} /> Novedades del turno
-        </p>
-        <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-          {handoffs.length === 0 ? (
-            <p className="text-sm px-4 py-5 text-center" style={{ color: '#6B6B80' }}>Sin novedades registradas.</p>
-          ) : handoffs.map((h, i) => (
-            <div key={h.id} className="flex items-start gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid #1E1E2E' : 'none' }}>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm" style={{ color: '#F0F0F5' }}>{h.texto}</p>
-                <p className="text-[11px] mt-0.5" style={{ color: '#6B6B7E' }}>
-                  {h.autor} · {new Date(h.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
-              {esStaff && (
-                <button onClick={async () => { if (confirm('¿Eliminar esta novedad?')) { await eliminarHandoff(h.id); window.location.reload() } }}
-                  title="Eliminar" style={{ color: '#6B6B80' }} className="flex-shrink-0"><Trash2 size={13} /></button>
-              )}
+        <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: '#6B6B80' }}>
+            <ClipboardList size={13} /> Novedades del turno {!esStaff && miEquipo ? `· Equipo ${miEquipo}` : ''}
+          </p>
+          {esStaff && (
+            <div className="flex gap-1">
+              {(['todos', 1, 2, 3, 4] as const).map((e) => (
+                <button key={e} onClick={() => setFiltroEquipo(e)}
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium"
+                  style={{ backgroundColor: filtroEquipo === e ? 'rgba(201,168,76,0.15)' : '#1E1E2E', color: filtroEquipo === e ? '#C9A84C' : '#8B8B9E' }}>
+                  {e === 'todos' ? 'Todos' : `E${e}`}
+                </button>
+              ))}
             </div>
-          ))}
+          )}
         </div>
+        {(() => {
+          const visibles = handoffs.filter((h) =>
+            esStaff ? (filtroEquipo === 'todos' || h.equipo === filtroEquipo)
+              : (miEquipo == null || h.equipo === miEquipo))
+          return (
+            <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+              {visibles.length === 0 ? (
+                <p className="text-sm px-4 py-5 text-center" style={{ color: '#6B6B80' }}>Sin novedades para este equipo.</p>
+              ) : visibles.map((h, i) => (
+                <div key={h.id} className="flex items-start gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid #1E1E2E' : 'none' }}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm" style={{ color: '#F0F0F5' }}>{h.texto}</p>
+                    <p className="text-[11px] mt-0.5" style={{ color: '#6B6B7E' }}>
+                      {h.autor}{h.equipo ? ` · Equipo ${h.equipo}` : ''} · {new Date(h.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  {esStaff && (
+                    <button onClick={async () => { if (confirm('¿Eliminar esta novedad?')) { await eliminarHandoff(h.id); window.location.reload() } }}
+                      title="Eliminar" style={{ color: '#6B6B80' }} className="flex-shrink-0"><Trash2 size={13} /></button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
+        })()}
       </div>
     </div>
   )
