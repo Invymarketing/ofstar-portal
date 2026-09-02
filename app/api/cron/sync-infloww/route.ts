@@ -9,8 +9,9 @@ import { getCreators, getTransactions, mapTransaction, type VentaRow } from '@/l
 
 export const maxDuration = 300 // hasta 5 min
 
-// Cuántas horas hacia atrás pedir en cada corrida (con solape para no dejar huecos;
-// el upsert por infloww_id evita duplicados). Configurable con INFLOWW_LOOKBACK_HOURS.
+// Ventana por defecto (horas hacia atrás) en cada corrida automática. Con solape
+// para no dejar huecos; el upsert por infloww_id evita duplicados.
+// Se puede sobreescribir por corrida con ?hours=N  (o ?days=N), útil para backfill.
 const LOOKBACK_HOURS = Number(process.env.INFLOWW_LOOKBACK_HOURS ?? '8')
 
 // Autoriza si (a) trae el Bearer del cron, o (b) es un admin/manager logueado
@@ -37,23 +38,34 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'no_autorizado' }, { status: 401 })
   }
 
-  // Modo debug: muestra los campos crudos de una transacción de Infloww
-  // (para ver si ya viene el empleado/chatter). Uso: ...?debug=1
-  if (new URL(request.url).searchParams.get('debug')) {
+  const url = new URL(request.url)
+
+  // Ventana de tiempo: ?hours=N tiene prioridad, luego ?days=N, luego el valor por defecto.
+  const hoursParam = Number(url.searchParams.get('hours'))
+  const daysParam = Number(url.searchParams.get('days'))
+  let lookbackHours = LOOKBACK_HOURS
+  if (Number.isFinite(hoursParam) && hoursParam > 0) lookbackHours = hoursParam
+  else if (Number.isFinite(daysParam) && daysParam > 0) lookbackHours = daysParam * 24
+
+  // Modo debug: muestra los campos crudos de una transacción de Infloww. Uso: ...?debug=1
+  if (url.searchParams.get('debug')) {
     try {
       const creators = await getCreators()
-      const since = new Date(Date.now() - 72 * 3600 * 1000).toISOString()
+      const since = new Date(Date.now() - lookbackHours * 3600 * 1000).toISOString()
       for (const c of creators) {
         const txs = await getTransactions(c.id, since)
         if (txs.length > 0) {
           return NextResponse.json({
+            desde: since,
+            horas_ventana: lookbackHours,
             creator_sample: c,
             transaction_keys: Object.keys(txs[0]),
             transaction_sample: txs[0],
+            transacciones_primer_creator: txs.length,
           })
         }
       }
-      return NextResponse.json({ creators: creators.length, nota: 'sin transacciones en 72h' })
+      return NextResponse.json({ creators: creators.length, nota: `sin transacciones en ${lookbackHours}h` })
     } catch (err) {
       return NextResponse.json({ error: 'debug', detalle: String(err) }, { status: 502 })
     }
@@ -73,7 +85,7 @@ export async function GET(request: NextRequest) {
     if (m.model_name) modeloPorNombre.set(norm(m.model_name), m.id)
   }
 
-  const sinceISO = new Date(Date.now() - LOOKBACK_HOURS * 3600 * 1000).toISOString()
+  const sinceISO = new Date(Date.now() - lookbackHours * 3600 * 1000).toISOString()
 
   let creators: { id: string; name?: string; username?: string }[] = []
   try {
@@ -144,6 +156,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     desde: sinceISO,
+    horas_ventana: lookbackHours,
     creators: creators.length,
     modelos_automapeados: automapeados,
     ventas_procesadas: insertadas,
