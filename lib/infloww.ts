@@ -61,42 +61,49 @@ export async function getCreators(): Promise<InflowwCreator[]> {
   return r?.data?.list ?? []
 }
 
-const PAGE_SIZE = 100
-const MAX_PAGES = 60 // tope de seguridad: hasta 6.000 transacciones por modelo/corrida
+const PAGE_LIMIT = 100
+const MIN_SLICE_MS = 15 * 60 * 1000 // no partir por debajo de 15 min
+const MAX_CALLS = 500 // tope de seguridad de llamadas por modelo/corrida
 
-// Transacciones de un creator desde `sinceISO`, recorriendo TODAS las páginas.
-// Manda varios nombres de parámetro de paginación (page/pageNo, size/pageSize/limit)
-// porque la doc de Infloww requiere auth; los que no existan, la API los ignora.
-// Freno anti-bucle: si dos páginas seguidas devuelven el mismo primer id (la API
-// no está paginando), corta para no repetir infinito.
+// Una sola llamada a /transactions para una franja [startISO, endISO)
+async function fetchSlice(creatorId: string, startISO: string, endISO: string): Promise<InflowwTransaction[]> {
+  const r = await inflowwGet<{ data: { list: InflowwTransaction[] } }>('/transactions', {
+    creatorId,
+    platformCode: 'OnlyFans',
+    startTime: startISO,
+    endTime: endISO,
+    limit: String(PAGE_LIMIT),
+  })
+  return r?.data?.list ?? []
+}
+
+// Transacciones de un creator desde `sinceISO`, con TROCEO ADAPTATIVO por fecha:
+// Infloww devuelve máx. 100 por llamada e ignora la paginación, así que si una
+// franja llega al tope, se parte a la mitad y se reintenta hasta que quepa todo.
+// Se deduplica por id (las franjas comparten el borde). Si la API no respeta
+// `endTime`, en el peor caso queda como antes (no empeora).
 export async function getTransactions(creatorId: string, sinceISO: string): Promise<InflowwTransaction[]> {
-  const all: InflowwTransaction[] = []
-  let lastFirstId: string | null = null
+  const start = +new Date(sinceISO)
+  const end = Date.now()
+  const seen = new Map<string, InflowwTransaction>()
+  const stack: { a: number; b: number }[] = [{ a: start, b: end }]
+  let calls = 0
 
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    const r = await inflowwGet<{ data: { list: InflowwTransaction[]; total?: number } }>('/transactions', {
-      creatorId,
-      platformCode: 'OnlyFans',
-      startTime: sinceISO,
-      page: String(page),
-      pageNo: String(page),
-      size: String(PAGE_SIZE),
-      pageSize: String(PAGE_SIZE),
-      limit: String(PAGE_SIZE),
-    })
-    const list = r?.data?.list ?? []
-    if (list.length === 0) break
+  while (stack.length > 0 && calls < MAX_CALLS) {
+    const { a, b } = stack.pop() as { a: number; b: number }
+    calls++
+    const list = await fetchSlice(creatorId, new Date(a).toISOString(), new Date(b).toISOString())
+    for (const t of list) seen.set(String(t.id), t)
 
-    const firstId = list[0]?.id != null ? String(list[0].id) : null
-    if (firstId && firstId === lastFirstId) break // la API no avanzó de página → cortar
-    lastFirstId = firstId
-
-    all.push(...list)
-
-    if (list.length < PAGE_SIZE) break // última página
+    // Si llegó al tope, la franja probablemente está truncada → partir y reintentar
+    if (list.length >= PAGE_LIMIT && (b - a) > MIN_SLICE_MS) {
+      const mid = Math.floor((a + b) / 2)
+      stack.push({ a, b: mid })
+      stack.push({ a: mid, b })
+    }
   }
 
-  return all
+  return [...seen.values()]
 }
 
 function mapEstado(status?: string): VentaRow['estado'] {
