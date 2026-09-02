@@ -63,9 +63,10 @@ export async function finalizarTurno(nota?: string) {
     .eq('jornada_id', jornada.id).is('fin', null)
   const { error } = await admin.from('jornadas').update({ fin: new Date().toISOString() }).eq('id', jornada.id)
   if (error) throw new Error(error.message)
-  // Novedad de fin de turno (opcional)
+  // Novedad de fin de turno (opcional), etiquetada con el equipo del chatter
   if (nota && nota.trim()) {
-    await admin.from('handoffs').insert({ user_id: user.id, texto: nota.trim() })
+    const { data: ch } = await admin.from('chatters').select('equipo').eq('profile_id', user.id).maybeSingle()
+    await admin.from('handoffs').insert({ user_id: user.id, texto: nota.trim(), equipo: ch?.equipo ?? null })
   }
   revalidatePath('/modulo-15')
 }

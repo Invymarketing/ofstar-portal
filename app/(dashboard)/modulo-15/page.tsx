@@ -26,8 +26,12 @@ export default async function Modulo15Page() {
   const [{ data: jornadas }, { data: descansos }, personasRes, { data: handoffs }] = await Promise.all([
     jq, dq,
     esStaff ? admin.from('profiles').select('id, full_name, role') : Promise.resolve({ data: [] as { id: string; full_name: string; role: string }[] }),
-    admin.from('handoffs').select('id, user_id, texto, created_at').order('created_at', { ascending: false }).limit(12),
+    admin.from('handoffs').select('id, user_id, texto, equipo, created_at').order('created_at', { ascending: false }).limit(40),
   ])
+
+  // Equipo del usuario actual (para filtrar sus novedades)
+  const { data: miChatter } = await admin.from('chatters').select('equipo').eq('profile_id', user.id).maybeSingle()
+  const miEquipo = miChatter?.equipo ?? null
 
   // Nombres de los autores de las novedades
   const autorIds = [...new Set((handoffs ?? []).map((h) => h.user_id).filter(Boolean))] as string[]
@@ -36,7 +40,7 @@ export default async function Modulo15Page() {
     : { data: [] as { id: string; full_name: string }[] }
   const autorMap = new Map((autores ?? []).map((a) => [a.id, a.full_name]))
   const handoffsView = (handoffs ?? []).map((h) => ({
-    id: h.id, texto: h.texto, created_at: h.created_at,
+    id: h.id, texto: h.texto, created_at: h.created_at, equipo: h.equipo ?? null,
     autor: h.user_id ? (autorMap.get(h.user_id) ?? '—') : '—',
   }))
 
@@ -74,6 +78,7 @@ export default async function Modulo15Page() {
         descansos={(descansos ?? []).map((d) => ({ user_id: d.user_id, inicio: d.inicio, fin: d.fin }))}
         personas={(personasRes.data ?? []).map((p) => ({ id: p.id, full_name: p.full_name, role: p.role }))}
         handoffs={handoffsView}
+        miEquipo={miEquipo}
       />
     </div>
   )
