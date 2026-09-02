@@ -51,9 +51,11 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
     }
   }
 
-  async function toggle(t: Tarea) {
-    if (t.estado === 'completada') { if (esStaff) { await reabrirTarea(t.id); window.location.reload() } }
-    else if (t.mia) { await completarTarea(t.id); window.location.reload() }
+  async function completar(t: Tarea) {
+    if (t.mia && t.estado !== 'completada') { await completarTarea(t.id); window.location.reload() }
+  }
+  async function reabrir(t: Tarea) {
+    if (t.asignada_por_mi) { await reabrirTarea(t.id); window.location.reload() }
   }
 
   async function copiar(t: Tarea) {
@@ -139,10 +141,10 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
             return (
               <div key={t.id} className="flex items-start gap-3 rounded-xl border px-4 py-3"
                 style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-                <button onClick={() => toggle(t)} className="mt-0.5 flex-shrink-0"
-                  disabled={!t.mia && !(esStaff && hecha)}
-                  title={t.mia ? (hecha ? 'Completada' : 'Marcar completada') : (hecha ? 'Completada' : 'Pendiente')}
-                  style={{ color: hecha ? '#22C55E' : '#6B6B80', cursor: t.mia ? 'pointer' : 'default' }}>
+                <button onClick={() => completar(t)} className="mt-0.5 flex-shrink-0"
+                  disabled={!t.mia || hecha}
+                  title={hecha ? 'Completada' : (t.mia ? 'Marcar completada' : 'Pendiente')}
+                  style={{ color: hecha ? '#22C55E' : '#6B6B80', cursor: (t.mia && !hecha) ? 'pointer' : 'default' }}>
                   {hecha ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                 </button>
                 <div className="flex-1 min-w-0">
@@ -164,10 +166,10 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
                   <button onClick={() => copiar(t)} title="Copiar" style={{ color: copiado === t.id ? '#22C55E' : '#8B8B9E' }}>
                     {copiado === t.id ? <Check size={14} /> : <Copy size={14} />}
                   </button>
-                  {esStaff && hecha && (
-                    <button onClick={() => toggle(t)} title="Reabrir" style={{ color: '#8B8B9E' }}><RotateCcw size={14} /></button>
+                  {t.asignada_por_mi && hecha && (
+                    <button onClick={() => reabrir(t)} title="Reabrir" style={{ color: '#8B8B9E' }}><RotateCcw size={14} /></button>
                   )}
-                  {esStaff && (
+                  {t.asignada_por_mi && (
                     <button onClick={async () => { if (confirm('¿Eliminar esta tarea?')) { await eliminarTarea(t.id); window.location.reload() } }}
                       title="Eliminar" style={{ color: '#6B6B80' }}><Trash2 size={14} /></button>
                   )}
