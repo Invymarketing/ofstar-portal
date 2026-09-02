@@ -41,6 +41,9 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
   const [editingId, setEditingId] = useState<string | null>(null)
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
+  const [busqueda, setBusqueda] = useState('')
+  const [cuando, setCuando] = useState<'todos' | 'futuros' | 'pasados'>('todos')
+  const formRef = useRef<HTMLFormElement>(null)
   const [tipo, setTipo] = useState<'texto' | 'foto' | 'video'>('texto')
   const [texto, setTexto] = useState('')
   const [archivoUrl, setArchivoUrl] = useState('')
@@ -67,9 +70,17 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
   const agenda = useMemo(() => {
     const desdeT = desde ? +new Date(desde + 'T00:00:00') : -Infinity
     const hastaT = hasta ? +new Date(hasta + 'T23:59:59') : Infinity
+    const ahora = Date.now()
+    const q = busqueda.trim().toLowerCase()
     const delModelo = mensajes
       .filter((x) => x.modelo_id === sel)
       .filter((x) => { const t = +new Date(x.fecha_programada); return t >= desdeT && t <= hastaT })
+      .filter((x) => {
+        if (cuando === 'futuros') return +new Date(x.fecha_programada) >= ahora
+        if (cuando === 'pasados') return +new Date(x.fecha_programada) < ahora
+        return true
+      })
+      .filter((x) => !q || (x.texto ?? '').toLowerCase().includes(q))
       .sort((a, b) => +new Date(a.fecha_programada) - +new Date(b.fecha_programada))
     const grupos: { dia: string; label: string; items: Mensaje[] }[] = []
     const idx = new Map<string, number>()
@@ -83,7 +94,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
       grupos[idx.get(dia)!].items.push(x)
     }
     return grupos
-  }, [mensajes, sel, desde, hasta])
+  }, [mensajes, sel, desde, hasta, busqueda, cuando])
 
   async function subirArchivo(file: File | null) {
     setError(null)
@@ -123,7 +134,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
     const d = new Date(x.fecha_programada); const off = d.getTimezoneOffset()
     setFecha(new Date(d.getTime() - off * 60000).toISOString().slice(0, 16))
     setShowForm(true)
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80)
   }
 
   async function crear(e: React.FormEvent) {
@@ -221,7 +232,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
 
       {/* Formulario */}
       {showForm && (
-        <form onSubmit={crear} className="rounded-2xl border p-5 space-y-4 mb-6" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+        <form ref={formRef} onSubmit={crear} className="rounded-2xl border p-5 space-y-4 mb-6" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E', outline: editingId ? '1px solid rgba(201,168,76,0.5)' : 'none' }}>
           <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E' }}>
             {TIPOS.map((t) => {
               const Icon = t.icon
@@ -288,16 +299,27 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
         </form>
       )}
 
-      {/* Filtro por fechas */}
+      {/* Buscador + filtros */}
       <div className="flex items-center gap-2 mb-4 flex-wrap text-xs" style={{ color: '#6B6B80' }}>
-        <span>Filtrar:</span>
+        <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar en el texto…"
+          className="rounded-lg px-3 py-1.5 text-xs w-48" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+        <div className="flex gap-1 p-0.5 rounded-lg" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E' }}>
+          {(['todos', 'pasados', 'futuros'] as const).map((c) => (
+            <button key={c} onClick={() => setCuando(c)}
+              className="px-2.5 py-1 rounded-md text-xs capitalize"
+              style={{ backgroundColor: cuando === c ? 'rgba(201,168,76,0.15)' : 'transparent', color: cuando === c ? '#C9A84C' : '#8B8B9E' }}>
+              {c === 'todos' ? 'Todos' : c === 'pasados' ? 'Pasados' : 'Próximos'}
+            </button>
+          ))}
+        </div>
+        <span className="ml-1">Fechas:</span>
         <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)}
           className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
         <span>→</span>
         <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)}
           className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
-        {(desde || hasta) && (
-          <button onClick={() => { setDesde(''); setHasta('') }} className="underline" style={{ color: '#C9A84C' }}>limpiar</button>
+        {(desde || hasta || busqueda || cuando !== 'todos') && (
+          <button onClick={() => { setDesde(''); setHasta(''); setBusqueda(''); setCuando('todos') }} className="underline" style={{ color: '#C9A84C' }}>limpiar</button>
         )}
       </div>
 
