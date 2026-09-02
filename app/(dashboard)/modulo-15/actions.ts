@@ -53,7 +53,7 @@ export async function finalizarBreak() {
   revalidatePath('/modulo-15')
 }
 
-export async function finalizarTurno() {
+export async function finalizarTurno(nota?: string) {
   const user = await getUser()
   const admin = createAdminClient()
   const jornada = await jornadaAbierta(admin, user.id)
@@ -62,6 +62,20 @@ export async function finalizarTurno() {
   await admin.from('descansos').update({ fin: new Date().toISOString() })
     .eq('jornada_id', jornada.id).is('fin', null)
   const { error } = await admin.from('jornadas').update({ fin: new Date().toISOString() }).eq('id', jornada.id)
+  if (error) throw new Error(error.message)
+  // Novedad de fin de turno (opcional)
+  if (nota && nota.trim()) {
+    await admin.from('handoffs').insert({ user_id: user.id, texto: nota.trim() })
+  }
+  revalidatePath('/modulo-15')
+}
+
+export async function eliminarHandoff(id: string) {
+  const user = await getUser()
+  const admin = createAdminClient()
+  const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) throw new Error('Sin permiso')
+  const { error } = await admin.from('handoffs').delete().eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/modulo-15')
 }

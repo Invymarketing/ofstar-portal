@@ -23,10 +23,22 @@ export default async function Modulo15Page() {
   let dq = admin.from('descansos').select('id, jornada_id, user_id, inicio, fin').or(`fin.is.null,inicio.gte.${desde}`)
   if (!esStaff) { jq = jq.eq('user_id', user.id); dq = dq.eq('user_id', user.id) }
 
-  const [{ data: jornadas }, { data: descansos }, personasRes] = await Promise.all([
+  const [{ data: jornadas }, { data: descansos }, personasRes, { data: handoffs }] = await Promise.all([
     jq, dq,
     esStaff ? admin.from('profiles').select('id, full_name, role') : Promise.resolve({ data: [] as { id: string; full_name: string; role: string }[] }),
+    admin.from('handoffs').select('id, user_id, texto, created_at').order('created_at', { ascending: false }).limit(12),
   ])
+
+  // Nombres de los autores de las novedades
+  const autorIds = [...new Set((handoffs ?? []).map((h) => h.user_id).filter(Boolean))] as string[]
+  const { data: autores } = autorIds.length
+    ? await admin.from('profiles').select('id, full_name').in('id', autorIds)
+    : { data: [] as { id: string; full_name: string }[] }
+  const autorMap = new Map((autores ?? []).map((a) => [a.id, a.full_name]))
+  const handoffsView = (handoffs ?? []).map((h) => ({
+    id: h.id, texto: h.texto, created_at: h.created_at,
+    autor: h.user_id ? (autorMap.get(h.user_id) ?? '—') : '—',
+  }))
 
   const misJornadas = (jornadas ?? []).filter((j) => j.user_id === user.id)
   const misDescansos = (descansos ?? []).filter((d) => d.user_id === user.id)
@@ -61,6 +73,7 @@ export default async function Modulo15Page() {
         jornadas={(jornadas ?? []).map((j) => ({ user_id: j.user_id, inicio: j.inicio, fin: j.fin }))}
         descansos={(descansos ?? []).map((d) => ({ user_id: d.user_id, inicio: d.inicio, fin: d.fin }))}
         personas={(personasRes.data ?? []).map((p) => ({ id: p.id, full_name: p.full_name, role: p.role }))}
+        handoffs={handoffsView}
       />
     </div>
   )
