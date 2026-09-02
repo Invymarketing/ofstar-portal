@@ -42,8 +42,12 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
   const inicio = useMemo(() => {
     const d = new Date()
     d.setHours(0, 0, 0, 0)
-    if (rango === 'semana') d.setDate(d.getDate() - 6)
-    else if (rango === 'mes') d.setDate(1)
+    if (rango === 'semana') {
+      const diffLunes = (d.getDay() + 6) % 7 // días desde el lunes (0=lun)
+      d.setDate(d.getDate() - diffLunes)
+    } else if (rango === 'mes') {
+      d.setDate(1)
+    }
     return d
   }, [rango])
 
