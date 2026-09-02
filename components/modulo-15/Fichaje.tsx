@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { iniciarTurno, iniciarBreak, finalizarBreak, finalizarTurno } from '@/app/(dashboard)/modulo-15/actions'
-import { LogIn, LogOut, Coffee, Play, Circle } from 'lucide-react'
+import { iniciarTurno, iniciarBreak, finalizarBreak, finalizarTurno, eliminarHandoff } from '@/app/(dashboard)/modulo-15/actions'
+import { LogIn, LogOut, Coffee, Play, Circle, Trash2, ClipboardList } from 'lucide-react'
 
 interface Estado { enTurno: boolean; enBreak: boolean; inicioTurno: string | null; inicioBreak: string | null }
 interface Periodo { inicio: string; fin: string | null }
 interface Fila { user_id: string; inicio: string; fin: string | null }
 interface Persona { id: string; full_name: string; role: string }
+interface Handoff { id: string; texto: string; created_at: string; autor: string }
 
 const fmt = (ms: number) => {
   if (ms < 0) ms = 0
@@ -19,13 +20,15 @@ const fmt = (ms: number) => {
 const dur = (p: Periodo, now: number) => (p.fin ? +new Date(p.fin) : now) - +new Date(p.inicio)
 
 export default function Fichaje({
-  estado, misJornadas, misDescansos, esStaff, jornadas, descansos, personas,
+  estado, misJornadas, misDescansos, esStaff, jornadas, descansos, personas, handoffs,
 }: {
   estado: Estado; misJornadas: Periodo[]; misDescansos: Periodo[]
-  esStaff: boolean; jornadas: Fila[]; descansos: Fila[]; personas: Persona[]
+  esStaff: boolean; jornadas: Fila[]; descansos: Fila[]; personas: Persona[]; handoffs: Handoff[]
 }) {
   const [now, setNow] = useState(Date.now())
   const [busy, setBusy] = useState(false)
+  const [cerrando, setCerrando] = useState(false)
+  const [nota, setNota] = useState('')
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t) }, [])
 
   async function accion(fn: () => Promise<void>) {
@@ -100,7 +103,7 @@ export default function Fichaje({
                   style={{ backgroundColor: 'rgba(234,179,8,0.15)', border: '1px solid rgba(234,179,8,0.4)', color: '#EAB308' }}>
                   <Coffee size={16} /> Break
                 </button>
-                <button onClick={() => accion(finalizarTurno)} disabled={busy}
+                <button onClick={() => setCerrando(true)} disabled={busy}
                   className="flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold disabled:opacity-50"
                   style={{ backgroundColor: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.4)', color: '#EF4444' }}>
                   <LogOut size={16} /> Finalizar turno
@@ -128,6 +131,25 @@ export default function Fichaje({
             <p className="text-lg font-bold" style={{ color: '#EAB308' }}>{fmt(miTrabajo.brk)}</p>
           </div>
         </div>
+
+        {/* Nota de fin de turno */}
+        {cerrando && (
+          <div className="mt-5 rounded-xl p-4" style={{ backgroundColor: '#0D0D14', border: '1px solid rgba(239,68,68,0.3)' }}>
+            <p className="text-xs mb-2" style={{ color: '#F0F0F5' }}>Novedad para el siguiente turno (opcional)</p>
+            <textarea value={nota} onChange={(e) => setNota(e.target.value)} rows={3}
+              placeholder="Fans calientes, pendientes, incidencias…"
+              className="w-full rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+            <div className="flex items-center gap-2 mt-3">
+              <button onClick={() => accion(() => finalizarTurno(nota))} disabled={busy}
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                style={{ backgroundColor: '#EF4444', color: '#fff' }}>
+                <LogOut size={15} /> Finalizar y guardar
+              </button>
+              <button onClick={() => { setCerrando(false); setNota('') }} disabled={busy}
+                className="rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: '#1E1E2E', color: '#8B8B9E' }}>Cancelar</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Panel staff */}
@@ -193,6 +215,31 @@ export default function Fichaje({
           </div>
         </>
       )}
+
+      {/* Novedades del equipo (handoffs) */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#6B6B80' }}>
+          <ClipboardList size={13} /> Novedades del turno
+        </p>
+        <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+          {handoffs.length === 0 ? (
+            <p className="text-sm px-4 py-5 text-center" style={{ color: '#6B6B80' }}>Sin novedades registradas.</p>
+          ) : handoffs.map((h, i) => (
+            <div key={h.id} className="flex items-start gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid #1E1E2E' : 'none' }}>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm" style={{ color: '#F0F0F5' }}>{h.texto}</p>
+                <p className="text-[11px] mt-0.5" style={{ color: '#6B6B7E' }}>
+                  {h.autor} · {new Date(h.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              {esStaff && (
+                <button onClick={async () => { if (confirm('¿Eliminar esta novedad?')) { await eliminarHandoff(h.id); window.location.reload() } }}
+                  title="Eliminar" style={{ color: '#6B6B80' }} className="flex-shrink-0"><Trash2 size={13} /></button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
