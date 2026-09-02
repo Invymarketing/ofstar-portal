@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MisVentas from '@/components/modulo-12/MisVentas'
+import SupervisionVentas from '@/components/modulo-12/SupervisionVentas'
 import { DollarSign, Info } from 'lucide-react'
 import type { UserRole } from '@/types'
 
@@ -28,16 +29,76 @@ export default async function Modulo12Page() {
   const { data: profile } = await admin.from('profiles').select('role, full_name').eq('id', user.id).single()
   const role = profile?.role as UserRole
   if (!['admin', 'manager', 'team_leader', 'chatter'].includes(role)) redirect('/')
+  const esStaff = ['admin', 'manager', 'team_leader'].includes(role)
 
-  // Identidad de chatter del usuario (para sus ventas atribuidas)
+  const { data: modelos } = await admin
+    .from('modelos').select('id, model_name, activa').order('model_name')
+  const modeloMap = new Map((modelos ?? []).map((m) => [m.id, m.model_name]))
+
+  // ── VISTA STAFF: supervisión de lo que reporta cada chatter ──
+  if (esStaff) {
+    const { data: reps, error } = await admin
+      .from('ventas_reportadas')
+      .select('id, reported_by, modelo_id, fan_name, monto, tipo, fecha_venta, estado, created_at')
+      .order('created_at', { ascending: false })
+      .limit(500)
+
+    const ids = [...new Set((reps ?? []).map((r) => r.reported_by).filter(Boolean))] as string[]
+    const { data: profs } = ids.length
+      ? await admin.from('profiles').select('id, full_name').in('id', ids)
+      : { data: [] as { id: string; full_name: string }[] }
+    const nameMap = new Map((profs ?? []).map((p) => [p.id, p.full_name]))
+
+    const reportes = (reps ?? []).map((r) => ({
+      id: r.id,
+      chatter: r.reported_by ? (nameMap.get(r.reported_by) ?? '—') : '—',
+      modelo: r.modelo_id ? (modeloMap.get(r.modelo_id) ?? null) : null,
+      fan_name: r.fan_name,
+      monto: Number(r.monto ?? 0),
+      tipo: r.tipo,
+      fecha_venta: r.fecha_venta,
+      estado: r.estado,
+      created_at: r.created_at,
+    }))
+
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-start gap-3 mb-8">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)' }}>
+            <DollarSign size={18} style={{ color: '#C9A84C' }} />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Ventas reportadas por chatters</h1>
+            <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>
+              Revisa qué registró cada chatter · se confirman contra Infloww
+            </p>
+          </div>
+        </div>
+
+        {error ? (
+          <div className="rounded-2xl border p-5 flex items-start gap-3"
+            style={{ backgroundColor: 'rgba(234,179,8,0.05)', borderColor: 'rgba(234,179,8,0.2)' }}>
+            <Info size={16} style={{ color: '#EAB308' }} className="flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium mb-1" style={{ color: '#EAB308' }}>Migración pendiente</p>
+              <p className="text-xs" style={{ color: '#6B6B80' }}>Ejecuta 008_ventas_chatter.sql en Supabase.</p>
+            </div>
+          </div>
+        ) : (
+          <SupervisionVentas reportes={reportes} />
+        )}
+      </div>
+    )
+  }
+
+  // ── VISTA CHATTER: su formulario y sus totales ──
   const { data: ch } = await admin.from('chatters').select('id, meta_quincena').eq('profile_id', user.id).maybeSingle()
   const chId = ch?.id ?? null
   const rango = quincenaRango()
-
   const desde35 = new Date(Date.now() - 35 * 24 * 3600 * 1000).toISOString()
 
-  const { data: modelos } = await admin
-    .from('modelos').select('id, model_name, activa').eq('activa', true).order('model_name')
+  const modelosActivas = (modelos ?? []).filter((m) => m.activa)
 
   const { data: reportes, error: repErr } = await admin
     .from('ventas_reportadas')
@@ -46,7 +107,6 @@ export default async function Modulo12Page() {
     .order('created_at', { ascending: false })
     .limit(50)
 
-  // Ventas reales ya atribuidas a este chatter (para sus totales)
   const { data: misVentas } = chId
     ? await admin.from('ventas')
         .select('id, fecha, fan_name, monto_bruto, venta_neto, tipo, estado, modelo_id')
@@ -58,7 +118,6 @@ export default async function Modulo12Page() {
 
   const tablesReady = !repErr
 
-  const modeloMap = new Map((modelos ?? []).map((m) => [m.id, m.model_name]))
   const reportesView = (reportes ?? []).map((r) => ({
     ...r,
     monto: Number(r.monto ?? 0),
@@ -75,7 +134,6 @@ export default async function Modulo12Page() {
     modelo: v.modelo_id ? (modeloMap.get(v.modelo_id) ?? null) : null,
   }))
 
-  // Meta de la quincena: vendido = ventas atribuidas de esta quincena (sin reversos)
   const vendidoQuincena = ventasView
     .filter((v) => v.estado !== 'Reverso' && v.fecha >= rango.start && v.fecha < rango.end)
     .reduce((a, v) => a + v.monto_bruto, 0)
@@ -113,7 +171,7 @@ export default async function Modulo12Page() {
         </div>
       ) : (
         <MisVentas
-          modelos={(modelos ?? []).map((m) => ({ id: m.id, model_name: m.model_name }))}
+          modelos={modelosActivas.map((m) => ({ id: m.id, model_name: m.model_name }))}
           reportes={reportesView}
           ventas={ventasView}
           meta={metaInfo}
