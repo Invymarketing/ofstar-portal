@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Wallet, Fish, Users, PlusCircle, Link2 } from 'lucide-react'
+import { Wallet, Fish, Users, Link2 } from 'lucide-react'
 import VentasPanel from '@/components/modulo-3/VentasPanel'
 import BallenasPanel from '@/components/modulo-3/BallenasPanel'
 import FansPanel from '@/components/modulo-3/FansPanel'
-import RegistrarVentaForm from '@/components/modulo-3/RegistrarVentaForm'
 import MapearCreators from '@/components/modulo-3/MapearCreators'
 
 export interface Modelo { id: string; model_name: string; activa: boolean }
@@ -37,7 +36,6 @@ const TABS = [
   { id: 'ventas', label: 'Ventas', icon: Wallet },
   { id: 'ballenas', label: 'Ballenas', icon: Fish },
   { id: 'fans', label: 'Fans', icon: Users },
-  { id: 'registrar', label: 'Registrar venta', icon: PlusCircle },
   { id: 'mapear', label: 'Sin mapear', icon: Link2 },
 ] as const
 
@@ -73,7 +71,6 @@ export default function Modulo3Tabs({ modelos, ventas, fans, sinMapear }: Props)
       {tab === 'ventas' && <VentasPanel ventas={ventas} />}
       {tab === 'ballenas' && <BallenasPanel fans={fans} />}
       {tab === 'fans' && <FansPanel fans={fans} />}
-      {tab === 'registrar' && <RegistrarVentaForm modelos={modelos} />}
       {tab === 'mapear' && <MapearCreators modelos={modelos} sinMapear={sinMapear} />}
     </div>
   )
