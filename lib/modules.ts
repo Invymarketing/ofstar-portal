@@ -98,12 +98,6 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'BarChart3', phase: 8, area: 'chatting',
     allowedRoles: ['admin', 'manager', 'team_leader'], isBuilt: true,
   },
-  {
-    id: 17, slug: 'modulo-17', name: 'Horarios',
-    description: 'Turnos fijos, equipos y días de descanso de chatters y VAs.',
-    icon: 'Calendar', phase: 8, area: 'chatting',
-    allowedRoles: ['admin', 'manager', 'team_leader'], isBuilt: true,
-  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
