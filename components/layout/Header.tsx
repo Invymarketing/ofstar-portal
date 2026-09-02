@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Bell, Menu, LogOut, ChevronDown, CheckCheck } from 'lucide-react'
+import { Bell, Menu, LogOut, ChevronDown, CheckCheck, CheckSquare } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ROLE_LABELS } from '@/lib/roles'
@@ -20,6 +20,7 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
   const [showNotifs, setShowNotifs] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [notifs, setNotifs] = useState<Notif[]>([])
+  const [tareasPend, setTareasPend] = useState(0)
   const router = useRouter()
 
   const cargar = useCallback(async () => {
@@ -34,6 +35,11 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
         .order('created_at', { ascending: false })
         .limit(20)
       setNotifs(data ?? [])
+      const { count } = await supabase
+        .from('tareas')
+        .select('id', { count: 'exact', head: true })
+        .eq('asignado_a', user.id).eq('estado', 'pendiente')
+      setTareasPend(count ?? 0)
     } catch { /* noop */ }
   }, [])
 
@@ -88,6 +94,16 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
       </button>
 
       <div className="flex-1" />
+
+      {/* Tareas (acceso rápido) */}
+      <button onClick={() => router.push('/modulo-14')} title="Tareas"
+        className="relative p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-white/5 transition-colors">
+        <CheckSquare size={18} />
+        {tareasPend > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold flex items-center justify-center"
+            style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>{tareasPend > 9 ? '9+' : tareasPend}</span>
+        )}
+      </button>
 
       {/* Notifications */}
       <div className="relative">
