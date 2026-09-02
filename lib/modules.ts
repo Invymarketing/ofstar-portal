@@ -131,6 +131,16 @@ export const MODULES: ModuleDefinition[] = [
     allowedRoles: ['admin', 'manager', 'team_leader'],
     isBuilt: true,
   },
+  {
+    id: 14,
+    slug: 'modulo-14',
+    name: 'Tareas',
+    description: 'Asigna tareas a tu equipo, con notificaciones y seguimiento de cumplimiento.',
+    icon: 'Calendar',
+    phase: 7,
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo'],
+    isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
