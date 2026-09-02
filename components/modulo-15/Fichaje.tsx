@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { iniciarTurno, iniciarBreak, finalizarBreak, finalizarTurno, eliminarHandoff } from '@/app/(dashboard)/modulo-15/actions'
 import { LogIn, LogOut, Coffee, Play, Circle, Trash2, ClipboardList } from 'lucide-react'
 
@@ -31,7 +32,10 @@ export default function Fichaje({
   const [cerrando, setCerrando] = useState(false)
   const [nota, setNota] = useState('')
   const [filtroEquipo, setFiltroEquipo] = useState<number | 'todos'>(esStaff ? 'todos' : (miEquipo ?? 'todos'))
+  const router = useRouter()
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t) }, [])
+  // Auto-refresco de datos del servidor (novedades, en línea, registro) sin recargar la página
+  useEffect(() => { const t = setInterval(() => router.refresh(), 20000); return () => clearInterval(t) }, [router])
 
   async function accion(fn: () => Promise<void>) {
     setBusy(true)
