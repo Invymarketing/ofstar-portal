@@ -25,9 +25,17 @@ function quincena() {
   return { start, end, label: `${y}-${mm}-${q1 ? 'Q1' : 'Q2'}` }
 }
 
+// Medianoche de HOY en hora de Madrid (Europe/Madrid), expresada en UTC ISO,
+// para que "Ventas de hoy" cuadre con el "Hoy" del panel de Ventas.
 function inicioHoyISO() {
-  const d = new Date(); d.setUTCHours(0, 0, 0, 0)
-  return d.toISOString()
+  const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+  const [y, m, d] = p.split('-').map(Number)
+  const offStr = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Madrid', timeZoneName: 'shortOffset' })
+    .formatToParts(new Date(Date.UTC(y, m - 1, d)))
+    .find((x) => x.type === 'timeZoneName')?.value ?? 'GMT+0'
+  const signo = offStr.includes('-') ? -1 : 1
+  const horas = Number(offStr.replace(/[^0-9]/g, '')) || 0
+  return new Date(Date.UTC(y, m - 1, d, 0, 0, 0) - signo * horas * 3600000).toISOString()
 }
 
 function minutosDesde(iso: string) {
