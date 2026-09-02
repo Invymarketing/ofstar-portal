@@ -7,6 +7,18 @@ import type { UserRole } from '@/types'
 
 export const metadata = { title: 'Mis Ventas — OF Star Management' }
 
+function quincenaRango() {
+  const f = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+  const [y, m, d] = f.split('-').map(Number)
+  const q1 = d <= 15
+  const mm = String(m).padStart(2, '0')
+  const start = `${y}-${mm}-${q1 ? '01' : '16'}T00:00:00Z`
+  let end: string
+  if (q1) end = `${y}-${mm}-16T00:00:00Z`
+  else { const nm = m === 12 ? 1 : m + 1, ny = m === 12 ? y + 1 : y; end = `${ny}-${String(nm).padStart(2, '0')}-01T00:00:00Z` }
+  return { start, end, label: `${y}-${mm}-${q1 ? 'Q1' : 'Q2'}` }
+}
+
 export default async function Modulo12Page() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -18,8 +30,9 @@ export default async function Modulo12Page() {
   if (!['admin', 'manager', 'team_leader', 'chatter'].includes(role)) redirect('/')
 
   // Identidad de chatter del usuario (para sus ventas atribuidas)
-  const { data: ch } = await admin.from('chatters').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: ch } = await admin.from('chatters').select('id, meta_quincena').eq('profile_id', user.id).maybeSingle()
   const chId = ch?.id ?? null
+  const rango = quincenaRango()
 
   const desde35 = new Date(Date.now() - 35 * 24 * 3600 * 1000).toISOString()
 
@@ -62,6 +75,16 @@ export default async function Modulo12Page() {
     modelo: v.modelo_id ? (modeloMap.get(v.modelo_id) ?? null) : null,
   }))
 
+  // Meta de la quincena: vendido = ventas atribuidas de esta quincena (sin reversos)
+  const vendidoQuincena = ventasView
+    .filter((v) => v.estado !== 'Reverso' && v.fecha >= rango.start && v.fecha < rango.end)
+    .reduce((a, v) => a + v.monto_bruto, 0)
+  const metaInfo = {
+    meta: ch?.meta_quincena != null ? Number(ch.meta_quincena) : null,
+    vendido: vendidoQuincena,
+    quincena: rango.label,
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex items-start gap-3 mb-8">
@@ -93,6 +116,7 @@ export default async function Modulo12Page() {
           modelos={(modelos ?? []).map((m) => ({ id: m.id, model_name: m.model_name }))}
           reportes={reportesView}
           ventas={ventasView}
+          meta={metaInfo}
         />
       )}
     </div>
