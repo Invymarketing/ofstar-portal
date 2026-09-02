@@ -16,6 +16,8 @@ interface Modelo {
   drive_url: string | null
   foto_url: string | null
   telegram_group_id: string | null
+  drive_content_folder_id: string | null
+  of_trial_link: string | null
   created_at?: string | null
   nichos: Nicho | null
 }
@@ -289,6 +291,8 @@ function EditModeloModal({ nichos, modelo, onClose, onSaved }: { nichos: Nicho[]
   const [nichoId, setNichoId] = useState(modelo.nicho_id ?? '')
   const [igUsername, setIgUsername] = useState(modelo.ig_username ?? '')
   const [telegramGroup, setTelegramGroup] = useState(modelo.telegram_group_id ?? '')
+  const [driveFolder, setDriveFolder] = useState(modelo.drive_content_folder_id ?? '')
+  const [ofLink, setOfLink] = useState(modelo.of_trial_link ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -300,7 +304,7 @@ function EditModeloModal({ nichos, modelo, onClose, onSaved }: { nichos: Nicho[]
       const res = await fetch('/api/modelos-admin', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: modelo.id, full_name: fullName, model_name: modelName, nicho_id: nichoId, ig_username: igUsername, telegram_group_id: telegramGroup }),
+        body: JSON.stringify({ id: modelo.id, full_name: fullName, model_name: modelName, nicho_id: nichoId, ig_username: igUsername, telegram_group_id: telegramGroup, drive_content_folder_id: driveFolder, of_trial_link: ofLink }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.message || 'Error al guardar'); setLoading(false); return }
@@ -345,6 +349,16 @@ function EditModeloModal({ nichos, modelo, onClose, onSaved }: { nichos: Nicho[]
             <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Grupo de Telegram (chat id)</label>
             <input type="text" value={telegramGroup} onChange={e => setTelegramGroup(e.target.value)} placeholder="-1003861192188" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
             <p className="text-[11px] mt-1" style={{ color: '#6B6B7E' }}>El Group_Id_Principal del grupo oficial. Se usa para enviarle mensajes desde Programación de Telegram.</p>
+          </div>
+          <div>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Carpeta de Drive del contenido (link o id)</label>
+            <input type="text" value={driveFolder} onChange={e => setDriveFolder(e.target.value)} placeholder="https://drive.google.com/drive/folders/…" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+            <p className="text-[11px] mt-1" style={{ color: '#6B6B7E' }}>Donde la modelo sube su contenido. La ingesta lo detecta y programa solo.</p>
+          </div>
+          <div>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: '#8B8B9E' }}>Link de OnlyFans (trial)</label>
+            <input type="url" value={ofLink} onChange={e => setOfLink(e.target.value)} placeholder="https://onlyfans.com/…/trial/…" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+            <p className="text-[11px] mt-1" style={{ color: '#6B6B7E' }}>Se agrega al final del CTA de la noche.</p>
           </div>
 
           {error && <p className="text-xs" style={{ color: '#F87171' }}>{error}</p>}
