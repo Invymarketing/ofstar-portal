@@ -1,14 +1,19 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { reportarVentaComoStaff } from '@/app/(dashboard)/modulo-12/actions'
+import { PlusCircle } from 'lucide-react'
 
 interface Reporte {
   id: string; chatter: string; modelo: string | null
   fan_name: string | null; monto: number; tipo: string | null
   fecha_venta: string | null; estado: string | null; created_at: string
 }
+interface ChatterOpt { id: string; nombre: string }
+interface ModeloOpt { id: string; model_name: string }
 
 const money = (n: number) => '$' + Number(n || 0).toLocaleString('en-US')
+const TIPOS = ['subscription', 'tip', 'message', 'custom', 'otro']
 
 function colorEstado(e: string | null): string {
   const s = (e ?? '').toLowerCase()
@@ -18,34 +23,134 @@ function colorEstado(e: string | null): string {
   return '#6B6B80'
 }
 
-export default function SupervisionVentas({ reportes }: { reportes: Reporte[] }) {
+export default function SupervisionVentas(
+  { reportes, chatters, modelos }: { reportes: Reporte[]; chatters: ChatterOpt[]; modelos: ModeloOpt[] }
+) {
   const [chatter, setChatter] = useState('')
+  const [abierto, setAbierto] = useState(false)
 
-  const chatters = useMemo(
+  // form
+  const [fChatter, setFChatter] = useState('')
+  const [fModelo, setFModelo] = useState('')
+  const [fFan, setFFan] = useState('')
+  const [fMonto, setFMonto] = useState('')
+  const [fTipo, setFTipo] = useState('subscription')
+  const [fFecha, setFFecha] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [ok, setOk] = useState(false)
+
+  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
+
+  const chattersEnLista = useMemo(
     () => [...new Set(reportes.map((r) => r.chatter).filter(Boolean))].sort(),
     [reportes]
   )
-
   const lista = useMemo(
     () => reportes.filter((r) => !chatter || r.chatter === chatter),
     [reportes, chatter]
   )
-
-  // Resumen por chatter (sobre lo filtrado o todos)
   const resumen = useMemo(() => {
     const m = new Map<string, { n: number; total: number; validados: number }>()
     for (const r of lista) {
       const cur = m.get(r.chatter) ?? { n: 0, total: 0, validados: 0 }
-      cur.n += 1
-      cur.total += r.monto
+      cur.n += 1; cur.total += r.monto
       if (colorEstado(r.estado) === '#22C55E') cur.validados += 1
       m.set(r.chatter, cur)
     }
     return [...m.entries()].map(([nombre, x]) => ({ nombre, ...x })).sort((a, b) => b.total - a.total)
   }, [lista])
 
+  async function guardar(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null); setOk(false); setSaving(true)
+    try {
+      await reportarVentaComoStaff({
+        chatter_id: fChatter,
+        modelo_id: fModelo || null,
+        fan_name: fFan,
+        monto: Number(fMonto),
+        tipo: fTipo,
+        fecha_venta: fFecha || undefined,
+      })
+      setOk(true); setFFan(''); setFMonto(''); setFFecha('')
+      setTimeout(() => window.location.reload(), 1000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
+      {/* Botón / formulario para añadir venta a nombre de un chatter */}
+      <div>
+        {!abierto ? (
+          <button onClick={() => setAbierto(true)}
+            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
+            style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+            <PlusCircle size={15} /> Añadir venta a un chatter
+          </button>
+        ) : (
+          <form onSubmit={guardar} className="rounded-2xl border p-5" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>Añadir venta a un chatter</p>
+              <button type="button" onClick={() => setAbierto(false)} className="text-xs" style={{ color: '#6B6B80' }}>Cerrar</button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Chatter</label>
+                <select value={fChatter} onChange={(e) => setFChatter(e.target.value)} required
+                  className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
+                  <option value="">Elige chatter…</option>
+                  {chatters.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Modelo</label>
+                <select value={fModelo} onChange={(e) => setFModelo(e.target.value)}
+                  className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
+                  <option value="">—</option>
+                  {modelos.map((m) => <option key={m.id} value={m.id}>{m.model_name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Fan / usuario</label>
+                <input value={fFan} onChange={(e) => setFFan(e.target.value)}
+                  className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="@usuario" />
+              </div>
+              <div>
+                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Monto (US$)</label>
+                <input type="number" step="0.01" value={fMonto} onChange={(e) => setFMonto(e.target.value)} required
+                  className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="0" />
+              </div>
+              <div>
+                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Tipo</label>
+                <select value={fTipo} onChange={(e) => setFTipo(e.target.value)}
+                  className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
+                  {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Fecha (opcional)</label>
+                <input type="date" value={fFecha} onChange={(e) => setFFecha(e.target.value)}
+                  className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} />
+              </div>
+            </div>
+            <div className="flex items-center gap-3 mt-4">
+              <button type="submit" disabled={saving}
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
+                style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+                <PlusCircle size={15} /> {saving ? 'Guardando…' : 'Registrar venta'}
+              </button>
+              {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}
+              {ok && <span className="text-xs" style={{ color: '#22C55E' }}>✓ Registrada</span>}
+            </div>
+          </form>
+        )}
+      </div>
+
       {/* Resumen por chatter */}
       {resumen.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -65,7 +170,7 @@ export default function SupervisionVentas({ reportes }: { reportes: Reporte[] })
           className="rounded-lg px-3 py-1.5 text-sm"
           style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E', color: chatter ? '#C9A84C' : '#8B8B9E' }}>
           <option value="">Todos los chatters</option>
-          {chatters.map((c) => <option key={c} value={c}>{c}</option>)}
+          {chattersEnLista.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <span className="text-xs" style={{ color: '#6B6B80' }}>{lista.length} reportes</span>
       </div>
