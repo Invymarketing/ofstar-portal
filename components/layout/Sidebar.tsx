@@ -19,8 +19,7 @@ import {
   UserCircle2,
   X,
 } from 'lucide-react'
-import { MODULES } from '@/lib/modules'
-import type { UserRole, ModuleDefinition } from '@/types'
+import type { UserRole } from '@/types'
 import { getAccessibleModules } from '@/lib/modules'
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -37,6 +36,15 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Megaphone,
 }
 
+// Orden y etiqueta de las áreas en el menú. (topbar no se muestra en el sidebar)
+const AREAS: { key: string; label: string }[] = [
+  { key: 'comercial', label: 'Comercial' },
+  { key: 'chatting', label: 'Chatting' },
+  { key: 'contenido', label: 'Contenido' },
+  { key: 'modelos', label: 'Modelos' },
+  { key: 'admin', label: 'Administración' },
+]
+
 interface SidebarProps {
   role: UserRole
   isOpen: boolean
@@ -45,16 +53,22 @@ interface SidebarProps {
 
 export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
-  const accessibleModules = getAccessibleModules(role)
+
+  // Solo módulos construidos y que no sean de la barra superior (topbar)
+  const visibles = getAccessibleModules(role).filter((m) => m.isBuilt && m.area !== 'topbar')
+
+  const linkClass = (active: boolean) => `
+    flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm font-medium transition-all
+    ${active
+      ? 'bg-gold/10 text-gold border border-gold/20'
+      : 'text-zinc-300 hover:text-white hover:bg-surface'}
+  `
 
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black/60 lg:hidden"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 z-20 bg-black/60 lg:hidden" onClick={onClose} />
       )}
 
       {/* Sidebar */}
@@ -70,57 +84,28 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-border">
           <Link href="/" className="flex items-center gap-3 group" onClick={onClose}>
-            <Image
-              src="/logo.png"
-              alt="OF Star Management"
-              width={36}
-              height={36}
-              className="rounded-lg flex-shrink-0"
-            />
+            <Image src="/logo.png" alt="OF Star Management" width={36} height={36} className="rounded-lg flex-shrink-0" />
             <div>
               <p className="text-sm font-semibold text-foreground leading-tight">OF Star</p>
               <p className="text-xs text-muted leading-tight">Management</p>
             </div>
           </Link>
-          <button
-            onClick={onClose}
-            className="lg:hidden text-muted hover:text-foreground p-1 rounded transition-colors"
-          >
+          <button onClick={onClose} className="lg:hidden text-muted hover:text-foreground p-1 rounded transition-colors">
             <X size={18} />
           </button>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-2">
-          {/* Dashboard link */}
-          <Link
-            href="/"
-            onClick={onClose}
-            className={`
-              flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm font-medium transition-all
-              ${pathname === '/'
-                ? 'bg-gold/10 text-gold border border-gold/20'
-                : 'text-zinc-300 hover:text-white hover:bg-surface'
-              }
-            `}
-          >
+          {/* Inicio */}
+          <Link href="/" onClick={onClose} className={linkClass(pathname === '/')}>
             <LayoutDashboard size={16} className="flex-shrink-0" />
             <span>Inicio</span>
           </Link>
 
           {/* Modelos — solo admin y manager */}
           {(role === 'admin' || role === 'manager') && (
-            <Link
-              href="/modelos"
-              onClick={onClose}
-              className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm font-medium transition-all
-                ${pathname.startsWith('/modelos')
-                  ? 'bg-gold/10 text-gold border border-gold/20'
-                  : 'text-zinc-300 hover:text-white hover:bg-surface'
-                }
-              `}
-            >
+            <Link href="/modelos" onClick={onClose} className={linkClass(pathname.startsWith('/modelos'))}>
               <UserCircle2 size={16} className="flex-shrink-0" />
               <span>Modelos</span>
             </Link>
@@ -128,53 +113,42 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
 
           {/* Empleados — admin, manager y team leader (el TL solo gestiona chatters) */}
           {(role === 'admin' || role === 'manager' || role === 'team_leader') && (
-            <Link
-              href="/usuarios"
-              onClick={onClose}
-              className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm font-medium transition-all
-                ${pathname.startsWith('/usuarios')
-                  ? 'bg-gold/10 text-gold border border-gold/20'
-                  : 'text-zinc-300 hover:text-white hover:bg-surface'
-                }
-              `}
-            >
+            <Link href="/usuarios" onClick={onClose} className={linkClass(pathname.startsWith('/usuarios'))}>
               <UserPlus size={16} className="flex-shrink-0" />
               <span>{role === 'team_leader' ? 'Chatters' : 'Empleados'}</span>
             </Link>
           )}
 
-          <div className="mt-3 mb-2 px-3">
-            <p className="text-xs font-semibold text-muted uppercase tracking-wider">
-              Módulos
-            </p>
-          </div>
-
-          {accessibleModules.map((mod) => {
-            const Icon = ICON_MAP[mod.icon]
-            const isActive = pathname.startsWith(`/${mod.slug}`)
-
+          {/* Módulos agrupados por área */}
+          {AREAS.map((area) => {
+            const mods = visibles.filter((m) => m.area === area.key)
+            if (mods.length === 0) return null
             return (
-              <Link
-                key={mod.id}
-                href={`/${mod.slug}`}
-                onClick={onClose}
-                className={`
-                  group flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm transition-all relative
-                  ${isActive
-                    ? 'bg-gold/10 text-gold border border-gold/20 font-medium'
-                    : 'text-zinc-300 hover:text-white hover:bg-white/5 font-normal'
-                  }
-                `}
-              >
-                {Icon && <Icon size={16} className="flex-shrink-0" />}
-                <span className="flex-1 truncate">{mod.name}</span>
-                {!mod.isBuilt && (
-                  <span className="text-[9px] font-semibold bg-border text-muted px-1.5 py-0.5 rounded-full uppercase tracking-wide flex-shrink-0">
-                    Pronto
-                  </span>
-                )}
-              </Link>
+              <div key={area.key} className="mt-4">
+                <div className="mb-1.5 px-3">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider">{area.label}</p>
+                </div>
+                {mods.map((mod) => {
+                  const Icon = ICON_MAP[mod.icon]
+                  const isActive = pathname.startsWith(`/${mod.slug}`)
+                  return (
+                    <Link
+                      key={mod.id}
+                      href={`/${mod.slug}`}
+                      onClick={onClose}
+                      className={`
+                        group flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm transition-all
+                        ${isActive
+                          ? 'bg-gold/10 text-gold border border-gold/20 font-medium'
+                          : 'text-zinc-300 hover:text-white hover:bg-white/5 font-normal'}
+                      `}
+                    >
+                      {Icon && <Icon size={16} className="flex-shrink-0" />}
+                      <span className="flex-1 truncate">{mod.name}</span>
+                    </Link>
+                  )
+                })}
+              </div>
             )
           })}
         </nav>
