@@ -18,7 +18,7 @@ export const MODULES: ModuleDefinition[] = [
     id: 3, slug: 'modulo-3', name: 'Ventas',
     description: 'Caja, ventas de Infloww, comisiones y CRM de fans (ballenas).',
     icon: 'DollarSign', phase: 4, area: 'comercial',
-    allowedRoles: ['admin', 'manager'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'team_leader'], isBuilt: true,
   },
   {
     id: 4, slug: 'modulo-4', name: 'Chatters',
