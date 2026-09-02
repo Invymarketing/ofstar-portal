@@ -37,15 +37,15 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
     return [...s].sort()
   }, [ventas])
 
-  const dias = RANGOS.find((r) => r.id === rango)?.dias ?? 30
-
-  // Inicio del rango (a medianoche local)
+  // Inicio del rango (a medianoche local).
+  // "Este mes" = mes calendario (día 1 → hoy), así se reinicia solo cada mes.
   const inicio = useMemo(() => {
     const d = new Date()
     d.setHours(0, 0, 0, 0)
-    if (dias > 1) d.setDate(d.getDate() - (dias - 1))
+    if (rango === 'semana') d.setDate(d.getDate() - 6)
+    else if (rango === 'mes') d.setDate(1)
     return d
-  }, [dias])
+  }, [rango])
 
   // Ventas del rango, excluyendo reembolsos (igual que "Net earnings" de Infloww)
   const enRango = useMemo(
@@ -90,12 +90,11 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
     return m
   }, [enRango])
 
-  // Serie diaria para la gráfica
+  // Serie diaria para la gráfica (desde el inicio del rango hasta hoy)
   const serie = useMemo(() => {
-    const dd = Math.max(dias, 1)
-    const desde = new Date()
-    desde.setHours(0, 0, 0, 0)
-    desde.setDate(desde.getDate() - (dd - 1))
+    const desde = new Date(inicio)
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0)
+    const dd = Math.max(Math.floor((+hoy - +desde) / 86400000) + 1, 1)
     const buckets: { dia: string; label: string; total: number }[] = []
     for (let i = 0; i < dd; i++) {
       const d = new Date(desde)
