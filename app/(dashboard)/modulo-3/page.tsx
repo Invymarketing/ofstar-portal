@@ -24,7 +24,7 @@ export default async function Modulo3Page() {
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
   const role = profile?.role as UserRole
-  if (!['admin', 'manager'].includes(role)) redirect('/')
+  if (!['admin', 'manager', 'team_leader'].includes(role)) redirect('/')
 
   const quincena = quincenaActual()
 
