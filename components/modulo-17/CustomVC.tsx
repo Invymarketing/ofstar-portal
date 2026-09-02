@@ -2,17 +2,19 @@
 
 import { useState } from 'react'
 import { crearCustom, actualizarCustom } from '@/app/(dashboard)/modulo-17/actions'
-import { PhoneCall, Send } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { PhoneCall, Send, ImagePlus, X } from 'lucide-react'
 
 interface Modelo { id: string; model_name: string }
 interface Custom {
   id: string; created_by: string | null; chatter_nombre: string | null
   modelo: string | null; fan: string | null; tipo: string | null
   precio: number | null; duracion: string | null; estado: string
-  notas: string | null; seguimiento: string | null; fecha: string | null; created_at: string
+  notas: string | null; seguimiento: string | null; imagen_url: string | null
+  fecha: string | null; created_at: string
 }
 
-const TIPOS = ['Videollamada', 'Custom video', 'Sexting', 'Pack', 'Dick rate', 'Otro']
+const TIPOS = ['Videollamada', 'Custom']
 const DURACIONES = ['5 min', '10 min', '15 min', '20 min', '30 min', '+30 min']
 const ESTADOS = ['Pendiente', 'En proceso', 'Entregado', 'Cancelado']
 const ESTADO_COLOR: Record<string, string> = {
@@ -23,6 +25,8 @@ const money = (n: number | null) => (n != null ? '$' + Number(n).toLocaleString(
 export default function CustomVC(
   { esStaff, modelos, customs }: { esStaff: boolean; modelos: Modelo[]; customs: Custom[] }
 ) {
+  const supabase = createClient()
+
   const [modeloId, setModeloId] = useState('')
   const [tipo, setTipo] = useState('Videollamada')
   const [fan, setFan] = useState('')
@@ -30,6 +34,7 @@ export default function CustomVC(
   const [duracion, setDuracion] = useState('')
   const [fecha, setFecha] = useState('')
   const [notas, setNotas] = useState('')
+  const [foto, setFoto] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState(false)
@@ -40,6 +45,14 @@ export default function CustomVC(
     e.preventDefault()
     setError(null); setOk(false); setSaving(true)
     try {
+      let imagen_url: string | null = null
+      if (foto) {
+        const safe = foto.name.replace(/[^a-zA-Z0-9._-]/g, '')
+        const path = `custom/${Date.now()}_${safe}`
+        const { error: upErr } = await supabase.storage.from('pruebas').upload(path, foto, { upsert: false })
+        if (upErr) throw new Error('No se pudo subir la foto: ' + upErr.message)
+        imagen_url = supabase.storage.from('pruebas').getPublicUrl(path).data.publicUrl
+      }
       await crearCustom({
         modelo_id: modeloId || null,
         tipo,
@@ -48,9 +61,10 @@ export default function CustomVC(
         duracion,
         fecha: fecha || undefined,
         notas,
+        imagen_url,
       })
       setOk(true)
-      setFan(''); setPrecio(''); setDuracion(''); setFecha(''); setNotas('')
+      setFan(''); setPrecio(''); setDuracion(''); setFecha(''); setNotas(''); setFoto(null)
       setTimeout(() => window.location.reload(), 1200)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al registrar')
@@ -61,7 +75,7 @@ export default function CustomVC(
 
   return (
     <div className="space-y-6">
-      {/* Formulario (chatter y staff pueden registrar) */}
+      {/* Formulario */}
       <form onSubmit={enviar} className="rounded-2xl border p-5" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
         <div className="flex items-center gap-2 mb-4">
           <PhoneCall size={16} style={{ color: '#C9A84C' }} />
@@ -106,10 +120,26 @@ export default function CustomVC(
             <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)}
               className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} />
           </div>
-          <div className="sm:col-span-2 lg:col-span-3">
+          <div className="sm:col-span-2">
             <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Notas</label>
             <textarea value={notas} onChange={(e) => setNotas(e.target.value)} rows={2}
               className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="Detalles del pedido, referencias, etc." />
+          </div>
+          <div>
+            <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Foto de referencia (opcional)</label>
+            {foto ? (
+              <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs" style={inputStyle}>
+                <span className="truncate flex-1" style={{ color: '#F0F0F5' }}>{foto.name}</span>
+                <button type="button" onClick={() => setFoto(null)} style={{ color: '#EF4444' }}><X size={14} /></button>
+              </div>
+            ) : (
+              <label className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs cursor-pointer"
+                style={{ ...inputStyle, color: '#8B8B9E' }}>
+                <ImagePlus size={14} /> Subir imagen
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={(e) => setFoto(e.target.files?.[0] ?? null)} />
+              </label>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3 mt-4">
@@ -141,7 +171,8 @@ export default function CustomVC(
                   <th className="text-left font-normal px-4 py-2 text-xs">Fan</th>
                   {esStaff && <th className="text-left font-normal px-4 py-2 text-xs">Chatter</th>}
                   <th className="text-right font-normal px-4 py-2 text-xs">Precio</th>
-                  <th className="text-left font-normal px-4 py-2 text-xs">Duración</th>
+                  <th className="text-left font-normal px-4 py-2 text-xs">Dur.</th>
+                  <th className="text-left font-normal px-4 py-2 text-xs">Ref.</th>
                   <th className="text-left font-normal px-4 py-2 text-xs">Estado</th>
                   {esStaff && <th className="text-left font-normal px-4 py-2 text-xs">Seguimiento</th>}
                 </tr>
@@ -159,6 +190,11 @@ export default function CustomVC(
                     <td className="px-4 py-2 text-right" style={{ color: '#C9A84C' }}>{money(c.precio)}</td>
                     <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{c.duracion ?? '—'}</td>
                     <td className="px-4 py-2">
+                      {c.imagen_url
+                        ? <a href={c.imagen_url} target="_blank" rel="noopener noreferrer" style={{ color: '#3B82F6' }}>ver</a>
+                        : <span style={{ color: '#6B6B80' }}>—</span>}
+                    </td>
+                    <td className="px-4 py-2">
                       {esStaff ? (
                         <select defaultValue={c.estado}
                           onChange={async (e) => { await actualizarCustom(c.id, { estado: e.target.value }); window.location.reload() }}
@@ -174,7 +210,7 @@ export default function CustomVC(
                       <td className="px-4 py-2">
                         <input defaultValue={c.seguimiento ?? ''} placeholder="Nota…"
                           onBlur={async (e) => { if (e.target.value !== (c.seguimiento ?? '')) { await actualizarCustom(c.id, { seguimiento: e.target.value }) } }}
-                          className="rounded-lg px-2 py-1 text-xs w-40" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+                          className="rounded-lg px-2 py-1 text-xs w-36" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
                       </td>
                     )}
                   </tr>
