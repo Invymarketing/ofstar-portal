@@ -98,6 +98,12 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'BarChart3', phase: 8, area: 'chatting',
     allowedRoles: ['admin', 'manager', 'team_leader'], isBuilt: true,
   },
+  {
+    id: 17, slug: 'modulo-17', name: 'Customs',
+    description: 'Pedidos de customs y videollamadas; el chatter los registra y le llega tarea al manager.',
+    icon: 'PhoneCall', phase: 8, area: 'comercial',
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter'], isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
