@@ -15,7 +15,9 @@ export default async function UsuariosPage() {
   const admin = createAdminClient()
   const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
   const miRole = me?.role as UserRole
-  if (!['admin', 'manager'].includes(miRole)) redirect('/')
+  if (!['admin', 'manager', 'team_leader'].includes(miRole)) redirect('/')
+
+  const esTeamLeader = miRole === 'team_leader'
 
   // Perfiles + emails/estado desde auth
   const [{ data: profiles }, authList] = await Promise.all([
@@ -30,13 +32,16 @@ export default async function UsuariosPage() {
     ])
   )
 
-  const usuarios = (profiles ?? []).map((p) => ({
+  let usuarios = (profiles ?? []).map((p) => ({
     id: p.id,
     full_name: p.full_name,
     role: p.role as string,
     email: authMap.get(p.id)?.email ?? '',
     activo: !(authMap.get(p.id)?.banned ?? false),
   }))
+
+  // El team leader solo ve chatters en la lista
+  if (esTeamLeader) usuarios = usuarios.filter((u) => u.role === 'chatter')
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -46,9 +51,13 @@ export default async function UsuariosPage() {
           <Users size={18} style={{ color: '#C9A84C' }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Usuarios</h1>
+          <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>
+            {esTeamLeader ? 'Chatters' : 'Usuarios'}
+          </h1>
           <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>
-            Crea cuentas, asigna roles y activa o elimina — sin tocar la base de datos
+            {esTeamLeader
+              ? 'Da de alta chatters de tu equipo — se crean con contraseña temporal'
+              : 'Crea cuentas, asigna roles y activa o elimina — sin tocar la base de datos'}
           </p>
         </div>
       </div>

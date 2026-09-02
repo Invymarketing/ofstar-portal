@@ -7,15 +7,16 @@ import { createAdminClient } from '@/lib/supabase/admin'
 const ROLES = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo'] as const
 type Rol = (typeof ROLES)[number]
 
-// Admin o manager pueden gestionar empleados. Devuelve el rol del actor.
+// Admin, manager o team_leader pueden gestionar empleados. Devuelve el rol del actor.
+// El team_leader queda limitado a chatters (se valida en cada acción).
 async function requireGestor() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
   const admin = createAdminClient()
   const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
-  if (!me || !['admin', 'manager'].includes(me.role)) {
-    throw new Error('Solo admin o manager pueden gestionar empleados')
+  if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) {
+    throw new Error('No tienes permiso para gestionar empleados')
   }
   return { user, role: me.role as Rol }
 }
@@ -35,6 +36,10 @@ export async function crearUsuario(data: {
   if (!data.password || data.password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres')
   if (!ROLES.includes(data.role)) throw new Error('Rol inválido')
   if (data.role === 'admin' && actorRole !== 'admin') throw new Error('Solo un admin puede crear cuentas admin')
+  // El team_leader solo puede crear chatters
+  if (actorRole === 'team_leader' && data.role !== 'chatter') {
+    throw new Error('Un team leader solo puede crear chatters')
+  }
 
   const { data: created, error } = await admin.auth.admin.createUser({
     email,
@@ -63,10 +68,15 @@ export async function cambiarRol(id: string, role: Rol) {
   if (!ROLES.includes(role)) throw new Error('Rol inválido')
   const admin = createAdminClient()
 
-  // Un manager no puede tocar cuentas admin ni ascender a nadie a admin
   const { data: target } = await admin.from('profiles').select('role, full_name').eq('id', id).single()
+
+  // Un manager no puede tocar cuentas admin ni ascender a nadie a admin
   if (actorRole !== 'admin' && (role === 'admin' || target?.role === 'admin')) {
     throw new Error('Solo un admin puede gestionar cuentas admin')
+  }
+  // El team_leader solo gestiona chatters y no puede cambiarles el rol a otra cosa
+  if (actorRole === 'team_leader' && (target?.role !== 'chatter' || role !== 'chatter')) {
+    throw new Error('Un team leader solo puede gestionar chatters')
   }
 
   await admin.from('profiles').update({ role }).eq('id', id)
@@ -91,6 +101,9 @@ export async function toggleUsuario(id: string, activar: boolean) {
   if (actorRole !== 'admin' && target?.role === 'admin') {
     throw new Error('Solo un admin puede activar/desactivar cuentas admin')
   }
+  if (actorRole === 'team_leader' && target?.role !== 'chatter') {
+    throw new Error('Un team leader solo puede gestionar chatters')
+  }
   await admin.auth.admin.updateUserById(id, { ban_duration: activar ? 'none' : '876000h' })
   revalidatePath('/usuarios')
 }
@@ -102,6 +115,9 @@ export async function eliminarUsuario(id: string) {
   const { data: target } = await admin.from('profiles').select('role').eq('id', id).single()
   if (actorRole !== 'admin' && target?.role === 'admin') {
     throw new Error('Solo un admin puede eliminar cuentas admin')
+  }
+  if (actorRole === 'team_leader' && target?.role !== 'chatter') {
+    throw new Error('Un team leader solo puede gestionar chatters')
   }
   await admin.from('chatters').update({ profile_id: null }).eq('profile_id', id)
   const { error } = await admin.auth.admin.deleteUser(id)
