@@ -21,4 +21,5 @@ export interface ModuleDefinition {
   phase: number
   allowedRoles: UserRole[]
   isBuilt: boolean
+  area?: string
 }
