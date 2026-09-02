@@ -49,6 +49,11 @@ export default async function Modulo12Page() {
       : { data: [] as { id: string; full_name: string }[] }
     const nameMap = new Map((profs ?? []).map((p) => [p.id, p.full_name]))
 
+    // Roster de chatters (para el formulario de "añadir venta")
+    const { data: rosterCh } = await admin.from('chatters').select('id, nombre').eq('activo', true).order('nombre')
+    const chattersRoster = (rosterCh ?? []).map((c) => ({ id: c.id, nombre: c.nombre }))
+    const modelosOpt = (modelos ?? []).filter((m) => m.activa).map((m) => ({ id: m.id, model_name: m.model_name }))
+
     const reportes = (reps ?? []).map((r) => ({
       id: r.id,
       chatter: r.reported_by ? (nameMap.get(r.reported_by) ?? '—') : '—',
@@ -86,7 +91,7 @@ export default async function Modulo12Page() {
             </div>
           </div>
         ) : (
-          <SupervisionVentas reportes={reportes} />
+          <SupervisionVentas reportes={reportes} chatters={chattersRoster} modelos={modelosOpt} />
         )}
       </div>
     )
