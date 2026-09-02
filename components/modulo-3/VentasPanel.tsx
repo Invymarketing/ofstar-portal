@@ -37,18 +37,37 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
     return [...s].sort()
   }, [ventas])
 
-  // Inicio del rango (a medianoche local).
-  // "Este mes" = mes calendario (día 1 → hoy), así se reinicia solo cada mes.
+  // Inicio del rango a medianoche de MADRID (Europe/Madrid), igual que Infloww,
+  // para que "Hoy / Esta semana / Este mes" cuadren con su panel sin importar
+  // la zona horaria del navegador.
   const inicio = useMemo(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    if (rango === 'semana') {
-      const diffLunes = (d.getDay() + 6) % 7 // días desde el lunes (0=lun)
-      d.setDate(d.getDate() - diffLunes)
-    } else if (rango === 'mes') {
-      d.setDate(1)
+    const now = new Date()
+    // Fecha y día de la semana actuales en Madrid
+    const partes = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short',
+    }).formatToParts(now)
+    const val = (t: string) => partes.find((p) => p.type === t)?.value ?? ''
+    let y = Number(val('year')), m = Number(val('month')), d = Number(val('day'))
+    const wd = val('weekday') // Mon, Tue, ...
+
+    if (rango === 'mes') {
+      d = 1
+    } else if (rango === 'semana') {
+      const orden = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const idx = Math.max(orden.indexOf(wd), 0) // días desde el lunes
+      d = d - idx
     }
-    return d
+
+    // Offset de Madrid en esa fecha (GMT+1 o GMT+2 según horario de verano)
+    const offStr = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Madrid', timeZoneName: 'shortOffset',
+    }).formatToParts(new Date(Date.UTC(y, m - 1, Math.max(d, 1))))
+      .find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+0'
+    const signo = offStr.includes('-') ? -1 : 1
+    const horas = Number(offStr.replace(/[^0-9]/g, '')) || 0
+
+    // Medianoche de Madrid (y-m-d 00:00 hora Madrid) expresada en UTC real
+    return new Date(Date.UTC(y, m - 1, d, 0, 0, 0) - signo * horas * 3600000)
   }, [rango])
 
   // Ventas del rango, excluyendo reembolsos (igual que "Net earnings" de Infloww)
