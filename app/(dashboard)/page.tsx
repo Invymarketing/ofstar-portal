@@ -42,6 +42,27 @@ function minutosDesde(iso: string) {
   return Math.floor((Date.now() - +new Date(iso)) / 60000)
 }
 
+// ── Turno en curso según horario (hora Colombia, UTC-5) ──────
+const COL_OFFSET_MS = 5 * 3600 * 1000
+const HORA_INICIO: Record<string, number> = { manana: 7, tarde: 15, noche: 23 }
+const normTurno = (s: string | null) => (s ?? '').toLowerCase().normalize('NFD').replace(/[^a-z]/g, '')
+
+// Si el turno está en curso ahora, devuelve el día de la semana (getDay) de la fecha del turno; si no, null.
+function turnoActivoAhora(turno: string | null): number | null {
+  const h = HORA_INICIO[normTurno(turno)]
+  if (h == null) return null
+  const now = Date.now()
+  for (const off of [0, 86400000]) {
+    const str = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(now - off))
+    const [y, m, d] = str.split('-').map(Number)
+    const inicio = Date.UTC(y, m - 1, d, h, 0, 0) + COL_OFFSET_MS
+    if (now >= inicio && now < inicio + 8 * 3600 * 1000) {
+      return new Date(Date.UTC(y, m - 1, d)).getUTCDay()
+    }
+  }
+  return null
+}
+
 // ── Tarjeta KPI ──────────────────────────────────────────────
 function Kpi({ icon, label, value, sub, tone = 'default' }: {
   icon: React.ReactNode; label: string; value: string; sub?: string; tone?: 'default' | 'gold' | 'green' | 'red'
@@ -98,6 +119,7 @@ export default async function DashboardPage() {
     alertas: { nombre: string; min: number }[]
     sinFichar: string[]
     turnosLargos: { nombre: string; horas: number }[]
+    turnoAhora: { esperados: number; presentes: number; faltan: { nombre: string; equipo: number | null }[] }
     novedades: { texto: string; created_at: string; equipo: number | null }[]
   } = null
 
@@ -112,7 +134,7 @@ export default async function DashboardPage() {
       admin.from('ventas').select('chatter_id, monto_bruto, estado').gte('fecha', inicioHoy),
       admin.from('ventas').select('monto_bruto, estado').gte('fecha', inicioAyer).lt('fecha', inicioHoy),
       admin.from('tareas').select('id').is('completada_at', null),
-      admin.from('chatters').select('id, nombre, profile_id, meta_quincena').eq('activo', true),
+      admin.from('chatters').select('id, nombre, profile_id, meta_quincena, turno, equipo, dias_descanso').eq('activo', true),
       admin.from('ventas').select('chatter_id, monto_bruto, estado').gte('fecha', qStart).lt('fecha', qEnd),
       admin.from('handoffs').select('texto, created_at, equipo').order('created_at', { ascending: false }).limit(4),
       admin.from('profiles').select('id, full_name'),
@@ -174,6 +196,22 @@ export default async function DashboardPage() {
       .filter((t) => t.horas >= 10)
       .sort((a, b) => b.horas - a.horas)
 
+    // En turno ahora según horario: esperados vs presentes (fichados con turno abierto)
+    const abiertosSet = new Set((jAbiertas.data ?? []).map((j) => j.user_id))
+    const esperados: { nombre: string; equipo: number | null; presente: boolean }[] = []
+    for (const c of (chattersAct.data ?? []) as { nombre: string; profile_id: string | null; turno: string | null; equipo: number | null; dias_descanso: number[] | null }[]) {
+      const diaTurno = turnoActivoAhora(c.turno)
+      if (diaTurno == null) continue // no tiene turno en curso ahora
+      if ((c.dias_descanso ?? []).includes(diaTurno)) continue // hoy descansa
+      esperados.push({
+        nombre: c.nombre,
+        equipo: c.equipo ?? null,
+        presente: !!c.profile_id && abiertosSet.has(c.profile_id),
+      })
+    }
+    const faltan = esperados.filter((e) => !e.presente).map((e) => ({ nombre: e.nombre, equipo: e.equipo }))
+    const turnoAhora = { esperados: esperados.length, presentes: esperados.filter((e) => e.presente).length, faltan }
+
     staff = {
       online,
       ventasHoy,
@@ -185,6 +223,7 @@ export default async function DashboardPage() {
       alertas,
       sinFichar,
       turnosLargos,
+      turnoAhora,
       novedades: (handoffs.data ?? []).map((h) => ({ texto: h.texto, created_at: h.created_at, equipo: h.equipo ?? null })),
     }
   }
@@ -266,6 +305,33 @@ export default async function DashboardPage() {
               sub={`${staff.metaChatters} chatters con meta`}
               tone={staff.metaPct != null && staff.metaPct >= 100 ? 'green' : 'default'} />
           </div>
+
+          {/* En turno ahora según horario: esperados vs fichados */}
+          {staff.turnoAhora.esperados > 0 && (
+            <div className="rounded-2xl border p-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6B80' }}>En turno ahora (según horario)</p>
+                <p className="text-sm font-bold" style={{ color: staff.turnoAhora.presentes >= staff.turnoAhora.esperados ? '#4ADE80' : '#EAB308' }}>
+                  {staff.turnoAhora.presentes}/{staff.turnoAhora.esperados} fichados
+                </p>
+              </div>
+              {staff.turnoAhora.faltan.length > 0 ? (
+                <div>
+                  <p className="text-[11px] mb-1.5" style={{ color: '#6B6B80' }}>Deberían estar y no han fichado:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {staff.turnoAhora.faltan.map((f, i) => (
+                      <span key={i} className="text-xs px-2 py-1 rounded-lg"
+                        style={{ backgroundColor: 'rgba(248,113,113,0.1)', color: '#F87171', border: '1px solid rgba(248,113,113,0.25)' }}>
+                        {f.nombre}{f.equipo ? ` · E${f.equipo}` : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs" style={{ color: '#4ADE80' }}>Todos los que tienen turno ahora están fichados ✓</p>
+              )}
+            </div>
+          )}
 
           {/* Cumplimiento de hoy (basado en fichaje) */}
           {(staff.alertas.length > 0 || staff.sinFichar.length > 0 || staff.turnosLargos.length > 0) && (
