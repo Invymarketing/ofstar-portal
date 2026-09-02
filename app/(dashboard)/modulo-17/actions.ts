@@ -4,48 +4,95 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-const TURNOS = ['mañana', 'tarde', 'noche'] as const
-type Turno = (typeof TURNOS)[number]
-
-async function requireStaff() {
+async function getUser() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
-  const admin = createAdminClient()
-  const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
-  if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) {
-    throw new Error('Sin permiso para gestionar horarios')
-  }
-  return admin
+  return user
 }
 
-export async function guardarHorario(input: {
-  profileId: string
-  turno: Turno | null
-  equipo: number | null
-  dias_descanso: number[]
+const money = (n: number | null | undefined) =>
+  n != null ? '$' + Number(n).toLocaleString('en-US') : '$0'
+
+// El chatter registra un custom/videollamada → se guarda y le llega tarea al manager.
+export async function crearCustom(data: {
+  modelo_id?: string | null
+  fan?: string
+  tipo?: string
+  precio?: number | null
+  duracion?: string
+  fecha?: string
+  notas?: string
 }) {
-  const admin = await requireStaff()
+  const user = await getUser()
+  const admin = createAdminClient()
 
-  const turno = input.turno && TURNOS.includes(input.turno) ? input.turno : null
-  const equipo = input.equipo && input.equipo >= 1 && input.equipo <= 4 ? input.equipo : null
-  const dias = [...new Set((input.dias_descanso ?? []).filter((d) => d >= 0 && d <= 6))].sort()
+  const { data: me } = await admin.from('profiles').select('full_name').eq('id', user.id).single()
+  const nombre = me?.full_name ?? 'Chatter'
 
-  const { error } = await admin.from('horarios').upsert({
-    profile_id: input.profileId,
-    turno,
-    equipo,
-    dias_descanso: dias,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'profile_id' })
+  if (!data.tipo) throw new Error('Elige el tipo (Videollamada, Custom, etc.)')
+  if (!data.modelo_id) throw new Error('Elige la modelo')
+
+  // Nombre de la modelo para el título de la tarea
+  const { data: modelo } = await admin.from('modelos').select('model_name').eq('id', data.modelo_id).maybeSingle()
+  const modeloNombre = modelo?.model_name ?? 'Modelo'
+
+  const { data: creado, error } = await admin.from('custom_vc').insert({
+    created_by: user.id,
+    chatter_nombre: nombre,
+    modelo_id: data.modelo_id,
+    fan: data.fan?.trim() || null,
+    tipo: data.tipo,
+    precio: data.precio ?? null,
+    duracion: data.duracion || null,
+    fecha: data.fecha || null,
+    notas: data.notas?.trim() || null,
+    estado: 'Pendiente',
+  }).select('id').single()
   if (error) throw new Error(error.message)
 
-  // Si la persona es chatter, refleja el equipo en su ficha para el resto del CRM
-  // (novedades por equipo, metas, etc.).
-  if (equipo != null) {
-    await admin.from('chatters').update({ equipo }).eq('profile_id', input.profileId)
+  // Tarea + notificación a cada manager/admin
+  const { data: jefes } = await admin.from('profiles').select('id').in('role', ['admin', 'manager'])
+  const titulo = `Custom/VC: ${data.tipo} — ${modeloNombre} — ${money(data.precio)}`
+  const descripcion = [
+    data.fan ? `Fan: ${data.fan}` : null,
+    data.duracion ? `Duración: ${data.duracion}` : null,
+    `Chatter: ${nombre}`,
+    data.notas ? `Notas: ${data.notas}` : null,
+  ].filter(Boolean).join(' · ')
+
+  for (const j of jefes ?? []) {
+    await admin.from('tareas').insert({
+      titulo,
+      descripcion,
+      asignado_a: j.id,
+      asignado_por: user.id,
+    })
+    await admin.from('notifications').insert({
+      user_id: j.id,
+      title: '📞 Nuevo Custom/Videollamada',
+      body: `${nombre} registró: ${data.tipo} de ${modeloNombre} (${money(data.precio)}).`,
+      module_id: 17,
+      link: '/modulo-17',
+    })
   }
 
   revalidatePath('/modulo-17')
-  revalidatePath('/modulo-15')
+  revalidatePath('/modulo-14')
+  return creado?.id
+}
+
+// El staff actualiza estado / seguimiento
+export async function actualizarCustom(id: string, data: { estado?: string; seguimiento?: string }) {
+  const user = await getUser()
+  const admin = createAdminClient()
+  const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) throw new Error('Sin permiso')
+
+  const patch: Record<string, unknown> = {}
+  if (data.estado !== undefined) patch.estado = data.estado
+  if (data.seguimiento !== undefined) patch.seguimiento = data.seguimiento || null
+  const { error } = await admin.from('custom_vc').update(patch).eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/modulo-17')
 }
