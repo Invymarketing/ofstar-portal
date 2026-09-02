@@ -92,7 +92,7 @@ export async function PATCH(request: NextRequest) {
   if (!auth.ok) return NextResponse.json({ error: 'sin_permiso' }, { status: auth.status })
 
   const body = await request.json()
-  const { id, full_name, model_name, nicho_id, ig_username, telegram_group_id } = body
+  const { id, full_name, model_name, nicho_id, ig_username, telegram_group_id, drive_content_folder_id, of_trial_link } = body
   if (!id) return NextResponse.json({ error: 'falta_id', message: 'Falta el id' }, { status: 400 })
 
   const patch: Record<string, unknown> = {}
@@ -101,6 +101,8 @@ export async function PATCH(request: NextRequest) {
   if (nicho_id !== undefined) patch.nicho_id = nicho_id || null
   if (ig_username !== undefined) patch.ig_username = ig_username ? String(ig_username).replace('@', '').trim() : null
   if (telegram_group_id !== undefined) patch.telegram_group_id = String(telegram_group_id).trim() || null
+  if (drive_content_folder_id !== undefined) patch.drive_content_folder_id = String(drive_content_folder_id).trim() || null
+  if (of_trial_link !== undefined) patch.of_trial_link = String(of_trial_link).trim() || null
 
   const { data, error } = await auth.admin
     .from('modelos')
