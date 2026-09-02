@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import DashboardShell from '@/components/layout/DashboardShell'
+import AutoRefresh from '@/components/AutoRefresh'
 
 export default async function DashboardLayout({
   children,
@@ -71,5 +72,11 @@ export default async function DashboardLayout({
     )
   }
 
-  return <DashboardShell profile={profile}>{children}</DashboardShell>
+  return (
+    <DashboardShell profile={profile}>
+      {/* Refresca los datos de todo el CRM cada 20s, sin recargar la página */}
+      <AutoRefresh ms={20000} />
+      {children}
+    </DashboardShell>
+  )
 }
