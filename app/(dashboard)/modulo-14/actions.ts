@@ -16,7 +16,7 @@ async function requireStaff() {
   const admin = createAdminClient()
   const { data: me } = await admin.from('profiles').select('role, full_name').eq('id', user.id).single()
   if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) throw new Error('Sin permiso')
-  return { user, nombre: me.full_name as string }
+  return { user, nombre: me.full_name as string, role: me.role as string }
 }
 
 export async function crearTarea(data: {
@@ -55,41 +55,51 @@ export async function completarTarea(id: string) {
   const user = await getUser()
   const admin = createAdminClient()
 
-  const { data: tarea } = await admin.from('tareas').select('titulo, asignado_a').eq('id', id).single()
-  // Solo la persona asignada o el staff puede completar
+  const { data: tarea } = await admin.from('tareas').select('titulo, asignado_a, asignado_por').eq('id', id).single()
   const { data: me } = await admin.from('profiles').select('role, full_name').eq('id', user.id).single()
   const esStaff = me && ['admin', 'manager', 'team_leader'].includes(me.role)
+  // La completa la persona asignada (o el staff)
   if (!tarea || (tarea.asignado_a !== user.id && !esStaff)) throw new Error('Sin permiso')
 
   const { error } = await admin.from('tareas')
     .update({ estado: 'completada', completada_at: new Date().toISOString() }).eq('id', id)
   if (error) throw new Error(error.message)
 
-  // Avisa a admins y managers que se completó
-  const { data: jefes } = await admin.from('profiles').select('id').in('role', ['admin', 'manager'])
-  const filas = (jefes ?? []).map((j) => ({
-    user_id: j.id,
-    title: 'Tarea completada',
-    body: `${me?.full_name ?? 'Alguien'} completó: ${tarea.titulo}`,
-    module_id: 14,
-    link: '/modulo-14',
-  }))
-  if (filas.length > 0) await admin.from('notifications').insert(filas)
+  // Avisa a quien asignó la tarea que ya se completó
+  if (tarea.asignado_por && tarea.asignado_por !== user.id) {
+    await admin.from('notifications').insert({
+      user_id: tarea.asignado_por,
+      title: 'Tarea completada',
+      body: `${me?.full_name ?? 'Alguien'} completó: ${tarea.titulo}`,
+      module_id: 14,
+      link: '/modulo-14',
+    })
+  }
 
   revalidatePath('/modulo-14')
 }
 
+// Reabrir: solo quien la asignó (o un admin)
 export async function reabrirTarea(id: string) {
-  await requireStaff()
+  const user = await getUser()
   const admin = createAdminClient()
+  const { data: t } = await admin.from('tareas').select('asignado_por').eq('id', id).single()
+  const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  const esAdmin = me?.role === 'admin'
+  if (!t || (t.asignado_por !== user.id && !esAdmin)) throw new Error('Solo quien asignó la tarea puede reabrirla')
   const { error } = await admin.from('tareas').update({ estado: 'pendiente', completada_at: null }).eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/modulo-14')
 }
 
+// Eliminar: solo quien la asignó (o un admin)
 export async function eliminarTarea(id: string) {
-  await requireStaff()
+  const user = await getUser()
   const admin = createAdminClient()
+  const { data: t } = await admin.from('tareas').select('asignado_por').eq('id', id).single()
+  const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  const esAdmin = me?.role === 'admin'
+  if (!t || (t.asignado_por !== user.id && !esAdmin)) throw new Error('Solo quien asignó la tarea puede eliminarla')
   const { error } = await admin.from('tareas').delete().eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/modulo-14')
