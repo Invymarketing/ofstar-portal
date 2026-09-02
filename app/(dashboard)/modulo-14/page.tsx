@@ -17,24 +17,32 @@ export default async function Modulo14Page() {
   const role = profile?.role as UserRole
   const esStaff = ['admin', 'manager', 'team_leader'].includes(role)
 
-  // Personas para asignar (solo staff necesita la lista)
+  // Personas para asignar (solo staff necesita la lista para el formulario)
   const { data: personas } = esStaff
     ? await admin.from('profiles').select('id, full_name, role').order('full_name')
     : { data: [] }
 
-  // Tareas: staff ve todas; el resto solo las suyas
-  let query = admin.from('tareas')
+  // Cada persona ve: las tareas asignadas A ELLA + las que ELLA asignó a otros.
+  const { data: tareas, error } = await admin.from('tareas')
     .select('id, titulo, descripcion, asignado_a, asignado_por, estado, fecha_limite, completada_at, created_at')
-    .order('created_at', { ascending: false }).limit(200)
-  if (!esStaff) query = query.eq('asignado_a', user.id)
-  const { data: tareas, error } = await query
+    .or(`asignado_a.eq.${user.id},asignado_por.eq.${user.id}`)
+    .order('created_at', { ascending: false })
+    .limit(200)
 
   const tablesReady = !error
-  const nombreDe = new Map((personas ?? []).map((p) => [p.id, p.full_name]))
+
+  // Nombres de las personas asignadas (para las tareas que asigné a otros)
+  const asignadoIds = [...new Set((tareas ?? []).map((t) => t.asignado_a).filter(Boolean))] as string[]
+  const { data: profs } = asignadoIds.length
+    ? await admin.from('profiles').select('id, full_name').in('id', asignadoIds)
+    : { data: [] as { id: string; full_name: string }[] }
+  const nameMap = new Map((profs ?? []).map((p) => [p.id, p.full_name]))
+
   const tareasView = (tareas ?? []).map((t) => ({
     ...t,
-    asignado_nombre: nombreDe.get(t.asignado_a) ?? null,
+    asignado_nombre: nameMap.get(t.asignado_a) ?? null,
     mia: t.asignado_a === user.id,
+    asignada_por_mi: t.asignado_por === user.id,
   }))
 
   return (
@@ -47,7 +55,7 @@ export default async function Modulo14Page() {
         <div>
           <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Tareas</h1>
           <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>
-            {esStaff ? 'Asigna tareas y sigue su cumplimiento' : 'Tus tareas asignadas'}
+            {esStaff ? 'Tus tareas y las que asignaste' : 'Tus tareas asignadas'}
           </p>
         </div>
       </div>
