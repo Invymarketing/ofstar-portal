@@ -15,7 +15,7 @@ export default async function Modulo18Page() {
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
   const role = profile?.role as UserRole
-  if (!['admin', 'manager', 'creativo'].includes(role)) redirect('/')
+  if (!['admin', 'manager', 'creativo', 'va'].includes(role)) redirect('/')
 
   return (
     <div className="max-w-3xl mx-auto">
