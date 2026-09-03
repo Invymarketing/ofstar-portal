@@ -17,21 +17,19 @@ export default async function Modulo14Page() {
   const role = profile?.role as UserRole
   const esStaff = ['admin', 'manager', 'team_leader'].includes(role)
 
-  // Personas para asignar (solo staff necesita la lista para el formulario)
   const { data: personas } = esStaff
     ? await admin.from('profiles').select('id, full_name, role').order('full_name')
     : { data: [] }
 
   // Cada persona ve: las tareas asignadas A ELLA + las que ELLA asignó a otros.
   const { data: tareas, error } = await admin.from('tareas')
-    .select('id, titulo, descripcion, asignado_a, asignado_por, estado, fecha_limite, completada_at, created_at')
+    .select('id, titulo, descripcion, asignado_a, asignado_por, estado, fecha_limite, started_at, completada_at, created_at')
     .or(`asignado_a.eq.${user.id},asignado_por.eq.${user.id}`)
     .order('created_at', { ascending: false })
     .limit(200)
 
   const tablesReady = !error
 
-  // Nombres de las personas asignadas (para las tareas que asigné a otros)
   const asignadoIds = [...new Set((tareas ?? []).map((t) => t.asignado_a).filter(Boolean))] as string[]
   const { data: profs } = asignadoIds.length
     ? await admin.from('profiles').select('id, full_name').in('id', asignadoIds)
@@ -63,7 +61,7 @@ export default async function Modulo14Page() {
       {!tablesReady ? (
         <div className="rounded-2xl border p-5" style={{ backgroundColor: 'rgba(234,179,8,0.05)', borderColor: 'rgba(234,179,8,0.2)' }}>
           <p className="text-sm" style={{ color: '#EAB308' }}>Migración pendiente</p>
-          <p className="text-xs mt-1" style={{ color: '#6B6B80' }}>Ejecuta 016_tareas.sql en Supabase.</p>
+          <p className="text-xs mt-1" style={{ color: '#6B6B80' }}>Ejecuta 016_tareas.sql (y 027_tarea_timer.sql) en Supabase.</p>
         </div>
       ) : (
         <Tareas
