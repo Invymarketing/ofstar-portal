@@ -548,8 +548,8 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Modules grid */}
-      {modules.length > 0 && (
+      {/* Modules grid — solo para roles sin panel propio (VA, creativa). Staff/chatter/modelo usan el menú lateral. */}
+      {!staff && !chatter && role !== 'modelo' && modules.length > 0 && (
         <>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>Módulos</h2>
