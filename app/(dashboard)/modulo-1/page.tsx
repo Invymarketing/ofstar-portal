@@ -8,7 +8,7 @@ import ExecuteAllButton from '@/components/modulo-1/ExecuteAllButton'
 import { Bot, Info } from 'lucide-react'
 import type { UserRole } from '@/types'
 
-export const metadata = { title: 'Bot de Contenido — OF Star Management' }
+export const metadata = { title: 'Bot de Contenido — Skeilab' }
 
 export default async function Modulo1Page() {
   const supabase = await createClient()
@@ -49,15 +49,15 @@ export default async function Modulo1Page() {
         <div className="flex items-start gap-3">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-            style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)' }}
+            style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-15)' }}
           >
-            <Bot size={18} style={{ color: '#C9A84C' }} />
+            <Bot size={18} style={{ color: 'var(--gold)' }} />
           </div>
           <div>
-            <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>
+            <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
               Bot de Contenido
             </h1>
-            <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
               Panel de control de la automatización de reels
             </p>
           </div>
@@ -79,8 +79,8 @@ export default async function Modulo1Page() {
             <p className="text-sm font-medium mb-1" style={{ color: '#EAB308' }}>
               Migración pendiente
             </p>
-            <p className="text-xs" style={{ color: '#6B6B80' }}>
-              Ejecuta <code className="px-1 py-0.5 rounded" style={{ backgroundColor: '#1E1E2E' }}>supabase/migrations/003_bot_module.sql</code> en Supabase para activar este módulo.
+            <p className="text-xs" style={{ color: 'var(--muted)' }}>
+              Ejecuta <code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--border)' }}>supabase/migrations/003_bot_module.sql</code> en Supabase para activar este módulo.
             </p>
           </div>
         </div>
@@ -98,12 +98,12 @@ export default async function Modulo1Page() {
               <div
                 key={s.label}
                 className="rounded-xl px-4 py-3"
-                style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}
+                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
               >
-                <p className="text-xs mb-1" style={{ color: '#6B6B80' }}>{s.label}</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>{s.label}</p>
                 <p
                   className="text-2xl font-bold"
-                  style={{ color: s.gold ? '#C9A84C' : s.warn ? '#EAB308' : '#F0F0F5' }}
+                  style={{ color: s.gold ? 'var(--gold)' : s.warn ? '#EAB308' : 'var(--foreground)' }}
                 >
                   {s.value}
                 </p>
@@ -114,12 +114,12 @@ export default async function Modulo1Page() {
           {/* How it works banner */}
           <div
             className="rounded-xl border px-4 py-3 mb-6 flex items-start gap-2.5"
-            style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
           >
-            <Info size={13} style={{ color: '#6B6B80' }} className="flex-shrink-0 mt-0.5" />
-            <p className="text-xs leading-relaxed" style={{ color: '#6B6B80' }}>
-              Al pulsar <strong style={{ color: '#F0F0F5' }}>Ejecutar</strong>, se crea un trabajo pendiente en el portal.
-              La persona con la <strong style={{ color: '#F0F0F5' }}>Chrome Extension</strong> debe ejecutarla en su máquina y después
+            <Info size={13} style={{ color: 'var(--muted)' }} className="flex-shrink-0 mt-0.5" />
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+              Al pulsar <strong style={{ color: 'var(--foreground)' }}>Ejecutar</strong>, se crea un trabajo pendiente en el portal.
+              La persona con la <strong style={{ color: 'var(--foreground)' }}>Chrome Extension</strong> debe ejecutarla en su máquina y después
               marcar el trabajo como completado aquí con los reels encontrados.
             </p>
           </div>
@@ -127,10 +127,10 @@ export default async function Modulo1Page() {
           {/* Models section */}
           <section className="mb-10">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>
+              <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
                 Modelos en la automatización
               </h2>
-              <span className="text-xs" style={{ color: '#6B6B80' }}>
+              <span className="text-xs" style={{ color: 'var(--muted)' }}>
                 {activeModels.length} activa{activeModels.length !== 1 ? 's' : ''}
               </span>
             </div>
@@ -142,10 +142,10 @@ export default async function Modulo1Page() {
           {/* Execution log */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>
+              <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
                 Log de ejecuciones
               </h2>
-              <span className="text-xs" style={{ color: '#6B6B80' }}>
+              <span className="text-xs" style={{ color: 'var(--muted)' }}>
                 Últimas {(executions ?? []).length}
               </span>
             </div>

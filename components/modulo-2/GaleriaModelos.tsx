@@ -56,13 +56,13 @@ export default function GaleriaModelos({ tipo, nichos }: Props) {
       {/* Toolbar */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <Filter size={13} style={{ color: '#8B8B9E' }} />
-          <button onClick={() => setNichoFiltro('todos')} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: nichoFiltro === 'todos' ? 'rgba(201,168,76,0.15)' : '#13131A', color: nichoFiltro === 'todos' ? '#C9A84C' : '#8B8B9E', border: nichoFiltro === 'todos' ? '1px solid rgba(201,168,76,0.25)' : '1px solid #1E1E2E' }}>Todos</button>
+          <Filter size={13} style={{ color: 'var(--muted)' }} />
+          <button onClick={() => setNichoFiltro('todos')} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: nichoFiltro === 'todos' ? 'var(--gold-15)' : 'var(--surface)', color: nichoFiltro === 'todos' ? 'var(--gold)' : 'var(--muted)', border: nichoFiltro === 'todos' ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>Todos</button>
           {nichos.map(n => (
-            <button key={n.id} onClick={() => setNichoFiltro(n.id)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: nichoFiltro === n.id ? `${n.color}22` : '#13131A', color: nichoFiltro === n.id ? n.color : '#8B8B9E', border: nichoFiltro === n.id ? `1px solid ${n.color}66` : '1px solid #1E1E2E' }}>{n.nombre}</button>
+            <button key={n.id} onClick={() => setNichoFiltro(n.id)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: nichoFiltro === n.id ? `${n.color}22` : 'var(--surface)', color: nichoFiltro === n.id ? n.color : 'var(--muted)', border: nichoFiltro === n.id ? `1px solid ${n.color}66` : '1px solid var(--border)' }}>{n.nombre}</button>
           ))}
         </div>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', color: '#C9A84C' }}>
+        <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-25)', color: 'var(--gold)' }}>
           <Plus size={13} /> Añadir cuenta
         </button>
       </div>
@@ -70,28 +70,28 @@ export default function GaleriaModelos({ tipo, nichos }: Props) {
       {/* Resumen */}
       {!loading && cuentas.length > 0 && (
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="rounded-xl px-4 py-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
-            <p className="text-xs mb-1" style={{ color: '#8B8B9E' }}>{tipo === 'propia' ? 'Modelos' : 'Competidores'}</p>
-            <p className="text-lg font-bold" style={{ color: '#F0F0F5' }}>{grupos.length}</p>
+          <div className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>{tipo === 'propia' ? 'Modelos' : 'Competidores'}</p>
+            <p className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{grupos.length}</p>
           </div>
-          <div className="rounded-xl px-4 py-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
-            <p className="text-xs mb-1" style={{ color: '#8B8B9E' }}>Cuentas totales</p>
-            <p className="text-lg font-bold" style={{ color: '#F0F0F5' }}>{cuentas.length}</p>
+          <div className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Cuentas totales</p>
+            <p className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{cuentas.length}</p>
           </div>
-          <div className="rounded-xl px-4 py-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
-            <p className="text-xs mb-1" style={{ color: '#8B8B9E' }}>Total seguidores</p>
-            <p className="text-lg font-bold" style={{ color: '#F0F0F5' }}>{formatNum(totalSeguidores)}</p>
+          <div className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Total seguidores</p>
+            <p className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{formatNum(totalSeguidores)}</p>
           </div>
         </div>
       )}
 
-      {loading && <div className="flex items-center justify-center py-16"><Loader2 size={22} className="animate-spin" style={{ color: '#8B8B9E' }} /></div>}
+      {loading && <div className="flex items-center justify-center py-16"><Loader2 size={22} className="animate-spin" style={{ color: 'var(--muted)' }} /></div>}
 
       {!loading && cuentas.length === 0 && (
-        <div className="text-center py-16 rounded-2xl" style={{ backgroundColor: '#13131A', border: '1px dashed #1E1E2E' }}>
-          <Users size={22} className="mx-auto mb-2" style={{ color: '#8B8B9E' }} />
-          <p className="text-sm" style={{ color: '#8B8B9E' }}>No hay {tipo === 'propia' ? 'modelos' : 'competidores'} todavía.</p>
-          <button onClick={() => setShowModal(true)} className="mt-3 text-xs font-medium px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', color: '#C9A84C' }}>Añadir la primera cuenta</button>
+        <div className="text-center py-16 rounded-2xl" style={{ backgroundColor: 'var(--surface)', border: '1px dashed var(--border)' }}>
+          <Users size={22} className="mx-auto mb-2" style={{ color: 'var(--muted)' }} />
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>No hay {tipo === 'propia' ? 'modelos' : 'competidores'} todavía.</p>
+          <button onClick={() => setShowModal(true)} className="mt-3 text-xs font-medium px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-25)', color: 'var(--gold)' }}>Añadir la primera cuenta</button>
         </div>
       )}
 

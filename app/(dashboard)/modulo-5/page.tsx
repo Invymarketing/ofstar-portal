@@ -1,6 +1,6 @@
 import ComingSoon from '@/components/ui/ComingSoon'
 
-export const metadata = { title: 'Analytics de Cuentas — OF Star Management' }
+export const metadata = { title: 'Analytics de Cuentas — Skeilab' }
 
 export default function Modulo5Page() {
   return (

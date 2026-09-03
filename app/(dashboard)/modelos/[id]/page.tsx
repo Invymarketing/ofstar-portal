@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import type { UserRole } from '@/types'
 
-export const metadata = { title: 'Editar Modelo — OF Star Management' }
+export const metadata = { title: 'Editar Modelo — Skeilab' }
 
 export default async function ModeloDetailPage({
   params,
@@ -44,7 +44,7 @@ export default async function ModeloDetailPage({
       <Link
         href="/modelos"
         className="inline-flex items-center gap-1.5 text-xs mb-8 transition-colors hover:opacity-80"
-        style={{ color: '#6B6B80' }}
+        style={{ color: 'var(--muted)' }}
       >
         <ArrowLeft size={13} />
         Volver a Modelos
@@ -54,15 +54,15 @@ export default async function ModeloDetailPage({
         <div className="flex items-center gap-4 mb-1">
           <div
             className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
-            style={{ backgroundColor: 'rgba(201,168,76,0.1)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.2)' }}
+            style={{ backgroundColor: 'var(--gold-15)', color: 'var(--gold)', border: '1px solid var(--gold-15)' }}
           >
             {modelo.full_name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>
+            <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
               {modelo.full_name}
             </h1>
-            <p className="text-sm" style={{ color: '#6B6B80' }}>Modelo</p>
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>Modelo</p>
           </div>
         </div>
       </div>

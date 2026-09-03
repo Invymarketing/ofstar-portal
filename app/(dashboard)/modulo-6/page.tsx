@@ -1,6 +1,6 @@
 import ComingSoon from '@/components/ui/ComingSoon'
 
-export const metadata = { title: 'Pipeline de Reclutamiento — OF Star Management' }
+export const metadata = { title: 'Pipeline de Reclutamiento — Skeilab' }
 
 export default function Modulo6Page() {
   return (

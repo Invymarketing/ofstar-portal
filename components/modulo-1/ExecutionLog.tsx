@@ -46,7 +46,7 @@ function CompleteForm({ executionId, onClose }: CompleteFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 space-y-3 pt-3" style={{ borderTop: '1px solid #1E1E2E' }}>
+    <form onSubmit={handleSubmit} className="mt-3 space-y-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
       <div className="flex gap-2">
         {(['success', 'error'] as const).map((s) => (
           <button
@@ -57,10 +57,10 @@ function CompleteForm({ executionId, onClose }: CompleteFormProps) {
             style={{
               backgroundColor: status === s
                 ? (s === 'success' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)')
-                : '#1E1E2E',
+                : 'var(--border)',
               color: status === s
                 ? (s === 'success' ? '#22C55E' : '#EF4444')
-                : '#6B6B80',
+                : 'var(--muted)',
               border: `1px solid ${status === s
                 ? (s === 'success' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)')
                 : 'transparent'}`,
@@ -79,7 +79,7 @@ function CompleteForm({ executionId, onClose }: CompleteFormProps) {
           onChange={(e) => setReelsFound(e.target.value)}
           placeholder="Reels encontrados"
           className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
-          style={{ backgroundColor: '#0A0A0F', border: '1px solid #1E1E2E', color: '#F0F0F5' }}
+          style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
         />
       )}
 
@@ -89,18 +89,18 @@ function CompleteForm({ executionId, onClose }: CompleteFormProps) {
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Notas opcionales"
         className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
-        style={{ backgroundColor: '#0A0A0F', border: '1px solid #1E1E2E', color: '#F0F0F5' }}
+        style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
       />
 
       <div className="flex gap-2">
-        <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg text-xs" style={{ backgroundColor: '#1E1E2E', color: '#6B6B80' }}>
+        <button type="button" onClick={onClose} className="flex-1 py-2 rounded-lg text-xs" style={{ backgroundColor: 'var(--border)', color: 'var(--muted)' }}>
           Cancelar
         </button>
         <button
           type="submit"
           disabled={isPending}
           className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold"
-          style={{ backgroundColor: '#C9A84C', color: '#0A0A0F' }}
+          style={{ backgroundColor: 'var(--gold)', color: 'var(--background)' }}
         >
           {isPending ? <Loader2 size={11} className="animate-spin" /> : null}
           Guardar
@@ -131,7 +131,7 @@ function ExecutionRow({ exec }: ExecutionRowProps) {
   })
 
   return (
-    <div className="px-5 py-3.5 rounded-xl border" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+    <div className="px-5 py-3.5 rounded-xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
       <div className="flex items-center gap-3">
         {/* Status badge */}
         <div
@@ -144,19 +144,19 @@ function ExecutionRow({ exec }: ExecutionRowProps) {
 
         {/* Model */}
         <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium" style={{ color: '#F0F0F5' }}>{exec.model_name}</span>
-          <span className="text-xs ml-2" style={{ color: '#6B6B80' }}>@{exec.instagram_handle}</span>
+          <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{exec.model_name}</span>
+          <span className="text-xs ml-2" style={{ color: 'var(--muted)' }}>@{exec.instagram_handle}</span>
         </div>
 
         {/* Reels count */}
         {exec.reels_found !== null && (
-          <span className="text-xs font-semibold flex-shrink-0" style={{ color: '#C9A84C' }}>
+          <span className="text-xs font-semibold flex-shrink-0" style={{ color: 'var(--gold)' }}>
             {exec.reels_found} reels
           </span>
         )}
 
         {/* Date */}
-        <span className="text-xs flex-shrink-0 hidden sm:block" style={{ color: '#6B6B80' }}>{date}</span>
+        <span className="text-xs flex-shrink-0 hidden sm:block" style={{ color: 'var(--muted)' }}>{date}</span>
 
         {/* Actions */}
         <div className="flex items-center gap-1 flex-shrink-0">
@@ -164,7 +164,7 @@ function ExecutionRow({ exec }: ExecutionRowProps) {
             <button
               onClick={() => setCompleting(!completing)}
               className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg transition-all hover:opacity-80"
-              style={{ backgroundColor: '#1E1E2E', color: '#F0F0F5' }}
+              style={{ backgroundColor: 'var(--border)', color: 'var(--foreground)' }}
             >
               Completar
               <ChevronDown size={11} className={completing ? 'rotate-180 transition-transform' : 'transition-transform'} />
@@ -174,7 +174,7 @@ function ExecutionRow({ exec }: ExecutionRowProps) {
             onClick={handleDelete}
             disabled={isPending}
             className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-70 transition-opacity"
-            style={{ color: '#6B6B80' }}
+            style={{ color: 'var(--muted)' }}
           >
             {isPending ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
           </button>
@@ -183,7 +183,7 @@ function ExecutionRow({ exec }: ExecutionRowProps) {
 
       {/* Notes */}
       {exec.notes && (
-        <p className="mt-1.5 text-xs pl-1" style={{ color: '#6B6B80' }}>{exec.notes}</p>
+        <p className="mt-1.5 text-xs pl-1" style={{ color: 'var(--muted)' }}>{exec.notes}</p>
       )}
 
       {/* Complete form */}
@@ -203,9 +203,9 @@ export default function ExecutionLog({ executions }: ExecutionLogProps) {
     return (
       <div
         className="rounded-2xl border border-dashed py-8 text-center"
-        style={{ borderColor: '#1E1E2E' }}
+        style={{ borderColor: 'var(--border)' }}
       >
-        <p className="text-sm" style={{ color: '#6B6B80' }}>
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>
           Sin ejecuciones registradas aún
         </p>
       </div>

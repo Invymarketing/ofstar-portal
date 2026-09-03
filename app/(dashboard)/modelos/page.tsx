@@ -1,7 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import ModelosManager from '@/components/modelos/ModelosManager'
 
-export const metadata = { title: 'Modelos — OF Star Management' }
+export const metadata = { title: 'Modelos — Skeilab' }
 
 export default async function ModelosPage() {
   const admin = createAdminClient()

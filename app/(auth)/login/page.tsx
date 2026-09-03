@@ -2,7 +2,7 @@ import Image from 'next/image'
 import LoginForm from '@/components/auth/LoginForm'
 
 export const metadata = {
-  title: 'Iniciar sesión — OF Star Management',
+  title: 'Iniciar sesión — Skeilab',
 }
 
 export default function LoginPage() {
@@ -11,7 +11,7 @@ export default function LoginPage() {
       {/* Ambient glow */}
       <div
         className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-10 blur-3xl pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, #C9A84C 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse, var(--gold) 0%, transparent 70%)' }}
       />
 
       {/* Card */}
@@ -21,7 +21,7 @@ export default function LoginPage() {
           <div className="mb-5">
             <Image
               src="/logo.png"
-              alt="OF Star Management"
+              alt="Skeilab"
               width={88}
               height={88}
               className="rounded-2xl"
@@ -29,7 +29,7 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">
-            OF Star Management
+            Skeilab
           </h1>
           <p className="text-sm text-muted mt-1">Portal de Gestión Interna</p>
         </div>

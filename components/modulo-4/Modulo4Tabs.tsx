@@ -44,19 +44,19 @@ export default function Modulo4Tabs({ chatters, categorias, modelos, ranking, er
   return (
     <div>
       {/* Barra de pestañas */}
-      <div className="flex gap-1 mb-6 overflow-x-auto border-b" style={{ borderColor: '#1E1E2E' }}>
+      <div className="flex gap-1 mb-6 overflow-x-auto border-b" style={{ borderColor: 'var(--border)' }}>
         {TABS.map((t) => {
           const Icon = t.icon
           const active = tab === t.id
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
               className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors"
-              style={{ color: active ? '#C9A84C' : '#6B6B80', borderColor: active ? '#C9A84C' : 'transparent' }}>
+              style={{ color: active ? 'var(--gold)' : 'var(--muted)', borderColor: active ? 'var(--gold)' : 'transparent' }}>
               <Icon size={15} />
               {t.label}
               {t.id === 'chatters' && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                  style={{ backgroundColor: '#1E1E2E', color: '#6B6B80' }}>{activas}</span>
+                  style={{ backgroundColor: 'var(--border)', color: 'var(--muted)' }}>{activas}</span>
               )}
             </button>
           )

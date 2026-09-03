@@ -33,7 +33,7 @@ export default function ExecuteAllButton({ activeCount }: ExecuteAllButtonProps)
         onClick={handleExecuteAll}
         disabled={isPending || activeCount === 0}
         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 active:scale-[0.98] hover:opacity-90"
-        style={{ backgroundColor: '#C9A84C', color: '#0A0A0F' }}
+        style={{ backgroundColor: 'var(--gold)', color: 'var(--background)' }}
       >
         {isPending ? (
           <Loader2 size={15} className="animate-spin" />

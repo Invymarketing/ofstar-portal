@@ -17,22 +17,22 @@ export default function BallenasPanel({ fans }: { fans: Fan[] }) {
           <p className="text-sm font-medium mb-1" style={{ color: '#60A5FA' }}>
             ❄️ {enfriandose.length} ballena{enfriandose.length > 1 ? 's' : ''} enfriándose
           </p>
-          <p className="text-xs" style={{ color: '#6B6B80' }}>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>
             Llevan 7+ días sin comprar. Prioriza reactivarlas: {enfriandose.map((f) => f.fan_name ?? f.fan_id).slice(0, 8).join(', ')}
           </p>
         </div>
       )}
 
-      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: '#6B6B80', borderBottom: '1px solid #1E1E2E' }}>
+      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
           🐋 Ballenas (LTV ≥ $300) · {ballenas.length}
         </div>
         {ballenas.length === 0 ? (
-          <p className="text-sm px-4 py-6 text-center" style={{ color: '#6B6B80' }}>Aún no hay ballenas.</p>
+          <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--muted)' }}>Aún no hay ballenas.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ color: '#6B6B80' }}>
+              <tr style={{ color: 'var(--muted)' }}>
                 <th className="text-left font-normal px-4 py-2 text-xs">Fan</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Modelo</th>
                 <th className="text-right font-normal px-4 py-2 text-xs">LTV</th>
@@ -44,13 +44,13 @@ export default function BallenasPanel({ fans }: { fans: Fan[] }) {
             </thead>
             <tbody>
               {ballenas.map((f) => (
-                <tr key={f.fan_id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
+                <tr key={f.fan_id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
                   <td className="px-4 py-2">{f.fan_name ?? f.fan_id}</td>
-                  <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{f.modelo ?? '—'}</td>
-                  <td className="px-4 py-2 text-right font-medium" style={{ color: '#C9A84C' }}>{money(f.ltv)}</td>
-                  <td className="px-4 py-2 text-right" style={{ color: '#6B6B80' }}>{f.num_compras}</td>
+                  <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{f.modelo ?? '—'}</td>
+                  <td className="px-4 py-2 text-right font-medium" style={{ color: 'var(--gold)' }}>{money(f.ltv)}</td>
+                  <td className="px-4 py-2 text-right" style={{ color: 'var(--muted)' }}>{f.num_compras}</td>
                   <td className="px-4 py-2 text-right">{money(f.ticket_promedio)}</td>
-                  <td className="px-4 py-2 text-right" style={{ color: '#6B6B80' }}>
+                  <td className="px-4 py-2 text-right" style={{ color: 'var(--muted)' }}>
                     {f.dias_sin_comprar != null ? `${f.dias_sin_comprar}d` : '—'}
                   </td>
                   <td className="px-4 py-2 text-center text-xs whitespace-nowrap">

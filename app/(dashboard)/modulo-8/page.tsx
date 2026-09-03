@@ -1,6 +1,6 @@
 import ComingSoon from '@/components/ui/ComingSoon'
 
-export const metadata = { title: 'Sistema de Alertas — OF Star Management' }
+export const metadata = { title: 'Sistema de Alertas — Skeilab' }
 
 export default function Modulo8Page() {
   return (

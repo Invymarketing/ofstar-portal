@@ -29,7 +29,7 @@ export default function AddModelForm() {
       <button
         onClick={() => setOpen(true)}
         className="mt-3 w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed text-sm transition-all hover:opacity-80"
-        style={{ borderColor: '#1E1E2E', color: '#6B6B80' }}
+        style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
       >
         <Plus size={15} />
         Añadir modelo a la automatización
@@ -41,15 +41,15 @@ export default function AddModelForm() {
     <form
       onSubmit={handleSubmit}
       className="mt-3 rounded-2xl border p-5"
-      style={{ backgroundColor: '#13131A', borderColor: 'rgba(201,168,76,0.2)' }}
+      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--gold-15)' }}
     >
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>Nueva modelo</p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Nueva modelo</p>
         <button
           type="button"
           onClick={() => { setOpen(false); setError(null) }}
           className="hover:opacity-70 transition-opacity"
-          style={{ color: '#6B6B80' }}
+          style={{ color: 'var(--muted)' }}
         >
           <X size={16} />
         </button>
@@ -57,7 +57,7 @@ export default function AddModelForm() {
 
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: '#6B6B80' }}>
+          <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--muted)' }}>
             Nombre *
           </label>
           <input
@@ -67,18 +67,18 @@ export default function AddModelForm() {
             placeholder="Aina"
             required
             className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors"
-            style={{ backgroundColor: '#0A0A0F', border: '1px solid #1E1E2E', color: '#F0F0F5' }}
+            style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
             onFocus={(e) => (e.target.style.borderColor = 'rgba(201,168,76,0.5)')}
-            onBlur={(e) => (e.target.style.borderColor = '#1E1E2E')}
+            onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: '#6B6B80' }}>
+          <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--muted)' }}>
             Instagram *
           </label>
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#6B6B80' }}>@</span>
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--muted)' }}>@</span>
             <input
               type="text"
               value={form.instagram_handle}
@@ -86,15 +86,15 @@ export default function AddModelForm() {
               placeholder="handle_de_instagram"
               required
               className="w-full rounded-xl pl-7 pr-4 py-2.5 text-sm focus:outline-none transition-colors"
-              style={{ backgroundColor: '#0A0A0F', border: '1px solid #1E1E2E', color: '#F0F0F5' }}
+              style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
               onFocus={(e) => (e.target.style.borderColor = 'rgba(201,168,76,0.5)')}
-              onBlur={(e) => (e.target.style.borderColor = '#1E1E2E')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: '#6B6B80' }}>
+          <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--muted)' }}>
             Página de Notion (captions)
           </label>
           <input
@@ -103,9 +103,9 @@ export default function AddModelForm() {
             onChange={(e) => setForm({ ...form, notion_page_url: e.target.value })}
             placeholder="https://notion.so/..."
             className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors"
-            style={{ backgroundColor: '#0A0A0F', border: '1px solid #1E1E2E', color: '#F0F0F5' }}
+            style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
             onFocus={(e) => (e.target.style.borderColor = 'rgba(201,168,76,0.5)')}
-            onBlur={(e) => (e.target.style.borderColor = '#1E1E2E')}
+            onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
           />
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function AddModelForm() {
           type="button"
           onClick={() => { setOpen(false); setError(null) }}
           className="flex-1 py-2.5 rounded-xl text-sm transition-all hover:opacity-80"
-          style={{ backgroundColor: '#1E1E2E', color: '#6B6B80' }}
+          style={{ backgroundColor: 'var(--border)', color: 'var(--muted)' }}
         >
           Cancelar
         </button>
@@ -129,7 +129,7 @@ export default function AddModelForm() {
           type="submit"
           disabled={isPending}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 active:scale-[0.98]"
-          style={{ backgroundColor: '#C9A84C', color: '#0A0A0F' }}
+          style={{ backgroundColor: 'var(--gold)', color: 'var(--background)' }}
         >
           {isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
           {isPending ? 'Añadiendo...' : 'Añadir'}

@@ -25,7 +25,7 @@ export default function MapearCreators({
     }
   }
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
+  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   return (
     <div>
@@ -33,15 +33,15 @@ export default function MapearCreators({
         <p className="text-sm" style={{ color: '#EAB308' }}>
           {sinMapear.length} cuenta{sinMapear.length !== 1 ? 's' : ''} de Infloww sin modelo
         </p>
-        <p className="text-xs mt-1" style={{ color: '#6B6B80' }}>
+        <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
           Asigna cada una a su modelo. Se corrige al instante y las próximas ventas quedan mapeadas solas.
         </p>
       </div>
 
-      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
         <table className="w-full text-sm">
           <thead>
-            <tr style={{ color: '#6B6B80' }}>
+            <tr style={{ color: 'var(--muted)' }}>
               <th className="text-left font-normal px-4 py-2 text-xs">Cuenta Infloww</th>
               <th className="text-left font-normal px-4 py-2 text-xs">Fans de ejemplo</th>
               <th className="text-right font-normal px-4 py-2 text-xs">Ventas</th>
@@ -51,10 +51,10 @@ export default function MapearCreators({
           </thead>
           <tbody>
             {sinMapear.map((c) => (
-              <tr key={c.creator_id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
-                <td className="px-4 py-2">{c.creator_name ?? <span style={{ color: '#6B6B80' }}>id {c.creator_id.slice(0, 10)}…</span>}</td>
-                <td className="px-4 py-2 text-xs" style={{ color: '#6B6B80' }}>{c.ejemplos.join(', ') || '—'}</td>
-                <td className="px-4 py-2 text-right" style={{ color: '#6B6B80' }}>{c.ventas}</td>
+              <tr key={c.creator_id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                <td className="px-4 py-2">{c.creator_name ?? <span style={{ color: 'var(--muted)' }}>id {c.creator_id.slice(0, 10)}…</span>}</td>
+                <td className="px-4 py-2 text-xs" style={{ color: 'var(--muted)' }}>{c.ejemplos.join(', ') || '—'}</td>
+                <td className="px-4 py-2 text-right" style={{ color: 'var(--muted)' }}>{c.ventas}</td>
                 <td className="px-4 py-2">
                   <select value={sel[c.creator_id] ?? ''} onChange={(e) => setSel({ ...sel, [c.creator_id]: e.target.value })}
                     className="rounded-lg px-2 py-1 text-xs" style={inputStyle}>
@@ -65,7 +65,7 @@ export default function MapearCreators({
                 <td className="px-2 py-2 text-right">
                   <button onClick={() => asignar(c.creator_id)} disabled={!sel[c.creator_id] || saving === c.creator_id}
                     className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium disabled:opacity-40"
-                    style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+                    style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
                     <Link2 size={12} /> {saving === c.creator_id ? '…' : 'Asignar'}
                   </button>
                 </td>

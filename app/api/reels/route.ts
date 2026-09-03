@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       modelo_nombre: modelo?.model_name || modelo?.full_name || cuenta?.grupo_competencia || cuenta?.ig_username,
       nicho_id: nicho?.id ?? null,
       nicho_nombre: nicho?.nombre ?? 'Sin nicho',
-      nicho_color: nicho?.color ?? '#8B8B9E',
+      nicho_color: nicho?.color ?? 'var(--muted)',
       modelos_ref: vinculosPorCuenta.get(cuenta?.id) ?? [],
     }
   })

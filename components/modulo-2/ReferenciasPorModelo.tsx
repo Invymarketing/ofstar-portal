@@ -22,7 +22,7 @@ function score(r: ReelRef): number {
   return r.views + r.likes * 50 + r.comentarios * 100
 }
 
-const COLOR = '#C9A84C' // dorado de la marca, común a todos los grupos de modelo
+const COLOR = 'var(--gold)' // dorado de la marca, común a todos los grupos de modelo
 
 interface GrupoModelo {
   modelo_id: string
@@ -90,38 +90,38 @@ export default function ReferenciasPorModelo() {
       <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Sparkles size={15} style={{ color: COLOR }} />
-          <p className="text-sm font-medium" style={{ color: '#F0F0F5' }}>Referencias por modelo</p>
-          <span className="text-xs" style={{ color: '#8B8B9E' }}>· mejores reels de competencia</span>
+          <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Referencias por modelo</p>
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>· mejores reels de competencia</span>
         </div>
-        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
           {([7, 14, 30] as const).map(d => (
-            <button key={d} onClick={() => setPeriodo(d)} className="px-3 py-1 rounded-md text-xs font-medium transition-all" style={{ backgroundColor: periodo === d ? 'rgba(201,168,76,0.15)' : 'transparent', color: periodo === d ? COLOR : '#8B8B9E' }}>{d} días</button>
+            <button key={d} onClick={() => setPeriodo(d)} className="px-3 py-1 rounded-md text-xs font-medium transition-all" style={{ backgroundColor: periodo === d ? 'var(--gold-15)' : 'transparent', color: periodo === d ? COLOR : 'var(--muted)' }}>{d} días</button>
           ))}
         </div>
       </div>
 
       {/* Selector de modelo */}
       <div className="flex items-center gap-2 mb-6 flex-wrap">
-        <button onClick={() => setModeloSel('todos')} className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: modeloSel === 'todos' ? 'rgba(201,168,76,0.15)' : '#13131A', color: modeloSel === 'todos' ? COLOR : '#8B8B9E', border: modeloSel === 'todos' ? '1px solid rgba(201,168,76,0.25)' : '1px solid #1E1E2E' }}>Todas</button>
+        <button onClick={() => setModeloSel('todos')} className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: modeloSel === 'todos' ? 'var(--gold-15)' : 'var(--surface)', color: modeloSel === 'todos' ? COLOR : 'var(--muted)', border: modeloSel === 'todos' ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>Todas</button>
         {grupos.map(g => (
-          <button key={g.modelo_id} onClick={() => setModeloSel(g.modelo_id)} className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: modeloSel === g.modelo_id ? 'rgba(201,168,76,0.15)' : '#13131A', color: modeloSel === g.modelo_id ? COLOR : '#8B8B9E', border: modeloSel === g.modelo_id ? '1px solid rgba(201,168,76,0.25)' : '1px solid #1E1E2E' }}>{g.nombre} <span style={{ opacity: 0.6 }}>{g.reels.length}</span></button>
+          <button key={g.modelo_id} onClick={() => setModeloSel(g.modelo_id)} className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: modeloSel === g.modelo_id ? 'var(--gold-15)' : 'var(--surface)', color: modeloSel === g.modelo_id ? COLOR : 'var(--muted)', border: modeloSel === g.modelo_id ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{g.nombre} <span style={{ opacity: 0.6 }}>{g.reels.length}</span></button>
         ))}
       </div>
 
       {/* Selector de orden */}
       <div className="flex items-center gap-2 mb-6 flex-wrap">
-        <span className="text-xs" style={{ color: '#8B8B9E' }}>Ordenar:</span>
+        <span className="text-xs" style={{ color: 'var(--muted)' }}>Ordenar:</span>
         {([['mejores', 'Mejores'], ['vistos', 'Más vistos'], ['engagement', 'Más engagement'], ['recientes', 'Más recientes']] as const).map(([val, label]) => (
-          <button key={val} onClick={() => setOrden(val)} className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: orden === val ? 'rgba(201,168,76,0.15)' : '#13131A', color: orden === val ? COLOR : '#8B8B9E', border: orden === val ? '1px solid rgba(201,168,76,0.25)' : '1px solid #1E1E2E' }}>{label}</button>
+          <button key={val} onClick={() => setOrden(val)} className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: orden === val ? 'var(--gold-15)' : 'var(--surface)', color: orden === val ? COLOR : 'var(--muted)', border: orden === val ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{label}</button>
         ))}
       </div>
 
-      {loading && <div className="flex items-center justify-center py-16"><Loader2 size={22} className="animate-spin" style={{ color: '#8B8B9E' }} /></div>}
+      {loading && <div className="flex items-center justify-center py-16"><Loader2 size={22} className="animate-spin" style={{ color: 'var(--muted)' }} /></div>}
 
       {!loading && grupos.length === 0 && (
-        <div className="text-center py-16 rounded-2xl" style={{ backgroundColor: '#13131A', border: '1px dashed #1E1E2E' }}>
-          <Film size={22} className="mx-auto mb-2" style={{ color: '#8B8B9E' }} />
-          <p className="text-sm" style={{ color: '#8B8B9E' }}>No hay reels de competencia en los últimos {periodo} días.</p>
+        <div className="text-center py-16 rounded-2xl" style={{ backgroundColor: 'var(--surface)', border: '1px dashed var(--border)' }}>
+          <Film size={22} className="mx-auto mb-2" style={{ color: 'var(--muted)' }} />
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>No hay reels de competencia en los últimos {periodo} días.</p>
           <p className="text-xs mt-1" style={{ color: 'rgba(139,139,158,0.7)' }}>Asigna modelos a tus competidores (botón "Referencia de…") y sincroniza sus cuentas.</p>
         </div>
       )}
@@ -131,21 +131,21 @@ export default function ReferenciasPorModelo() {
         <div key={grupo.modelo_id} className="mb-8">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-1 h-5 rounded-full" style={{ backgroundColor: COLOR }} />
-            <h3 className="text-sm font-bold" style={{ color: grupo.modelo_id === 'sin-asignar' ? '#8B8B9E' : COLOR }}>{grupo.nombre}</h3>
-            <span className="text-xs" style={{ color: '#8B8B9E' }}>{grupo.reels.length} reels</span>
+            <h3 className="text-sm font-bold" style={{ color: grupo.modelo_id === 'sin-asignar' ? 'var(--muted)' : COLOR }}>{grupo.nombre}</h3>
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>{grupo.reels.length} reels</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {grupo.reels.slice(0, 12).map((reel, i) => {
               const recomendado = score(reel) > grupo.media
               return (
-                <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group rounded-xl overflow-hidden transition-all" style={{ border: recomendado ? `1.5px solid ${COLOR}` : '1px solid #1E1E2E', backgroundColor: '#0D0D14' }}>
-                  <div className="relative w-full" style={{ aspectRatio: '9/16', backgroundColor: '#1E1E2E' }}>
+                <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group rounded-xl overflow-hidden transition-all" style={{ border: recomendado ? `1.5px solid ${COLOR}` : '1px solid var(--border)', backgroundColor: '#0D0D14' }}>
+                  <div className="relative w-full" style={{ aspectRatio: '9/16', backgroundColor: 'var(--border)' }}>
                     {reel.thumbnail_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={reel.thumbnail_url} alt="" className="w-full h-full object-cover" loading="lazy" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center"><Film size={20} style={{ color: '#8B8B9E' }} /></div>
+                      <div className="w-full h-full flex items-center justify-center"><Film size={20} style={{ color: 'var(--muted)' }} /></div>
                     )}
                     {recomendado && (
                       <div className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${COLOR}ee` }}>
@@ -160,9 +160,9 @@ export default function ReferenciasPorModelo() {
                     </div>
                   </div>
                   <div className="p-1.5">
-                    <p className="text-[9px] font-medium truncate" style={{ color: '#8B8B9E' }}>@{reel.ig_username}</p>
+                    <p className="text-[9px] font-medium truncate" style={{ color: 'var(--muted)' }}>@{reel.ig_username}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <div className="flex items-center gap-0.5"><Heart size={8} style={{ color: '#8B8B9E' }} /><span className="text-[9px]" style={{ color: '#F0F0F5' }}>{formatNum(reel.likes)}</span></div>
+                      <div className="flex items-center gap-0.5"><Heart size={8} style={{ color: 'var(--muted)' }} /><span className="text-[9px]" style={{ color: 'var(--foreground)' }}>{formatNum(reel.likes)}</span></div>
                       <span className="text-[9px] font-semibold ml-auto" style={{ color: COLOR }}>{reel.ratio_vl?.toFixed(0)}x</span>
                     </div>
                   </div>

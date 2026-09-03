@@ -13,9 +13,11 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'OF Star Management',
+  title: 'Skeilab',
   description: 'Portal de Gestión Interna — INVY Marketing FZE LLC',
 }
+
+const themeScript = `try{var t=localStorage.getItem('skeilab-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}`
 
 export default function RootLayout({
   children,
@@ -28,6 +30,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
       <body className="h-full bg-background text-foreground antialiased">
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         {children}
       </body>
     </html>

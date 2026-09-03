@@ -42,26 +42,26 @@ export default function GrupoDetalle({ grupo, tipo, onBack, onRefresh }: Props) 
     <div>
       {/* Header del grupo */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-all" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E', color: '#8B8B9E' }}>
+        <button onClick={onBack} className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-all" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)' }}>
           <ArrowLeft size={13} /> Volver
         </button>
-        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0" style={{ border: grupo.nicho ? `1.5px solid ${grupo.nicho.color}` : '1.5px solid #1E1E2E', backgroundColor: '#1E1E2E' }}>
+        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0" style={{ border: grupo.nicho ? `1.5px solid ${grupo.nicho.color}` : '1.5px solid var(--border)', backgroundColor: 'var(--border)' }}>
           {grupo.profilePic ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={grupo.profilePic} alt={grupo.nombre} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-lg font-bold" style={{ color: grupo.nicho?.color ?? '#8B8B9E' }}>{grupo.nombre[0]?.toUpperCase()}</div>
+            <div className="w-full h-full flex items-center justify-center text-lg font-bold" style={{ color: grupo.nicho?.color ?? 'var(--muted)' }}>{grupo.nombre[0]?.toUpperCase()}</div>
           )}
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold" style={{ color: '#F0F0F5' }}>{grupo.nombre}</h2>
+            <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{grupo.nombre}</h2>
             {grupo.nicho && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${grupo.nicho.color}18`, color: grupo.nicho.color, border: `1px solid ${grupo.nicho.color}44` }}>{grupo.nicho.nombre}</span>}
           </div>
-          <p className="text-xs" style={{ color: '#8B8B9E' }}>{grupo.totalCuentas} cuentas · {formatNum(grupo.totalSeguidores)} seguidores · {grupo.engagementMedio}% engagement</p>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>{grupo.totalCuentas} cuentas · {formatNum(grupo.totalSeguidores)} seguidores · {grupo.engagementMedio}% engagement</p>
         </div>
         {tipo === 'competencia' && grupo.cuentas[0] && (
-          <button onClick={() => setModalRef(true)} className="ml-auto flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all" style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', color: '#C9A84C' }}>
+          <button onClick={() => setModalRef(true)} className="ml-auto flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-25)', color: 'var(--gold)' }}>
             <Sparkles size={13} /> Referencia de…
           </button>
         )}
@@ -83,61 +83,61 @@ export default function GrupoDetalle({ grupo, tipo, onBack, onRefresh }: Props) 
           const isExpanded = expandedId === cuenta.id
 
           return (
-            <div key={cuenta.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+            <div key={cuenta.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
               <div className="flex items-center gap-3 p-4">
-                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0" style={{ backgroundColor: '#1E1E2E' }}>
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0" style={{ backgroundColor: 'var(--border)' }}>
                   {cuenta.profile_pic_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={cuenta.profile_pic_url} alt={cuenta.ig_username} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-sm font-bold" style={{ color: '#8B8B9E' }}>{cuenta.ig_username[0]?.toUpperCase()}</div>
+                    <div className="w-full h-full flex items-center justify-center text-sm font-bold" style={{ color: 'var(--muted)' }}>{cuenta.ig_username[0]?.toUpperCase()}</div>
                   )}
                 </div>
                 <button onClick={() => setExpandedId(isExpanded ? null : cuenta.id)} className="flex-1 min-w-0 text-left">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>@{cuenta.ig_username}</p>
-                    {cuenta.es_principal && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}>Principal</span>}
+                    <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>@{cuenta.ig_username}</p>
+                    {cuenta.es_principal && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--gold-15)', color: 'var(--gold)' }}>Principal</span>}
                   </div>
-                  {cuenta.full_name && <p className="text-xs" style={{ color: '#8B8B9E' }}>{cuenta.full_name}</p>}
+                  {cuenta.full_name && <p className="text-xs" style={{ color: 'var(--muted)' }}>{cuenta.full_name}</p>}
                 </button>
                 <div className="hidden sm:flex items-center gap-6">
                   <div className="text-right">
-                    <p className="text-sm font-bold" style={{ color: '#F0F0F5' }}>{formatNum(seguidores)}</p>
-                    <p className="text-xs" style={{ color: '#8B8B9E' }}>seguidores</p>
+                    <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>{formatNum(seguidores)}</p>
+                    <p className="text-xs" style={{ color: 'var(--muted)' }}>seguidores</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold" style={{ color: '#F0F0F5' }}>{m?.engagement_rate ?? '—'}{m?.engagement_rate ? '%' : ''}</p>
-                    <p className="text-xs" style={{ color: '#8B8B9E' }}>engagement</p>
+                    <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>{m?.engagement_rate ?? '—'}{m?.engagement_rate ? '%' : ''}</p>
+                    <p className="text-xs" style={{ color: 'var(--muted)' }}>engagement</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => sincronizar(cuenta.id)} disabled={syncingId === cuenta.id} title="Actualizar" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5"><RefreshCw size={14} className={syncingId === cuenta.id ? 'animate-spin' : ''} /></button>
-                  <button onClick={() => eliminar(cuenta.id)} title="Eliminar" style={{ color: '#8B8B9E' }} className="p-1.5 rounded-lg hover:bg-white/5 hover:text-red-400"><Trash2 size={14} /></button>
-                  <button onClick={() => setExpandedId(isExpanded ? null : cuenta.id)} style={{ color: '#8B8B9E' }} className="p-1.5">{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</button>
+                  <button onClick={() => sincronizar(cuenta.id)} disabled={syncingId === cuenta.id} title="Actualizar" style={{ color: 'var(--muted)' }} className="p-1.5 rounded-lg hover:bg-[var(--hover)]"><RefreshCw size={14} className={syncingId === cuenta.id ? 'animate-spin' : ''} /></button>
+                  <button onClick={() => eliminar(cuenta.id)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1.5 rounded-lg hover:bg-[var(--hover)] hover:text-red-400"><Trash2 size={14} /></button>
+                  <button onClick={() => setExpandedId(isExpanded ? null : cuenta.id)} style={{ color: 'var(--muted)' }} className="p-1.5">{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</button>
                 </div>
               </div>
 
               {isExpanded && (
-                <div className="px-4 pb-4 border-t" style={{ borderColor: '#1E1E2E' }}>
+                <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border)' }}>
                   <div className="pt-4 space-y-4">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs" style={{ color: '#8B8B9E' }}>Últimos:</span>
+                      <span className="text-xs" style={{ color: 'var(--muted)' }}>Últimos:</span>
                       {PERIODOS.map(d => (
-                        <button key={d} onClick={() => setPeriodo(d)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: periodo === d ? 'rgba(201,168,76,0.15)' : '#0D0D14', color: periodo === d ? '#C9A84C' : '#8B8B9E', border: periodo === d ? '1px solid rgba(201,168,76,0.25)' : '1px solid #1E1E2E' }}>{d} días</button>
+                        <button key={d} onClick={() => setPeriodo(d)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: periodo === d ? 'var(--gold-15)' : '#0D0D14', color: periodo === d ? 'var(--gold)' : 'var(--muted)', border: periodo === d ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{d} días</button>
                       ))}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs" style={{ color: '#8B8B9E' }}>Ordenar:</span>
+                      <span className="text-xs" style={{ color: 'var(--muted)' }}>Ordenar:</span>
                       {ORDENES.map(([val, label]) => (
-                        <button key={val} onClick={() => setOrden(val)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: orden === val ? 'rgba(201,168,76,0.15)' : '#0D0D14', color: orden === val ? '#C9A84C' : '#8B8B9E', border: orden === val ? '1px solid rgba(201,168,76,0.25)' : '1px solid #1E1E2E' }}>{label}</button>
+                        <button key={val} onClick={() => setOrden(val)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: orden === val ? 'var(--gold-15)' : '#0D0D14', color: orden === val ? 'var(--gold)' : 'var(--muted)', border: orden === val ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{label}</button>
                       ))}
                     </div>
                     {(cuenta.reels_analytics ?? []).length > 0 ? (
                       <ReelsGrid reels={cuenta.reels_analytics} dias={periodo} orden={orden} />
                     ) : (
-                      <div className="text-center py-6 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px dashed #1E1E2E' }}>
-                        <Film size={18} className="mx-auto mb-2" style={{ color: '#8B8B9E' }} />
-                        <p className="text-xs" style={{ color: '#8B8B9E' }}>Sin reels aún. Pulsa actualizar arriba.</p>
+                      <div className="text-center py-6 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px dashed var(--border)' }}>
+                        <Film size={18} className="mx-auto mb-2" style={{ color: 'var(--muted)' }} />
+                        <p className="text-xs" style={{ color: 'var(--muted)' }}>Sin reels aún. Pulsa actualizar arriba.</p>
                       </div>
                     )}
                     {cuenta.ultima_sync && <p className="text-xs" style={{ color: 'rgba(139,139,158,0.5)' }}>Última actualización: {new Date(cuenta.ultima_sync).toLocaleString('es-ES')}</p>}

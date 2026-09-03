@@ -1,6 +1,6 @@
 import ComingSoon from '@/components/ui/ComingSoon'
 
-export const metadata = { title: 'Centro de Comunicación — OF Star Management' }
+export const metadata = { title: 'Centro de Comunicación — Skeilab' }
 
 export default function Modulo11Page() {
   return (

@@ -1,6 +1,6 @@
 import ComingSoon from '@/components/ui/ComingSoon'
 
-export const metadata = { title: 'Biblioteca de Assets — OF Star Management' }
+export const metadata = { title: 'Biblioteca de Assets — Skeilab' }
 
 export default function Modulo9Page() {
   return (

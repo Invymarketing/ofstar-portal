@@ -53,19 +53,19 @@ export default function ModeloEditForm({ modelo }: ModeloEditFormProps) {
     <form onSubmit={handleSave}>
       <div
         className="rounded-2xl border p-6 space-y-6"
-        style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
       >
         <div>
-          <h2 className="text-sm font-semibold mb-4" style={{ color: '#F0F0F5' }}>
+          <h2 className="text-sm font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
             Enlaces de acceso rápido
           </h2>
-          <p className="text-xs mb-6" style={{ color: '#6B6B80' }}>
+          <p className="text-xs mb-6" style={{ color: 'var(--muted)' }}>
             La modelo verá estos botones en su panel personal. Puedes dejar un campo vacío si el enlace aún no existe.
           </p>
 
           {/* Content Snare URL */}
           <div className="space-y-2 mb-5">
-            <label className="text-xs font-medium uppercase tracking-wider" style={{ color: '#6B6B80' }}>
+            <label className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
               Plantilla OF — Content Snare
             </label>
             <div className="relative">
@@ -76,12 +76,12 @@ export default function ModeloEditForm({ modelo }: ModeloEditFormProps) {
                 placeholder="https://app.contentsnare.com/..."
                 className="w-full rounded-xl px-4 py-3 text-sm pr-10 focus:outline-none transition-colors"
                 style={{
-                  backgroundColor: '#0A0A0F',
-                  border: '1px solid #1E1E2E',
-                  color: '#F0F0F5',
+                  backgroundColor: 'var(--background)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--foreground)',
                 }}
                 onFocus={(e) => (e.target.style.borderColor = 'rgba(201,168,76,0.5)')}
-                onBlur={(e) => (e.target.style.borderColor = '#1E1E2E')}
+                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
               />
               {contentSnareUrl && (
                 <a
@@ -89,7 +89,7 @@ export default function ModeloEditForm({ modelo }: ModeloEditFormProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-80 transition-opacity"
-                  style={{ color: '#6B6B80' }}
+                  style={{ color: 'var(--muted)' }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink size={14} />
@@ -100,7 +100,7 @@ export default function ModeloEditForm({ modelo }: ModeloEditFormProps) {
 
           {/* Notion URL */}
           <div className="space-y-2">
-            <label className="text-xs font-medium uppercase tracking-wider" style={{ color: '#6B6B80' }}>
+            <label className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
               TO-DO Marketing — Notion
             </label>
             <div className="relative">
@@ -111,12 +111,12 @@ export default function ModeloEditForm({ modelo }: ModeloEditFormProps) {
                 placeholder="https://notion.so/..."
                 className="w-full rounded-xl px-4 py-3 text-sm pr-10 focus:outline-none transition-colors"
                 style={{
-                  backgroundColor: '#0A0A0F',
-                  border: '1px solid #1E1E2E',
-                  color: '#F0F0F5',
+                  backgroundColor: 'var(--background)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--foreground)',
                 }}
                 onFocus={(e) => (e.target.style.borderColor = 'rgba(201,168,76,0.5)')}
-                onBlur={(e) => (e.target.style.borderColor = '#1E1E2E')}
+                onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
               />
               {notionUrl && (
                 <a
@@ -124,7 +124,7 @@ export default function ModeloEditForm({ modelo }: ModeloEditFormProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-80 transition-opacity"
-                  style={{ color: '#6B6B80' }}
+                  style={{ color: 'var(--muted)' }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink size={14} />
@@ -144,7 +144,7 @@ export default function ModeloEditForm({ modelo }: ModeloEditFormProps) {
           type="submit"
           disabled={saving}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 active:scale-[0.98]"
-          style={{ backgroundColor: '#C9A84C', color: '#0A0A0F' }}
+          style={{ backgroundColor: 'var(--gold)', color: 'var(--background)' }}
         >
           {saving ? (
             <>

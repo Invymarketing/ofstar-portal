@@ -34,27 +34,27 @@ export default function FansPanel({ fans }: { fans: Fan[] }) {
           <button key={f.id} onClick={() => setFiltro(f.id)}
             className="rounded-lg px-3 py-1.5 text-xs font-medium"
             style={{
-              backgroundColor: filtro === f.id ? 'rgba(201,168,76,0.15)' : '#1E1E2E',
-              color: filtro === f.id ? '#C9A84C' : '#6B6B80',
+              backgroundColor: filtro === f.id ? 'var(--gold-15)' : 'var(--border)',
+              color: filtro === f.id ? 'var(--gold)' : 'var(--muted)',
             }}>
             {f.label}
           </button>
         ))}
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar fan…"
           className="ml-auto rounded-lg px-3 py-1.5 text-xs"
-          style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+          style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
       </div>
 
-      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: '#6B6B80', borderBottom: '1px solid #1E1E2E' }}>
+      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
           {lista.length} fan{lista.length !== 1 ? 's' : ''}
         </div>
         {lista.length === 0 ? (
-          <p className="text-sm px-4 py-6 text-center" style={{ color: '#6B6B80' }}>Sin resultados.</p>
+          <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--muted)' }}>Sin resultados.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ color: '#6B6B80' }}>
+              <tr style={{ color: 'var(--muted)' }}>
                 <th className="text-left font-normal px-4 py-2 text-xs">Fan</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Modelo</th>
                 <th className="text-center font-normal px-4 py-2 text-xs">Tier</th>
@@ -67,12 +67,12 @@ export default function FansPanel({ fans }: { fans: Fan[] }) {
             </thead>
             <tbody>
               {lista.map((f) => (
-                <tr key={f.fan_id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
+                <tr key={f.fan_id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
                   <td className="px-4 py-2">{f.fan_name ?? f.fan_id}</td>
-                  <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{f.modelo ?? '—'}</td>
+                  <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{f.modelo ?? '—'}</td>
                   <td className="px-4 py-2 text-center text-xs whitespace-nowrap">{f.tier}</td>
-                  <td className="px-4 py-2 text-right font-medium" style={{ color: '#C9A84C' }}>{money(f.ltv)}</td>
-                  <td className="px-4 py-2 text-right" style={{ color: '#6B6B80' }}>{f.num_compras}</td>
+                  <td className="px-4 py-2 text-right font-medium" style={{ color: 'var(--gold)' }}>{money(f.ltv)}</td>
+                  <td className="px-4 py-2 text-right" style={{ color: 'var(--muted)' }}>{f.num_compras}</td>
                   <td className="px-4 py-2 text-right">{money(f.ticket_promedio)}</td>
                   <td className="px-4 py-2 text-center text-xs whitespace-nowrap">{f.estado_fan || '—'}</td>
                   <td className="px-4 py-2 text-center text-xs whitespace-nowrap">

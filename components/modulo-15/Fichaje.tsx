@@ -75,22 +75,22 @@ export default function Fichaje({
   }, [jornadas, descansos, now]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const estadoTxt = estado.enBreak ? 'En break' : estado.enTurno ? 'Trabajando' : 'Fuera de turno'
-  const estadoColor = estado.enBreak ? '#EAB308' : estado.enTurno ? '#22C55E' : '#6B6B80'
+  const estadoColor = estado.enBreak ? '#EAB308' : estado.enTurno ? '#22C55E' : 'var(--muted)'
 
   return (
     <div className="space-y-6">
       {/* Reloj / controles */}
-      <div className="rounded-2xl border p-6" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+      <div className="rounded-2xl border p-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: estadoColor }} />
               <span className="text-sm font-medium" style={{ color: estadoColor }}>{estadoTxt}</span>
             </div>
-            <p className="text-4xl font-bold tabular-nums" style={{ color: '#F0F0F5' }}>
+            <p className="text-4xl font-bold tabular-nums" style={{ color: 'var(--foreground)' }}>
               {estado.enTurno ? fmt(cron) : '00m 00s'}
             </p>
-            <p className="text-xs mt-1" style={{ color: '#6B6B80' }}>
+            <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
               {estado.enBreak ? 'Tiempo en break' : estado.enTurno ? 'Tiempo en turno' : 'Inicia tu turno para empezar'}
             </p>
           </div>
@@ -128,12 +128,12 @@ export default function Fichaje({
 
         {/* Resumen propio */}
         <div className="grid grid-cols-2 gap-3 mt-5">
-          <div className="rounded-xl p-3" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E' }}>
-            <p className="text-xs" style={{ color: '#6B6B80' }}>Trabajado hoy</p>
+          <div className="rounded-xl p-3" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+            <p className="text-xs" style={{ color: 'var(--muted)' }}>Trabajado hoy</p>
             <p className="text-lg font-bold" style={{ color: '#22C55E' }}>{fmt(miTrabajo.trabajado)}</p>
           </div>
-          <div className="rounded-xl p-3" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E' }}>
-            <p className="text-xs" style={{ color: '#6B6B80' }}>En break hoy</p>
+          <div className="rounded-xl p-3" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+            <p className="text-xs" style={{ color: 'var(--muted)' }}>En break hoy</p>
             <p className="text-lg font-bold" style={{ color: '#EAB308' }}>{fmt(miTrabajo.brk)}</p>
           </div>
         </div>
@@ -141,10 +141,10 @@ export default function Fichaje({
         {/* Nota de fin de turno */}
         {cerrando && (
           <div className="mt-5 rounded-xl p-4" style={{ backgroundColor: '#0D0D14', border: '1px solid rgba(239,68,68,0.3)' }}>
-            <p className="text-xs mb-2" style={{ color: '#F0F0F5' }}>Novedad para el siguiente turno (opcional)</p>
+            <p className="text-xs mb-2" style={{ color: 'var(--foreground)' }}>Novedad para el siguiente turno (opcional)</p>
             <textarea value={nota} onChange={(e) => setNota(e.target.value)} rows={3}
               placeholder="Fans calientes, pendientes, incidencias…"
-              className="w-full rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+              className="w-full rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
             <div className="flex items-center gap-2 mt-3">
               <button onClick={() => accion(() => finalizarTurno(nota))} disabled={busy}
                 className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
@@ -152,7 +152,7 @@ export default function Fichaje({
                 <LogOut size={15} /> Finalizar y guardar
               </button>
               <button onClick={() => { setCerrando(false); setNota('') }} disabled={busy}
-                className="rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: '#1E1E2E', color: '#8B8B9E' }}>Cancelar</button>
+                className="rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: 'var(--border)', color: 'var(--muted)' }}>Cancelar</button>
             </div>
           </div>
         )}
@@ -162,20 +162,20 @@ export default function Fichaje({
       {esStaff && (
         <>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#6B6B80' }}>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
               En línea ahora · {enLinea.length}
             </p>
-            <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+            <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
               {enLinea.length === 0 ? (
-                <p className="text-sm px-4 py-5 text-center" style={{ color: '#6B6B80' }}>Nadie en turno ahora mismo.</p>
+                <p className="text-sm px-4 py-5 text-center" style={{ color: 'var(--muted)' }}>Nadie en turno ahora mismo.</p>
               ) : enLinea.map((j, i) => {
                 const enBreak = descansos.some((d) => d.user_id === j.user_id && !d.fin)
                 return (
-                  <div key={j.user_id + i} className="flex items-center gap-3 px-4 py-2.5" style={{ borderTop: i ? '1px solid #1E1E2E' : 'none' }}>
+                  <div key={j.user_id + i} className="flex items-center gap-3 px-4 py-2.5" style={{ borderTop: i ? '1px solid var(--border)' : 'none' }}>
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: enBreak ? '#EAB308' : '#22C55E' }} />
-                    <span className="flex-1 text-sm" style={{ color: '#F0F0F5' }}>{nombre.get(j.user_id) ?? '—'}</span>
+                    <span className="flex-1 text-sm" style={{ color: 'var(--foreground)' }}>{nombre.get(j.user_id) ?? '—'}</span>
                     <span className="text-xs" style={{ color: enBreak ? '#EAB308' : '#22C55E' }}>{enBreak ? 'En break' : 'Trabajando'}</span>
-                    <span className="text-xs tabular-nums" style={{ color: '#6B6B80' }}>{fmt(now - +new Date(j.inicio))}</span>
+                    <span className="text-xs tabular-nums" style={{ color: 'var(--muted)' }}>{fmt(now - +new Date(j.inicio))}</span>
                   </div>
                 )
               })}
@@ -183,11 +183,11 @@ export default function Fichaje({
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#6B6B80' }}>Registro (últimas 24h)</p>
-            <div className="rounded-2xl border overflow-x-auto" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>Registro (últimas 24h)</p>
+            <div className="rounded-2xl border overflow-x-auto" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
               <table className="w-full text-sm">
                 <thead>
-                  <tr style={{ color: '#6B6B80' }}>
+                  <tr style={{ color: 'var(--muted)' }}>
                     <th className="text-left font-normal px-4 py-2 text-xs">Persona</th>
                     <th className="text-left font-normal px-4 py-2 text-xs">Entrada</th>
                     <th className="text-right font-normal px-4 py-2 text-xs">Trabajado</th>
@@ -198,20 +198,20 @@ export default function Fichaje({
                 </thead>
                 <tbody>
                   {registro.map((r) => (
-                    <tr key={r.id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
+                    <tr key={r.id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
                       <td className="px-4 py-2">{r.nombre}</td>
-                      <td className="px-4 py-2" style={{ color: '#6B6B80' }}>
+                      <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>
                         {r.entrada ? new Date(r.entrada).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '—'}
                       </td>
                       <td className="px-4 py-2 text-right" style={{ color: '#22C55E' }}>{fmt(r.trabajado)}</td>
                       <td className="px-4 py-2 text-right" style={{ color: '#EAB308' }}>{fmt(r.brk)}</td>
-                      <td className="px-4 py-2 text-right" style={{ color: '#6B6B80' }}>{r.breaks}</td>
+                      <td className="px-4 py-2 text-right" style={{ color: 'var(--muted)' }}>{r.breaks}</td>
                       <td className="px-4 py-2 text-center text-xs">
                         {r.abierta ? (
                           <span className="inline-flex items-center gap-1" style={{ color: r.enBreak ? '#EAB308' : '#22C55E' }}>
                             <Circle size={8} fill="currentColor" /> {r.enBreak ? 'Break' : 'En línea'}
                           </span>
-                        ) : <span style={{ color: '#6B6B80' }}>Cerrado</span>}
+                        ) : <span style={{ color: 'var(--muted)' }}>Cerrado</span>}
                       </td>
                     </tr>
                   ))}
@@ -225,7 +225,7 @@ export default function Fichaje({
       {/* Novedades por equipo (handoffs) */}
       <div>
         <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: '#6B6B80' }}>
+          <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--muted)' }}>
             <ClipboardList size={13} /> Novedades del turno {!esStaff && miEquipo ? `· Equipo ${miEquipo}` : ''}
           </p>
           {esStaff && (
@@ -233,7 +233,7 @@ export default function Fichaje({
               {(['todos', 1, 2, 3, 4] as const).map((e) => (
                 <button key={e} onClick={() => setFiltroEquipo(e)}
                   className="px-2.5 py-1 rounded-lg text-xs font-medium"
-                  style={{ backgroundColor: filtroEquipo === e ? 'rgba(201,168,76,0.15)' : '#1E1E2E', color: filtroEquipo === e ? '#C9A84C' : '#8B8B9E' }}>
+                  style={{ backgroundColor: filtroEquipo === e ? 'var(--gold-15)' : 'var(--border)', color: filtroEquipo === e ? 'var(--gold)' : 'var(--muted)' }}>
                   {e === 'todos' ? 'Todos' : `E${e}`}
                 </button>
               ))}
@@ -245,20 +245,20 @@ export default function Fichaje({
             esStaff ? (filtroEquipo === 'todos' || h.equipo === filtroEquipo)
               : (miEquipo == null || h.equipo === miEquipo))
           return (
-            <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+            <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
               {visibles.length === 0 ? (
-                <p className="text-sm px-4 py-5 text-center" style={{ color: '#6B6B80' }}>Sin novedades para este equipo.</p>
+                <p className="text-sm px-4 py-5 text-center" style={{ color: 'var(--muted)' }}>Sin novedades para este equipo.</p>
               ) : visibles.map((h, i) => (
-                <div key={h.id} className="flex items-start gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid #1E1E2E' : 'none' }}>
+                <div key={h.id} className="flex items-start gap-3 px-4 py-3" style={{ borderTop: i ? '1px solid var(--border)' : 'none' }}>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm" style={{ color: '#F0F0F5' }}>{h.texto}</p>
+                    <p className="text-sm" style={{ color: 'var(--foreground)' }}>{h.texto}</p>
                     <p className="text-[11px] mt-0.5" style={{ color: '#6B6B7E' }}>
                       {h.autor}{h.equipo ? ` · Equipo ${h.equipo}` : ''} · {new Date(h.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                   {esStaff && (
                     <button onClick={async () => { if (confirm('¿Eliminar esta novedad?')) { await eliminarHandoff(h.id); window.location.reload() } }}
-                      title="Eliminar" style={{ color: '#6B6B80' }} className="flex-shrink-0"><Trash2 size={13} /></button>
+                      title="Eliminar" style={{ color: 'var(--muted)' }} className="flex-shrink-0"><Trash2 size={13} /></button>
                   )}
                 </div>
               ))}

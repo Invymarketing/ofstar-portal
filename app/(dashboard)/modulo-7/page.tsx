@@ -1,6 +1,6 @@
 import ComingSoon from '@/components/ui/ComingSoon'
 
-export const metadata = { title: 'Calendario de Contenido — OF Star Management' }
+export const metadata = { title: 'Calendario de Contenido — Skeilab' }
 
 export default function Modulo7Page() {
   return (

@@ -38,7 +38,7 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
 
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t) }, [])
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
+  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   const lista = tareas.filter((t) => {
     if (filtro === 'mias') return t.mia
@@ -87,14 +87,14 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
       {/* Formulario (solo staff) */}
       {esStaff && (
         <form onSubmit={crear} className="rounded-2xl border p-5 grid grid-cols-1 sm:grid-cols-2 gap-4"
-          style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
           <div className="sm:col-span-2">
-            <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Tarea</label>
+            <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Tarea</label>
             <input value={titulo} onChange={(e) => setTitulo(e.target.value)} required
               placeholder="¿Qué hay que hacer?" className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} />
           </div>
           <div>
-            <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Asignar a</label>
+            <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Asignar a</label>
             <select value={asignadoA} onChange={(e) => setAsignadoA(e.target.value)} required
               className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
               <option value="">Elegir…</option>
@@ -104,19 +104,19 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
             </select>
           </div>
           <div>
-            <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Fecha límite (opcional)</label>
+            <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Fecha límite (opcional)</label>
             <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)}
               className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Detalle (opcional)</label>
+            <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Detalle (opcional)</label>
             <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={2}
               className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="Instrucciones…" />
           </div>
           <div className="sm:col-span-2 flex items-center gap-3">
             <button type="submit" disabled={saving}
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
-              style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+              style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
               <Plus size={15} /> {saving ? 'Asignando…' : 'Asignar tarea'}
             </button>
             {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}
@@ -129,7 +129,7 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
         {FILTROS.map((f) => (
           <button key={f} onClick={() => setFiltro(f)}
             className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ backgroundColor: filtro === f ? 'rgba(201,168,76,0.15)' : '#1E1E2E', color: filtro === f ? '#C9A84C' : '#8B8B9E' }}>
+            style={{ backgroundColor: filtro === f ? 'var(--gold-15)' : 'var(--border)', color: filtro === f ? 'var(--gold)' : 'var(--muted)' }}>
             {FILTRO_LABEL[f]}
           </button>
         ))}
@@ -137,8 +137,8 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
 
       {/* Lista */}
       {lista.length === 0 ? (
-        <div className="rounded-2xl border p-8 text-center" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-          <p className="text-sm" style={{ color: '#6B6B80' }}>No hay tareas aquí.</p>
+        <div className="rounded-2xl border p-8 text-center" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>No hay tareas aquí.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -152,18 +152,18 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
               : null
             return (
               <div key={t.id} className="flex items-start gap-3 rounded-xl border px-4 py-3"
-                style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
                 {/* Estado / ícono */}
                 <div className="mt-0.5 flex-shrink-0">
                   {completed ? <CheckCircle2 size={18} style={{ color: '#22C55E' }} />
                     : running ? <Timer size={18} style={{ color: '#3B82F6' }} />
-                    : <Circle size={18} style={{ color: '#6B6B80' }} />}
+                    : <Circle size={18} style={{ color: 'var(--muted)' }} />}
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm" style={{ color: completed ? '#6B6B80' : '#F0F0F5', textDecoration: completed ? 'line-through' : 'none' }}>{t.titulo}</p>
+                  <p className="text-sm" style={{ color: completed ? 'var(--muted)' : 'var(--foreground)', textDecoration: completed ? 'line-through' : 'none' }}>{t.titulo}</p>
                   {t.descripcion && (
-                    <p className="text-xs mt-1" style={{ color: '#8B8B9E', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{t.descripcion}</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--muted)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{t.descripcion}</p>
                   )}
                   <div className="flex items-center gap-3 mt-1 text-[11px] flex-wrap" style={{ color: '#6B6B7E' }}>
                     {delegada && (
@@ -201,15 +201,15 @@ export default function Tareas({ esStaff, personas, tareas }: { esStaff: boolean
                     </button>
                   )}
 
-                  <button onClick={() => copiar(t)} title="Copiar" style={{ color: copiado === t.id ? '#22C55E' : '#8B8B9E' }}>
+                  <button onClick={() => copiar(t)} title="Copiar" style={{ color: copiado === t.id ? '#22C55E' : 'var(--muted)' }}>
                     {copiado === t.id ? <Check size={14} /> : <Copy size={14} />}
                   </button>
                   {t.asignada_por_mi && completed && (
-                    <button onClick={() => reabrir(t)} title="Reabrir" style={{ color: '#8B8B9E' }}><RotateCcw size={14} /></button>
+                    <button onClick={() => reabrir(t)} title="Reabrir" style={{ color: 'var(--muted)' }}><RotateCcw size={14} /></button>
                   )}
                   {t.asignada_por_mi && (
                     <button onClick={async () => { if (confirm('¿Eliminar esta tarea?')) { await eliminarTarea(t.id); window.location.reload() } }}
-                      title="Eliminar" style={{ color: '#6B6B80' }}><Trash2 size={14} /></button>
+                      title="Eliminar" style={{ color: 'var(--muted)' }}><Trash2 size={14} /></button>
                   )}
                 </div>
               </div>

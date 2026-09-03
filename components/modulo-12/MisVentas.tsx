@@ -44,7 +44,7 @@ export default function MisVentas({
   const [ok, setOk] = useState(false)
 
   const bruto = Number(monto) || 0
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
+  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   const dias = RANGOS.find((r) => r.id === rango)?.dias ?? 30
   const inicio = useMemo(() => {
@@ -77,57 +77,57 @@ export default function MisVentas({
 
   const pct = meta?.meta ? Math.round((meta.vendido / meta.meta) * 100) : null
   const falta = meta?.meta ? Math.max(meta.meta - meta.vendido, 0) : 0
-  const metaColor = pct == null ? '#6B6B80' : pct >= 100 ? '#22C55E' : pct >= 60 ? '#EAB308' : '#EF4444'
+  const metaColor = pct == null ? 'var(--muted)' : pct >= 100 ? '#22C55E' : pct >= 60 ? '#EAB308' : '#EF4444'
 
   return (
     <div className="space-y-6">
       {/* Meta de la quincena */}
       {meta && meta.meta ? (
-        <div className="rounded-2xl border p-5" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+        <div className="rounded-2xl border p-5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
           <div className="flex items-end justify-between mb-2 flex-wrap gap-2">
             <div>
-              <p className="text-xs" style={{ color: '#6B6B80' }}>Meta de la quincena {meta.quincena}</p>
-              <p className="text-2xl font-bold" style={{ color: '#F0F0F5' }}>
-                {money(meta.vendido)} <span className="text-sm font-normal" style={{ color: '#6B6B80' }}>de {money(meta.meta)}</span>
+              <p className="text-xs" style={{ color: 'var(--muted)' }}>Meta de la quincena {meta.quincena}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                {money(meta.vendido)} <span className="text-sm font-normal" style={{ color: 'var(--muted)' }}>de {money(meta.meta)}</span>
               </p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold" style={{ color: metaColor }}>{pct}%</p>
-              <p className="text-xs" style={{ color: '#6B6B80' }}>{falta > 0 ? `te faltan ${money(falta)}` : '¡meta cumplida! 🎉'}</p>
+              <p className="text-xs" style={{ color: 'var(--muted)' }}>{falta > 0 ? `te faltan ${money(falta)}` : '¡meta cumplida! 🎉'}</p>
             </div>
           </div>
-          <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: '#1E1E2E' }}>
+          <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
             <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pct ?? 0, 100)}%`, backgroundColor: metaColor }} />
           </div>
         </div>
       ) : meta ? (
-        <div className="rounded-2xl border p-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-          <p className="text-xs" style={{ color: '#6B6B80' }}>Aún no tienes meta asignada para esta quincena.</p>
+        <div className="rounded-2xl border p-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>Aún no tienes meta asignada para esta quincena.</p>
         </div>
       ) : null}
 
       {/* Totales del chatter */}
       <div>
-        <div className="flex gap-1 p-1 rounded-xl mb-3 w-fit" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+        <div className="flex gap-1 p-1 rounded-xl mb-3 w-fit" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
           {RANGOS.map((r) => (
             <button key={r.id} onClick={() => setRango(r.id)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
               style={{
-                backgroundColor: rango === r.id ? 'rgba(201,168,76,0.15)' : 'transparent',
-                color: rango === r.id ? '#C9A84C' : '#8B8B9E',
+                backgroundColor: rango === r.id ? 'var(--gold-15)' : 'transparent',
+                color: rango === r.id ? 'var(--gold)' : 'var(--muted)',
               }}>
               {r.label}
             </button>
           ))}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border p-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-            <p className="text-xs mb-1" style={{ color: '#6B6B80' }}>Tus ventas confirmadas</p>
-            <p className="text-2xl font-bold" style={{ color: '#F0F0F5' }}>{totales.n}</p>
+          <div className="rounded-2xl border p-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Tus ventas confirmadas</p>
+            <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{totales.n}</p>
           </div>
-          <div className="rounded-2xl border p-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-            <p className="text-xs mb-1" style={{ color: '#6B6B80' }}>Total vendido</p>
-            <p className="text-2xl font-bold" style={{ color: '#C9A84C' }}>{money(totales.bruto)}</p>
+          <div className="rounded-2xl border p-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Total vendido</p>
+            <p className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>{money(totales.bruto)}</p>
           </div>
         </div>
       </div>
@@ -135,9 +135,9 @@ export default function MisVentas({
       {/* Formulario */}
       <form onSubmit={submit}
         className="rounded-2xl border p-5 grid grid-cols-1 sm:grid-cols-2 gap-4"
-        style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
         <div>
-          <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Modelo</label>
+          <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Modelo</label>
           <select value={modeloId} onChange={(e) => setModeloId(e.target.value)} required
             className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
             <option value="">Elegir…</option>
@@ -145,17 +145,17 @@ export default function MisVentas({
           </select>
         </div>
         <div>
-          <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Fan (nombre)</label>
+          <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Fan (nombre)</label>
           <input value={fanName} onChange={(e) => setFanName(e.target.value)}
             className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="Nombre del fan…" />
         </div>
         <div>
-          <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Monto (USD)</label>
+          <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Monto (USD)</label>
           <input type="number" step="0.01" min="0" value={monto} onChange={(e) => setMonto(e.target.value)} required
             className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="0.00" />
         </div>
         <div>
-          <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Tipo</label>
+          <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Tipo</label>
           <select value={tipo} onChange={(e) => setTipo(e.target.value)}
             className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
             {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -164,7 +164,7 @@ export default function MisVentas({
         <div className="sm:col-span-2 flex items-center gap-3">
           <button type="submit" disabled={saving}
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
-            style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+            style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
             <Plus size={15} /> {saving ? 'Guardando…' : 'Reportar venta'}
           </button>
           {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}
@@ -173,16 +173,16 @@ export default function MisVentas({
       </form>
 
       {/* Historial */}
-      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: '#6B6B80', borderBottom: '1px solid #1E1E2E' }}>
+      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
           Mis reportes
         </div>
         {reportes.length === 0 ? (
-          <p className="text-sm px-4 py-6 text-center" style={{ color: '#6B6B80' }}>Aún no has reportado ventas.</p>
+          <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--muted)' }}>Aún no has reportado ventas.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ color: '#6B6B80' }}>
+              <tr style={{ color: 'var(--muted)' }}>
                 <th className="text-left font-normal px-4 py-2 text-xs">Fecha</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Modelo</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Fan</th>
@@ -197,13 +197,13 @@ export default function MisVentas({
                 const est = ESTADO[r.estado as keyof typeof ESTADO] ?? ESTADO.pendiente
                 const Icon = est.icon
                 return (
-                  <tr key={r.id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
-                    <td className="px-4 py-2 whitespace-nowrap" style={{ color: '#6B6B80' }}>
+                  <tr key={r.id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                    <td className="px-4 py-2 whitespace-nowrap" style={{ color: 'var(--muted)' }}>
                       {new Date(r.fecha_venta).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
                     </td>
-                    <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{r.modelo ?? '—'}</td>
+                    <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.modelo ?? '—'}</td>
                     <td className="px-4 py-2">{r.fan_name ?? '—'}</td>
-                    <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{r.tipo ?? '—'}</td>
+                    <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.tipo ?? '—'}</td>
                     <td className="px-4 py-2 text-right">{money(r.monto)}</td>
                     <td className="px-4 py-2 text-center">
                       <span className="inline-flex items-center gap-1 text-xs" style={{ color: est.color }}>
@@ -217,7 +217,7 @@ export default function MisVentas({
                           await eliminarReporte(r.id)
                           window.location.reload()
                         }}
-                        title="Eliminar" style={{ color: '#6B6B80' }}>
+                        title="Eliminar" style={{ color: 'var(--muted)' }}>
                         <Trash2 size={14} />
                       </button>
                     </td>

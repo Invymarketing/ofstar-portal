@@ -37,14 +37,14 @@ export default function RegistrarVentaForm({ modelos }: { modelos: Modelo[] }) {
     }
   }
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
+  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   return (
     <form onSubmit={submit}
       className="rounded-2xl border p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl"
-      style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
       <div>
-        <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Modelo</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Modelo</label>
         <select value={modeloId} onChange={(e) => setModeloId(e.target.value)}
           className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
           <option value="">— sin modelo —</option>
@@ -53,25 +53,25 @@ export default function RegistrarVentaForm({ modelos }: { modelos: Modelo[] }) {
       </div>
 
       <div>
-        <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Fan (nombre)</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Fan (nombre)</label>
         <input value={fanName} onChange={(e) => setFanName(e.target.value)}
           className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="Nombre del fan…" />
       </div>
 
       <div>
-        <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Monto bruto (USD)</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Monto bruto (USD)</label>
         <input type="number" step="0.01" min="0" value={monto} onChange={(e) => setMonto(e.target.value)} required
           className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="0.00" />
         {bruto > 0 && (
-          <p className="text-xs mt-1" style={{ color: '#6B6B80' }}>
-            Comisión <span style={{ color: '#C9A84C' }}>${(bruto * 0.2).toFixed(2)}</span> ·
+          <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
+            Comisión <span style={{ color: 'var(--gold)' }}>${(bruto * 0.2).toFixed(2)}</span> ·
             Neto <span style={{ color: '#22C55E' }}> ${(bruto * 0.8).toFixed(2)}</span>
           </p>
         )}
       </div>
 
       <div>
-        <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Tipo</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Tipo</label>
         <select value={tipo} onChange={(e) => setTipo(e.target.value)}
           className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
           {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -81,7 +81,7 @@ export default function RegistrarVentaForm({ modelos }: { modelos: Modelo[] }) {
       <div className="sm:col-span-2 flex items-center gap-3">
         <button type="submit" disabled={saving}
           className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
-          style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+          style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
           <Plus size={15} /> {saving ? 'Guardando…' : 'Registrar venta'}
         </button>
         {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}

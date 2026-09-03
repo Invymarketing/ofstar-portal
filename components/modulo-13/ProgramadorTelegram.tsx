@@ -57,7 +57,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
   const [msg, setMsg] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
+  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
   const modeloSel = modelos.find((m) => m.id === sel)
 
   const pendientesPorModelo = useMemo(() => {
@@ -179,7 +179,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
       {modelosTg.length === 0 && (
         <div className="rounded-2xl border p-4 mb-4" style={{ backgroundColor: 'rgba(234,179,8,0.05)', borderColor: 'rgba(234,179,8,0.2)' }}>
           <p className="text-xs" style={{ color: '#EAB308' }}>
-            Ningún modelo tiene grupo de Telegram configurado. Ve a <span style={{ color: '#C9A84C' }}>Modelos</span> (✏️) y pega el chat id del grupo.
+            Ningún modelo tiene grupo de Telegram configurado. Ve a <span style={{ color: 'var(--gold)' }}>Modelos</span> (✏️) y pega el chat id del grupo.
           </p>
         </div>
       )}
@@ -193,14 +193,14 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
             <button key={m.id} onClick={() => setSel(m.id)}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors"
               style={{
-                backgroundColor: active ? 'rgba(201,168,76,0.15)' : '#13131A',
-                border: `1px solid ${active ? 'rgba(201,168,76,0.35)' : '#1E1E2E'}`,
-                color: active ? '#C9A84C' : '#8B8B9E',
+                backgroundColor: active ? 'var(--gold-15)' : 'var(--surface)',
+                border: `1px solid ${active ? 'rgba(201,168,76,0.35)' : 'var(--border)'}`,
+                color: active ? 'var(--gold)' : 'var(--muted)',
               }}>
               {m.model_name}
               {pend > 0 && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                  style={{ backgroundColor: active ? 'rgba(201,168,76,0.25)' : '#1E1E2E', color: active ? '#C9A84C' : '#6B6B80' }}>{pend}</span>
+                  style={{ backgroundColor: active ? 'var(--gold-25)' : 'var(--border)', color: active ? 'var(--gold)' : 'var(--muted)' }}>{pend}</span>
               )}
             </button>
           )
@@ -210,21 +210,21 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
       {/* Barra de acciones */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
-          <h2 className="text-lg font-semibold" style={{ color: '#F0F0F5' }}>{modeloSel?.model_name ?? 'Sin modelo'}</h2>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>{modeloSel?.model_name ?? 'Sin modelo'}</h2>
           {modeloSel && !modeloSel.tiene_grupo && (
             <p className="text-xs" style={{ color: '#EF4444' }}>⚠ Sin grupo de Telegram — configúralo en Modelos (✏️).</p>
           )}
         </div>
         <div className="flex items-center gap-2">
-          {msg && <span className="text-xs" style={{ color: '#C9A84C' }}>{msg}</span>}
+          {msg && <span className="text-xs" style={{ color: 'var(--gold)' }}>{msg}</span>}
           <button onClick={enviarAhora} disabled={syncing}
             className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50"
-            style={{ backgroundColor: '#1E1E2E', color: '#F0F0F5' }}>
+            style={{ backgroundColor: 'var(--border)', color: 'var(--foreground)' }}>
             <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} /> Enviar pendientes
           </button>
           <button onClick={() => { setShowForm(!showForm); limpiarForm() }}
             className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium"
-            style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+            style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
             {showForm ? <X size={15} /> : <Plus size={15} />} {showForm ? 'Cerrar' : 'Nuevo'}
           </button>
         </div>
@@ -232,14 +232,14 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
 
       {/* Formulario */}
       {showForm && (
-        <form ref={formRef} onSubmit={crear} className="rounded-2xl border p-5 space-y-4 mb-6" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E', outline: editingId ? '1px solid rgba(201,168,76,0.5)' : 'none' }}>
-          <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E' }}>
+        <form ref={formRef} onSubmit={crear} className="rounded-2xl border p-5 space-y-4 mb-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', outline: editingId ? '1px solid rgba(201,168,76,0.5)' : 'none' }}>
+          <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
             {TIPOS.map((t) => {
               const Icon = t.icon
               return (
                 <button key={t.key} type="button" onClick={() => setTipo(t.key)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
-                  style={{ backgroundColor: tipo === t.key ? 'rgba(201,168,76,0.15)' : 'transparent', color: tipo === t.key ? '#C9A84C' : '#8B8B9E' }}>
+                  style={{ backgroundColor: tipo === t.key ? 'var(--gold-15)' : 'transparent', color: tipo === t.key ? 'var(--gold)' : 'var(--muted)' }}>
                   <Icon size={14} /> {t.label}
                 </button>
               )
@@ -255,12 +255,12 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
                   onDragLeave={() => setDragOver(false)}
                   onDrop={(e) => { e.preventDefault(); setDragOver(false); subirArchivo(e.dataTransfer.files?.[0] ?? null) }}
                   className="flex flex-col items-center justify-center gap-1 rounded-lg py-6 cursor-pointer text-center"
-                  style={{ backgroundColor: '#0D0D14', border: `1px dashed ${dragOver ? '#C9A84C' : '#1E1E2E'}`, color: '#6B6B80' }}>
+                  style={{ backgroundColor: '#0D0D14', border: `1px dashed ${dragOver ? 'var(--gold)' : 'var(--border)'}`, color: 'var(--muted)' }}>
                   <ImagePlus size={20} />
                   <span className="text-xs">{uploading ? 'Subiendo…' : `Arrastra ${tipo === 'video' ? 'un video' : 'una imagen'} o haz clic`}</span>
                 </div>
               ) : (
-                <div className="relative rounded-lg overflow-hidden inline-block" style={{ border: '1px solid #1E1E2E' }}>
+                <div className="relative rounded-lg overflow-hidden inline-block" style={{ border: '1px solid var(--border)' }}>
                   {preview
                     // eslint-disable-next-line @next/next/no-img-element
                     ? <img src={preview} alt="preview" className="max-h-40 object-cover" />
@@ -277,7 +277,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
           )}
 
           <div>
-            <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>{tipo === 'texto' ? 'Mensaje' : 'Caption (opcional)'}</label>
+            <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>{tipo === 'texto' ? 'Mensaje' : 'Caption (opcional)'}</label>
             <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={3}
               className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}
               placeholder={tipo === 'texto' ? 'Buenos días… ☀️' : 'Texto que acompaña…'} />
@@ -285,13 +285,13 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
 
           <div className="flex items-center gap-3 flex-wrap">
             <div>
-              <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Fecha y hora</label>
+              <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Fecha y hora</label>
               <input type="datetime-local" value={fecha} onChange={(e) => setFecha(e.target.value)} required
                 className="rounded-lg px-3 py-2 text-sm" style={inputStyle} />
             </div>
             <button type="submit" disabled={saving || uploading}
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 self-end"
-              style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+              style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
               <Send size={15} /> {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Programar'}
             </button>
             {error && <span className="text-xs self-end" style={{ color: '#EF4444' }}>{error}</span>}
@@ -300,70 +300,70 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
       )}
 
       {/* Buscador + filtros */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap text-xs" style={{ color: '#6B6B80' }}>
+      <div className="flex items-center gap-2 mb-4 flex-wrap text-xs" style={{ color: 'var(--muted)' }}>
         <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar en el texto…"
-          className="rounded-lg px-3 py-1.5 text-xs w-48" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
-        <div className="flex gap-1 p-0.5 rounded-lg" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E' }}>
+          className="rounded-lg px-3 py-1.5 text-xs w-48" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+        <div className="flex gap-1 p-0.5 rounded-lg" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
           {(['todos', 'pasados', 'futuros'] as const).map((c) => (
             <button key={c} onClick={() => setCuando(c)}
               className="px-2.5 py-1 rounded-md text-xs capitalize"
-              style={{ backgroundColor: cuando === c ? 'rgba(201,168,76,0.15)' : 'transparent', color: cuando === c ? '#C9A84C' : '#8B8B9E' }}>
+              style={{ backgroundColor: cuando === c ? 'var(--gold-15)' : 'transparent', color: cuando === c ? 'var(--gold)' : 'var(--muted)' }}>
               {c === 'todos' ? 'Todos' : c === 'pasados' ? 'Pasados' : 'Próximos'}
             </button>
           ))}
         </div>
         <span className="ml-1">Fechas:</span>
         <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)}
-          className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+          className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
         <span>→</span>
         <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)}
-          className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }} />
+          className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
         {(desde || hasta || busqueda || cuando !== 'todos') && (
-          <button onClick={() => { setDesde(''); setHasta(''); setBusqueda(''); setCuando('todos') }} className="underline" style={{ color: '#C9A84C' }}>limpiar</button>
+          <button onClick={() => { setDesde(''); setHasta(''); setBusqueda(''); setCuando('todos') }} className="underline" style={{ color: 'var(--gold)' }}>limpiar</button>
         )}
       </div>
 
       {/* Agenda del modelo */}
       {agenda.length === 0 ? (
-        <div className="rounded-2xl border p-8 text-center" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-          <p className="text-sm" style={{ color: '#6B6B80' }}>Sin mensajes programados para {modeloSel?.model_name ?? 'este modelo'}.</p>
+        <div className="rounded-2xl border p-8 text-center" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>Sin mensajes programados para {modeloSel?.model_name ?? 'este modelo'}.</p>
         </div>
       ) : (
         <div className="space-y-5">
           {agenda.map((g) => (
             <div key={g.dia}>
-              <p className="text-xs font-semibold uppercase tracking-wider mb-2 capitalize" style={{ color: '#6B6B80' }}>{g.label}</p>
-              <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-2 capitalize" style={{ color: 'var(--muted)' }}>{g.label}</p>
+              <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
                 {g.items.map((x, i) => {
                   const est = estadoDe(x)
                   const Icon = TIPOS.find((t) => t.key === x.tipo)?.icon ?? MessageSquare
                   return (
                     <div key={x.id} className="flex items-center gap-3 px-4 py-3"
-                      style={{ borderTop: i === 0 ? 'none' : '1px solid #1E1E2E' }}>
-                      <span className="text-xs w-12 flex-shrink-0" style={{ color: '#8B8B9E' }}>
+                      style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)' }}>
+                      <span className="text-xs w-12 flex-shrink-0" style={{ color: 'var(--muted)' }}>
                         {new Date(x.fecha_programada).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {x.tipo === 'foto' && x.archivo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={x.archivo_url} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" style={{ border: '1px solid #1E1E2E' }} />
+                        <img src={x.archivo_url} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" style={{ border: '1px solid var(--border)' }} />
                       ) : (
-                        <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#8B8B9E' }}>
+                        <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--muted)' }}>
                           <Icon size={15} />
                         </span>
                       )}
-                      <span className="flex-1 text-sm truncate" style={{ color: '#F0F0F5' }} title={x.texto ?? x.archivo_url ?? ''}>
-                        {x.texto || <span style={{ color: '#6B6B80' }}>{x.tipo === 'texto' ? '—' : `(${x.tipo})`}</span>}
+                      <span className="flex-1 text-sm truncate" style={{ color: 'var(--foreground)' }} title={x.texto ?? x.archivo_url ?? ''}>
+                        {x.texto || <span style={{ color: 'var(--muted)' }}>{x.tipo === 'texto' ? '—' : `(${x.tipo})`}</span>}
                       </span>
                       <span className="inline-flex items-center gap-1 text-xs flex-shrink-0" style={{ color: est.color }} title={x.error ?? ''}>
                         <est.Icon size={13} /> {est.label}
                       </span>
                       {!x.enviado && (
-                        <button onClick={() => editar(x)} title="Editar" style={{ color: '#8B8B9E' }} className="flex-shrink-0">
+                        <button onClick={() => editar(x)} title="Editar" style={{ color: 'var(--muted)' }} className="flex-shrink-0">
                           <Pencil size={14} />
                         </button>
                       )}
                       <button onClick={async () => { if (confirm('¿Eliminar este mensaje?')) { await eliminarMensaje(x.id); window.location.reload() } }}
-                        title="Eliminar" style={{ color: '#6B6B80' }} className="flex-shrink-0">
+                        title="Eliminar" style={{ color: 'var(--muted)' }} className="flex-shrink-0">
                         <Trash2 size={14} />
                       </button>
                     </div>

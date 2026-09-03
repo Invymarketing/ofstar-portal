@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import AnalyticsDashboard from '@/components/modulo-2/AnalyticsDashboard'
 
-export const metadata = { title: 'Analytics & Referencias — OF Star Management' }
+export const metadata = { title: 'Analytics & Referencias — Skeilab' }
 
 export default async function Modulo2Page() {
   const supabase = await createClient()

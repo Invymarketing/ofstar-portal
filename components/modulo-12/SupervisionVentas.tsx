@@ -20,7 +20,7 @@ function colorEstado(e: string | null): string {
   if (s.includes('valid') || s.includes('confirm') || s.includes('cruz')) return '#22C55E'
   if (s.includes('pend') || s.includes('revis')) return '#EAB308'
   if (s.includes('rechaz') || s.includes('no')) return '#EF4444'
-  return '#6B6B80'
+  return 'var(--muted)'
 }
 
 export default function SupervisionVentas(
@@ -40,7 +40,7 @@ export default function SupervisionVentas(
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState(false)
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
+  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   const chattersEnLista = useMemo(
     () => [...new Set(reportes.map((r) => r.chatter).filter(Boolean))].sort(),
@@ -89,18 +89,18 @@ export default function SupervisionVentas(
         {!abierto ? (
           <button onClick={() => setAbierto(true)}
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
-            style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+            style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
             <PlusCircle size={15} /> Añadir venta a un chatter
           </button>
         ) : (
-          <form onSubmit={guardar} className="rounded-2xl border p-5" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+          <form onSubmit={guardar} className="rounded-2xl border p-5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>Añadir venta a un chatter</p>
-              <button type="button" onClick={() => setAbierto(false)} className="text-xs" style={{ color: '#6B6B80' }}>Cerrar</button>
+              <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Añadir venta a un chatter</p>
+              <button type="button" onClick={() => setAbierto(false)} className="text-xs" style={{ color: 'var(--muted)' }}>Cerrar</button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Chatter</label>
+                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Chatter</label>
                 <select value={fChatter} onChange={(e) => setFChatter(e.target.value)} required
                   className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
                   <option value="">Elige chatter…</option>
@@ -108,7 +108,7 @@ export default function SupervisionVentas(
                 </select>
               </div>
               <div>
-                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Modelo</label>
+                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Modelo</label>
                 <select value={fModelo} onChange={(e) => setFModelo(e.target.value)}
                   className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
                   <option value="">—</option>
@@ -116,24 +116,24 @@ export default function SupervisionVentas(
                 </select>
               </div>
               <div>
-                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Fan / usuario</label>
+                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Fan / usuario</label>
                 <input value={fFan} onChange={(e) => setFFan(e.target.value)}
                   className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="@usuario" />
               </div>
               <div>
-                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Monto (US$)</label>
+                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Monto (US$)</label>
                 <input type="number" step="0.01" value={fMonto} onChange={(e) => setFMonto(e.target.value)} required
                   className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="0" />
               </div>
               <div>
-                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Tipo</label>
+                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Tipo</label>
                 <select value={fTipo} onChange={(e) => setFTipo(e.target.value)}
                   className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
                   {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Fecha (opcional)</label>
+                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Fecha (opcional)</label>
                 <input type="date" value={fFecha} onChange={(e) => setFFecha(e.target.value)}
                   className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} />
               </div>
@@ -141,7 +141,7 @@ export default function SupervisionVentas(
             <div className="flex items-center gap-3 mt-4">
               <button type="submit" disabled={saving}
                 className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
-                style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+                style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
                 <PlusCircle size={15} /> {saving ? 'Guardando…' : 'Registrar venta'}
               </button>
               {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}
@@ -155,10 +155,10 @@ export default function SupervisionVentas(
       {resumen.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {resumen.map((c) => (
-            <div key={c.nombre} className="rounded-xl px-4 py-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
-              <p className="text-xs mb-1 truncate" style={{ color: '#6B6B80' }}>{c.nombre}</p>
-              <p className="text-lg font-bold" style={{ color: '#C9A84C' }}>{money(c.total)}</p>
-              <p className="text-[11px] mt-0.5" style={{ color: '#6B6B80' }}>{c.n} reportes · {c.validados} validados</p>
+            <div key={c.nombre} className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+              <p className="text-xs mb-1 truncate" style={{ color: 'var(--muted)' }}>{c.nombre}</p>
+              <p className="text-lg font-bold" style={{ color: 'var(--gold)' }}>{money(c.total)}</p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>{c.n} reportes · {c.validados} validados</p>
             </div>
           ))}
         </div>
@@ -168,22 +168,22 @@ export default function SupervisionVentas(
       <div className="flex items-center gap-3">
         <select value={chatter} onChange={(e) => setChatter(e.target.value)}
           className="rounded-lg px-3 py-1.5 text-sm"
-          style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E', color: chatter ? '#C9A84C' : '#8B8B9E' }}>
+          style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: chatter ? 'var(--gold)' : 'var(--muted)' }}>
           <option value="">Todos los chatters</option>
           {chattersEnLista.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <span className="text-xs" style={{ color: '#6B6B80' }}>{lista.length} reportes</span>
+        <span className="text-xs" style={{ color: 'var(--muted)' }}>{lista.length} reportes</span>
       </div>
 
       {/* Tabla de reportes */}
-      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
         {lista.length === 0 ? (
-          <p className="text-sm px-4 py-6 text-center" style={{ color: '#6B6B80' }}>Sin reportes.</p>
+          <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--muted)' }}>Sin reportes.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ color: '#6B6B80' }}>
+                <tr style={{ color: 'var(--muted)' }}>
                   <th className="text-left font-normal px-4 py-2 text-xs">Fecha</th>
                   <th className="text-left font-normal px-4 py-2 text-xs">Chatter</th>
                   <th className="text-left font-normal px-4 py-2 text-xs">Modelo</th>
@@ -195,14 +195,14 @@ export default function SupervisionVentas(
               </thead>
               <tbody>
                 {lista.map((r) => (
-                  <tr key={r.id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
-                    <td className="px-4 py-2 whitespace-nowrap" style={{ color: '#6B6B80' }}>
+                  <tr key={r.id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                    <td className="px-4 py-2 whitespace-nowrap" style={{ color: 'var(--muted)' }}>
                       {new Date(r.fecha_venta ?? r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
                     </td>
-                    <td className="px-4 py-2" style={{ color: '#C9A84C' }}>{r.chatter}</td>
-                    <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{r.modelo ?? '—'}</td>
-                    <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{r.fan_name ?? '—'}</td>
-                    <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{r.tipo ?? '—'}</td>
+                    <td className="px-4 py-2" style={{ color: 'var(--gold)' }}>{r.chatter}</td>
+                    <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.modelo ?? '—'}</td>
+                    <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.fan_name ?? '—'}</td>
+                    <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.tipo ?? '—'}</td>
                     <td className="px-4 py-2 text-right">{money(r.monto)}</td>
                     <td className="px-4 py-2 text-center text-xs" style={{ color: colorEstado(r.estado) }}>{r.estado ?? '—'}</td>
                   </tr>

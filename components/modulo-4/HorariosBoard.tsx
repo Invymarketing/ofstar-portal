@@ -56,7 +56,7 @@ export default function HorariosBoard({ chatters }: { chatters: Chatter[] }) {
     <div className="space-y-6">
       {/* ===== Tablero Equipo × Turno ===== */}
       <div>
-        <div className="flex items-center gap-4 flex-wrap text-xs mb-3" style={{ color: '#6B6B80' }}>
+        <div className="flex items-center gap-4 flex-wrap text-xs mb-3" style={{ color: 'var(--muted)' }}>
           <span className="flex items-center gap-1"><Clock size={13} /> Turnos:</span>
           {TURNOS.map((t) => (
             <span key={t.key} className="flex items-center gap-1.5">
@@ -66,18 +66,18 @@ export default function HorariosBoard({ chatters }: { chatters: Chatter[] }) {
           ))}
         </div>
 
-        <div className="rounded-2xl border overflow-x-auto" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+        <div className="rounded-2xl border overflow-x-auto" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
           <table className="w-full" style={{ borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                <th className="text-left px-4 py-3 text-xs font-medium" style={{ color: '#6B6B80', width: 90 }}>Equipo</th>
+                <th className="text-left px-4 py-3 text-xs font-medium" style={{ color: 'var(--muted)', width: 90 }}>Equipo</th>
                 {TURNOS.map((t) => (
-                  <th key={t.key} className="px-4 py-3 text-left" style={{ borderLeft: '1px solid #1E1E2E' }}>
+                  <th key={t.key} className="px-4 py-3 text-left" style={{ borderLeft: '1px solid var(--border)' }}>
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
                       <div>
-                        <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>{t.key}</p>
-                        <p className="text-[11px]" style={{ color: '#6B6B80' }}>{t.horas}</p>
+                        <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{t.key}</p>
+                        <p className="text-[11px]" style={{ color: 'var(--muted)' }}>{t.horas}</p>
                       </div>
                     </div>
                   </th>
@@ -86,21 +86,21 @@ export default function HorariosBoard({ chatters }: { chatters: Chatter[] }) {
             </thead>
             <tbody>
               {EQUIPOS.map((e) => (
-                <tr key={e} style={{ borderTop: '1px solid #1E1E2E' }}>
+                <tr key={e} style={{ borderTop: '1px solid var(--border)' }}>
                   <td className="px-4 py-3 align-top">
-                    <span className="text-sm font-semibold" style={{ color: '#C9A84C' }}>Equipo {e}</span>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--gold)' }}>Equipo {e}</span>
                   </td>
                   {TURNOS.map((t) => {
                     const gente = celda(e, t.key)
                     return (
-                      <td key={t.key} className="px-4 py-3 align-top" style={{ borderLeft: '1px solid #1E1E2E' }}>
+                      <td key={t.key} className="px-4 py-3 align-top" style={{ borderLeft: '1px solid var(--border)' }}>
                         {gente.length === 0 ? (
                           <span className="text-xs" style={{ color: '#3F3F4A' }}>—</span>
                         ) : (
                           <div className="flex flex-col gap-1.5">
                             {gente.map((c) => (
                               <span key={c.id} className="text-xs px-2 py-1 rounded-lg w-fit"
-                                style={{ backgroundColor: `${t.color}18`, color: '#F0F0F5', border: `1px solid ${t.color}44` }}>
+                                style={{ backgroundColor: `${t.color}18`, color: 'var(--foreground)', border: `1px solid ${t.color}44` }}>
                                 {c.nombre}
                               </span>
                             ))}
@@ -118,16 +118,16 @@ export default function HorariosBoard({ chatters }: { chatters: Chatter[] }) {
 
       {/* ===== Grilla semanal de descansos ===== */}
       <div>
-        <p className="text-xs mb-3 flex items-center gap-1.5" style={{ color: '#6B6B80' }}>
+        <p className="text-xs mb-3 flex items-center gap-1.5" style={{ color: 'var(--muted)' }}>
           <Moon size={13} /> Descansos de la semana — haz clic en un día para marcarlo como libre
         </p>
-        <div className="rounded-2xl border overflow-x-auto" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+        <div className="rounded-2xl border overflow-x-auto" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
           <table className="w-full" style={{ borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ color: '#6B6B80' }}>
+              <tr style={{ color: 'var(--muted)' }}>
                 <th className="text-left px-4 py-2.5 text-xs font-normal" style={{ minWidth: 160 }}>Chatter</th>
                 {DIAS.map((d) => (
-                  <th key={d.v} className="px-2 py-2.5 text-center text-xs font-normal" style={{ borderLeft: '1px solid #1E1E2E' }}>{d.l}</th>
+                  <th key={d.v} className="px-2 py-2.5 text-center text-xs font-normal" style={{ borderLeft: '1px solid var(--border)' }}>{d.l}</th>
                 ))}
               </tr>
             </thead>
@@ -135,17 +135,17 @@ export default function HorariosBoard({ chatters }: { chatters: Chatter[] }) {
               {ordenados.map((c) => {
                 const off = descansos[c.id] ?? []
                 return (
-                  <tr key={c.id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
+                  <tr key={c.id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
                     <td className="px-4 py-2 text-sm">
                       {c.nombre}
-                      <span className="text-[11px] ml-2" style={{ color: '#6B6B80' }}>
+                      <span className="text-[11px] ml-2" style={{ color: 'var(--muted)' }}>
                         {c.equipo ? `E${c.equipo}` : ''}{c.turno ? ` · ${c.turno}` : ''}
                       </span>
                     </td>
                     {DIAS.map((d) => {
                       const libre = off.includes(d.v)
                       return (
-                        <td key={d.v} className="px-2 py-2 text-center" style={{ borderLeft: '1px solid #1E1E2E' }}>
+                        <td key={d.v} className="px-2 py-2 text-center" style={{ borderLeft: '1px solid var(--border)' }}>
                           <button onClick={() => toggleDescanso(c.id, d.v)}
                             title={libre ? 'Descanso (clic para quitar)' : 'Trabaja (clic para marcar descanso)'}
                             className="w-7 h-7 rounded-lg inline-flex items-center justify-center transition-colors"
@@ -166,7 +166,7 @@ export default function HorariosBoard({ chatters }: { chatters: Chatter[] }) {
             </tbody>
           </table>
         </div>
-        <p className="text-[11px] mt-2" style={{ color: '#6B6B80' }}>
+        <p className="text-[11px] mt-2" style={{ color: 'var(--muted)' }}>
           🌙 rojo = descansa · punto verde = trabaja. Se guarda solo al hacer clic.
         </p>
       </div>
@@ -180,10 +180,10 @@ export default function HorariosBoard({ chatters }: { chatters: Chatter[] }) {
           <div className="flex flex-wrap gap-1.5">
             {sinAsignar.map((c) => (
               <span key={c.id} className="text-xs px-2 py-1 rounded-lg"
-                style={{ backgroundColor: '#1E1E2E', color: '#8B8B9E' }}>{c.nombre}</span>
+                style={{ backgroundColor: 'var(--border)', color: 'var(--muted)' }}>{c.nombre}</span>
             ))}
           </div>
-          <p className="text-[11px] mt-2" style={{ color: '#6B6B80' }}>
+          <p className="text-[11px] mt-2" style={{ color: 'var(--muted)' }}>
             Asígnalos en la pestaña “Chatters” con los menús de turno y equipo.
           </p>
         </div>

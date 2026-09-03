@@ -33,7 +33,7 @@ export default function GestionUsuarios(
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState<string | null>(null)
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
+  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   function genPassword() {
     const p = Math.random().toString(36).slice(2, 6) + Math.random().toString(36).slice(2, 6).toUpperCase() + '!'
@@ -60,30 +60,30 @@ export default function GestionUsuarios(
       {/* Alta */}
       <form onSubmit={crear}
         className="rounded-2xl border p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end"
-        style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
         <div>
-          <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Nombre</label>
+          <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Nombre</label>
           <input value={nombre} onChange={(e) => setNombre(e.target.value)} required
             className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="Nombre completo" />
         </div>
         <div>
-          <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Email</label>
+          <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Email</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
             className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="correo@ejemplo.com" />
         </div>
         <div>
-          <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Contraseña temporal</label>
+          <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Contraseña temporal</label>
           <div className="flex gap-1">
             <input value={password} onChange={(e) => setPassword(e.target.value)} required
               className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} placeholder="mín. 6" />
             <button type="button" onClick={genPassword}
-              className="rounded-lg px-2 text-xs" style={{ backgroundColor: '#1E1E2E', color: '#C9A84C' }}>gen</button>
+              className="rounded-lg px-2 text-xs" style={{ backgroundColor: 'var(--border)', color: 'var(--gold)' }}>gen</button>
           </div>
         </div>
         <div>
-          <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Rol</label>
+          <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Rol</label>
           {esTeamLeader ? (
-            <div className="w-full rounded-lg px-3 py-2 text-sm" style={{ ...inputStyle, color: '#6B6B80' }}>Chatter</div>
+            <div className="w-full rounded-lg px-3 py-2 text-sm" style={{ ...inputStyle, color: 'var(--muted)' }}>Chatter</div>
           ) : (
             <select value={role} onChange={(e) => setRole(e.target.value as Rol)}
               className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
@@ -94,7 +94,7 @@ export default function GestionUsuarios(
         <div className="sm:col-span-2 lg:col-span-4 flex items-center gap-3">
           <button type="submit" disabled={saving}
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
-            style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+            style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
             <UserPlus size={15} /> {saving ? 'Creando…' : esTeamLeader ? 'Añadir chatter' : 'Añadir usuario'}
           </button>
           {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}
@@ -103,13 +103,13 @@ export default function GestionUsuarios(
       </form>
 
       {/* Lista */}
-      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: '#6B6B80', borderBottom: '1px solid #1E1E2E' }}>
+      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
           {usuarios.length} {esTeamLeader ? 'chatters' : 'usuarios'}
         </div>
         <table className="w-full text-sm">
           <thead>
-            <tr style={{ color: '#6B6B80' }}>
+            <tr style={{ color: 'var(--muted)' }}>
               <th className="text-left font-normal px-4 py-2 text-xs">Nombre</th>
               <th className="text-left font-normal px-4 py-2 text-xs">Email</th>
               <th className="text-left font-normal px-4 py-2 text-xs">Rol</th>
@@ -122,18 +122,18 @@ export default function GestionUsuarios(
               // El team_leader solo puede tocar chatters; el manager no toca admins
               const bloqueado = esTeamLeader ? u.role !== 'chatter' : (!esAdmin && u.role === 'admin')
               return (
-              <tr key={u.id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
+              <tr key={u.id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
                 <td className="px-4 py-2">{u.full_name}</td>
-                <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{u.email}</td>
+                <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{u.email}</td>
                 <td className="px-4 py-2">
                   {bloqueado || esTeamLeader ? (
-                    <span className="text-xs" style={{ color: '#6B6B80' }}>{ROL_LABEL[u.role as Rol] ?? u.role}</span>
+                    <span className="text-xs" style={{ color: 'var(--muted)' }}>{ROL_LABEL[u.role as Rol] ?? u.role}</span>
                   ) : (
                     <select
                       defaultValue={u.role}
                       onChange={async (e) => { await cambiarRol(u.id, e.target.value as Rol); window.location.reload() }}
                       className="rounded-lg px-2 py-1 text-xs"
-                      style={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' }}>
+                      style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
                       {rolesDisponibles.map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
                     </select>
                   )}
@@ -158,7 +158,7 @@ export default function GestionUsuarios(
                           if (!confirm(`¿Eliminar a ${u.full_name}? Esto borra su cuenta.`)) return
                           await eliminarUsuario(u.id); window.location.reload()
                         }}
-                        style={{ color: '#6B6B80' }}>
+                        style={{ color: 'var(--muted)' }}>
                         <Trash2 size={15} />
                       </button>
                     )}

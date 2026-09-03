@@ -14,7 +14,7 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-full min-h-screen" style={{ backgroundColor: '#0A0A0F' }}>
+    <div className="flex h-full min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
       <Sidebar
         role={profile.role as UserRole}
         isOpen={sidebarOpen}

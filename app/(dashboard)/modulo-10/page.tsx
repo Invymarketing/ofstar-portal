@@ -1,6 +1,6 @@
 import ComingSoon from '@/components/ui/ComingSoon'
 
-export const metadata = { title: 'Onboarding de Modelos — OF Star Management' }
+export const metadata = { title: 'Onboarding de Modelos — Skeilab' }
 
 export default function Modulo10Page() {
   return (

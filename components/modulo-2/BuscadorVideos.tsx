@@ -100,7 +100,7 @@ export default function BuscadorVideos({ tipo }: Props) {
     return { total, viewsTotales, media, mejor }
   }, [filtrados])
 
-  const selectStyle = { backgroundColor: '#13131A', border: '1px solid #1E1E2E', color: '#F0F0F5' }
+  const selectStyle = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--foreground)' }
 
   return (
     <div>
@@ -112,9 +112,9 @@ export default function BuscadorVideos({ tipo }: Props) {
           { label: 'Media / reel', value: formatNum(stats.media) },
           { label: 'Mejor reel', value: formatNum(stats.mejor) },
         ].map(s => (
-          <div key={s.label} className="rounded-xl px-4 py-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
-            <p className="text-[11px] uppercase tracking-wide mb-1" style={{ color: '#8B8B9E' }}>{s.label}</p>
-            <p className="text-xl font-bold" style={{ color: s.dorado ? '#C9A84C' : '#F0F0F5' }}>{s.value}</p>
+          <div key={s.label} className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <p className="text-[11px] uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>{s.label}</p>
+            <p className="text-xl font-bold" style={{ color: s.dorado ? 'var(--gold)' : 'var(--foreground)' }}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -122,16 +122,16 @@ export default function BuscadorVideos({ tipo }: Props) {
       {/* Filtros */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         {/* Orden */}
-        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
           {([['vistos', 'Más vistos'], ['engagement', 'Más engagement'], ['recientes', 'Más recientes']] as [Orden, string][]).map(([val, label]) => (
-            <button key={val} onClick={() => setOrden(val)} className="px-2.5 py-1 rounded-md text-xs font-medium transition-all" style={{ backgroundColor: orden === val ? 'rgba(201,168,76,0.15)' : 'transparent', color: orden === val ? '#C9A84C' : '#8B8B9E' }}>{label}</button>
+            <button key={val} onClick={() => setOrden(val)} className="px-2.5 py-1 rounded-md text-xs font-medium transition-all" style={{ backgroundColor: orden === val ? 'var(--gold-15)' : 'transparent', color: orden === val ? 'var(--gold)' : 'var(--muted)' }}>{label}</button>
           ))}
         </div>
 
         {/* Período */}
-        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
           {([['todo', 'Todo'], [7, '7d'], [30, '30d']] as [Periodo, string][]).map(([val, label]) => (
-            <button key={String(val)} onClick={() => setPeriodo(val)} className="px-2.5 py-1 rounded-md text-xs font-medium transition-all" style={{ backgroundColor: periodo === val ? 'rgba(201,168,76,0.15)' : 'transparent', color: periodo === val ? '#C9A84C' : '#8B8B9E' }}>{label}</button>
+            <button key={String(val)} onClick={() => setPeriodo(val)} className="px-2.5 py-1 rounded-md text-xs font-medium transition-all" style={{ backgroundColor: periodo === val ? 'var(--gold-15)' : 'transparent', color: periodo === val ? 'var(--gold)' : 'var(--muted)' }}>{label}</button>
           ))}
         </div>
 
@@ -150,18 +150,18 @@ export default function BuscadorVideos({ tipo }: Props) {
         </select>
 
         {/* Buscador */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg flex-1 min-w-[160px]" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
-          <Search size={13} style={{ color: '#8B8B9E' }} />
-          <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar en el texto..." className="flex-1 bg-transparent text-xs outline-none" style={{ color: '#F0F0F5' }} />
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg flex-1 min-w-[160px]" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <Search size={13} style={{ color: 'var(--muted)' }} />
+          <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar en el texto..." className="flex-1 bg-transparent text-xs outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
       </div>
 
-      {loading && <div className="flex items-center justify-center py-16"><Loader2 size={22} className="animate-spin" style={{ color: '#8B8B9E' }} /></div>}
+      {loading && <div className="flex items-center justify-center py-16"><Loader2 size={22} className="animate-spin" style={{ color: 'var(--muted)' }} /></div>}
 
       {!loading && filtrados.length === 0 && (
-        <div className="text-center py-16 rounded-2xl" style={{ backgroundColor: '#13131A', border: '1px dashed #1E1E2E' }}>
-          <Film size={22} className="mx-auto mb-2" style={{ color: '#8B8B9E' }} />
-          <p className="text-sm" style={{ color: '#8B8B9E' }}>No hay reels con estos filtros.</p>
+        <div className="text-center py-16 rounded-2xl" style={{ backgroundColor: 'var(--surface)', border: '1px dashed var(--border)' }}>
+          <Film size={22} className="mx-auto mb-2" style={{ color: 'var(--muted)' }} />
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>No hay reels con estos filtros.</p>
         </div>
       )}
 
@@ -169,13 +169,13 @@ export default function BuscadorVideos({ tipo }: Props) {
       {!loading && filtrados.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {filtrados.slice(0, 100).map((reel, i) => (
-            <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group rounded-xl overflow-hidden transition-all" style={{ border: '1px solid #1E1E2E', backgroundColor: '#0D0D14' }}>
-              <div className="relative w-full" style={{ aspectRatio: '9/16', backgroundColor: '#1E1E2E' }}>
+            <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group rounded-xl overflow-hidden transition-all" style={{ border: '1px solid var(--border)', backgroundColor: '#0D0D14' }}>
+              <div className="relative w-full" style={{ aspectRatio: '9/16', backgroundColor: 'var(--border)' }}>
                 {reel.thumbnail_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={reel.thumbnail_url} alt="" className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><Film size={22} style={{ color: '#8B8B9E' }} /></div>
+                  <div className="w-full h-full flex items-center justify-center"><Film size={22} style={{ color: 'var(--muted)' }} /></div>
                 )}
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
                   <ExternalLink size={18} style={{ color: '#fff' }} />
@@ -185,12 +185,12 @@ export default function BuscadorVideos({ tipo }: Props) {
                 </div>
               </div>
               <div className="p-2">
-                <p className="text-[10px] font-medium truncate" style={{ color: '#C9A84C' }}>@{reel.ig_username}</p>
-                {reel.caption && <p className="text-[10px] truncate mt-0.5" style={{ color: '#8B8B9E' }}>{reel.caption}</p>}
+                <p className="text-[10px] font-medium truncate" style={{ color: 'var(--gold)' }}>@{reel.ig_username}</p>
+                {reel.caption && <p className="text-[10px] truncate mt-0.5" style={{ color: 'var(--muted)' }}>{reel.caption}</p>}
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="flex items-center gap-0.5"><Heart size={9} style={{ color: '#8B8B9E' }} /><span className="text-[10px]" style={{ color: '#F0F0F5' }}>{formatNum(reel.likes)}</span></div>
-                  <div className="flex items-center gap-0.5"><MessageCircle size={9} style={{ color: '#8B8B9E' }} /><span className="text-[10px]" style={{ color: '#F0F0F5' }}>{formatNum(reel.comentarios)}</span></div>
-                  <span className="text-[10px] ml-auto" style={{ color: '#8B8B9E' }}>{reel.fecha_publicacion}</span>
+                  <div className="flex items-center gap-0.5"><Heart size={9} style={{ color: 'var(--muted)' }} /><span className="text-[10px]" style={{ color: 'var(--foreground)' }}>{formatNum(reel.likes)}</span></div>
+                  <div className="flex items-center gap-0.5"><MessageCircle size={9} style={{ color: 'var(--muted)' }} /><span className="text-[10px]" style={{ color: 'var(--foreground)' }}>{formatNum(reel.comentarios)}</span></div>
+                  <span className="text-[10px] ml-auto" style={{ color: 'var(--muted)' }}>{reel.fecha_publicacion}</span>
                 </div>
               </div>
             </a>
@@ -198,7 +198,7 @@ export default function BuscadorVideos({ tipo }: Props) {
         </div>
       )}
       {!loading && filtrados.length > 100 && (
-        <p className="text-center text-xs mt-4" style={{ color: '#8B8B9E' }}>Mostrando los primeros 100 de {filtrados.length}. Afina los filtros para ver otros.</p>
+        <p className="text-center text-xs mt-4" style={{ color: 'var(--muted)' }}>Mostrando los primeros 100 de {filtrados.length}. Afina los filtros para ver otros.</p>
       )}
     </div>
   )

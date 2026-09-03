@@ -68,10 +68,10 @@ function Kpi({ icon, label, value, sub, tone = 'default', subColor }: {
   icon: React.ReactNode; label: string; value: string; sub?: string
   tone?: 'default' | 'gold' | 'green' | 'red'; subColor?: string
 }) {
-  const color = tone === 'gold' ? '#C9A84C' : tone === 'green' ? '#4ADE80' : tone === 'red' ? '#F87171' : '#F0F0F5'
+  const color = tone === 'gold' ? 'var(--gold)' : tone === 'green' ? '#4ADE80' : tone === 'red' ? '#F87171' : 'var(--foreground)'
   return (
-    <div className="rounded-xl px-4 py-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
-      <div className="flex items-center gap-2 mb-2" style={{ color: '#6B6B80' }}>
+    <div className="rounded-xl px-4 py-4" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center gap-2 mb-2" style={{ color: 'var(--muted)' }}>
         {icon}
         <p className="text-xs">{label}</p>
       </div>
@@ -82,7 +82,7 @@ function Kpi({ icon, label, value, sub, tone = 'default', subColor }: {
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#6B6B80' }}>{children}</h2>
+  return <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--muted)' }}>{children}</h2>
 }
 
 export default async function DashboardPage() {
@@ -274,13 +274,13 @@ export default async function DashboardPage() {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-sm mb-1" style={{ color: '#6B6B80' }}>{today}</p>
-        <h1 className="text-2xl font-bold" style={{ color: '#F0F0F5' }}>
-          Bienvenida{firstName ? `, ${firstName}` : ''} 👋
+        <p className="text-sm mb-1" style={{ color: 'var(--muted)' }}>{today}</p>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+          Bienvenido{firstName ? `, ${firstName}` : ''} 👋
         </h1>
-        <p className="text-sm mt-1" style={{ color: '#6B6B80' }}>
+        <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
           Accediendo como{' '}
-          <span style={{ color: '#C9A84C' }} className="font-medium">{ROLE_LABELS[role]}</span>
+          <span style={{ color: 'var(--gold)' }} className="font-medium">{ROLE_LABELS[role]}</span>
         </p>
       </div>
 
@@ -313,16 +313,16 @@ export default async function DashboardPage() {
 
           {/* En turno ahora según horario: esperados vs fichados */}
           {staff.turnoAhora.esperados > 0 && (
-            <div className="rounded-2xl border p-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+            <div className="rounded-2xl border p-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6B80' }}>En turno ahora (según horario)</p>
+                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>En turno ahora (según horario)</p>
                 <p className="text-sm font-bold" style={{ color: staff.turnoAhora.presentes >= staff.turnoAhora.esperados ? '#4ADE80' : '#EAB308' }}>
                   {staff.turnoAhora.presentes}/{staff.turnoAhora.esperados} fichados
                 </p>
               </div>
               {staff.turnoAhora.faltan.length > 0 ? (
                 <div>
-                  <p className="text-[11px] mb-1.5" style={{ color: '#6B6B80' }}>Deberían estar y no han fichado:</p>
+                  <p className="text-[11px] mb-1.5" style={{ color: 'var(--muted)' }}>Deberían estar y no han fichado:</p>
                   <div className="flex flex-wrap gap-1.5">
                     {staff.turnoAhora.faltan.map((f, i) => (
                       <span key={i} className="text-xs px-2 py-1 rounded-lg"
@@ -348,17 +348,17 @@ export default async function DashboardPage() {
               <div className="space-y-3">
                 {staff.sinFichar.length > 0 && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: '#6B6B80' }}>Sin fichar hoy</p>
-                    <p className="text-sm" style={{ color: '#F0F0F5' }}>{staff.sinFichar.join(' · ')}</p>
+                    <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>Sin fichar hoy</p>
+                    <p className="text-sm" style={{ color: 'var(--foreground)' }}>{staff.sinFichar.join(' · ')}</p>
                   </div>
                 )}
                 {staff.alertas.length > 0 && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: '#6B6B80' }}>Breaks largos (+30 min)</p>
+                    <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>Breaks largos (+30 min)</p>
                     <div className="space-y-1">
                       {staff.alertas.map((a, i) => (
                         <div key={i} className="flex items-center justify-between text-sm">
-                          <span style={{ color: '#F0F0F5' }}>{a.nombre}</span>
+                          <span style={{ color: 'var(--foreground)' }}>{a.nombre}</span>
                           <span style={{ color: '#F87171' }}>{a.min} min</span>
                         </div>
                       ))}
@@ -367,11 +367,11 @@ export default async function DashboardPage() {
                 )}
                 {staff.turnosLargos.length > 0 && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: '#6B6B80' }}>Turno abierto +10h (¿sin cerrar?)</p>
+                    <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>Turno abierto +10h (¿sin cerrar?)</p>
                     <div className="space-y-1">
                       {staff.turnosLargos.map((t, i) => (
                         <div key={i} className="flex items-center justify-between text-sm">
-                          <span style={{ color: '#F0F0F5' }}>{t.nombre}</span>
+                          <span style={{ color: 'var(--foreground)' }}>{t.nombre}</span>
                           <span style={{ color: '#EAB308' }}>{t.horas} h</span>
                         </div>
                       ))}
@@ -386,15 +386,15 @@ export default async function DashboardPage() {
           {staff.ranking.length > 0 && (
             <div>
               <SectionTitle>Ranking del día · ventas</SectionTitle>
-              <div className="rounded-2xl border divide-y" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+              <div className="rounded-2xl border divide-y" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
                 {staff.ranking.map((r, i) => (
-                  <div key={i} className="flex items-center justify-between px-4 py-2.5" style={{ borderColor: '#1E1E2E' }}>
+                  <div key={i} className="flex items-center justify-between px-4 py-2.5" style={{ borderColor: 'var(--border)' }}>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold w-5 text-center" style={{ color: i === 0 ? '#C9A84C' : '#6B6B80' }}>{i + 1}</span>
-                      <span className="text-sm" style={{ color: '#F0F0F5' }}>{r.nombre}</span>
+                      <span className="text-sm font-bold w-5 text-center" style={{ color: i === 0 ? 'var(--gold)' : 'var(--muted)' }}>{i + 1}</span>
+                      <span className="text-sm" style={{ color: 'var(--foreground)' }}>{r.nombre}</span>
                       {i === 0 && <span className="text-xs">🏆</span>}
                     </div>
-                    <span className="text-sm font-semibold" style={{ color: '#C9A84C' }}>{money(r.total)}</span>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--gold)' }}>{money(r.total)}</span>
                   </div>
                 ))}
               </div>
@@ -405,18 +405,18 @@ export default async function DashboardPage() {
             {/* En línea ahora */}
             <div>
               <SectionTitle>En línea ahora · {staff.online.length}</SectionTitle>
-              <div className="rounded-2xl border divide-y" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E', borderTopColor: '#1E1E2E' }}>
+              <div className="rounded-2xl border divide-y" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', borderTopColor: 'var(--border)' }}>
                 {staff.online.length === 0 ? (
-                  <p className="text-sm text-center py-6" style={{ color: '#6B6B80' }}>Nadie en turno ahora mismo.</p>
+                  <p className="text-sm text-center py-6" style={{ color: 'var(--muted)' }}>Nadie en turno ahora mismo.</p>
                 ) : staff.online.map((o, i) => (
-                  <div key={i} className="flex items-center justify-between px-4 py-3" style={{ borderColor: '#1E1E2E' }}>
+                  <div key={i} className="flex items-center justify-between px-4 py-3" style={{ borderColor: 'var(--border)' }}>
                     <div className="flex items-center gap-2.5">
                       {o.enBreak
                         ? <Coffee size={14} style={{ color: '#EAB308' }} />
                         : <Circle size={9} fill="#4ADE80" style={{ color: '#4ADE80' }} />}
-                      <span className="text-sm" style={{ color: '#F0F0F5' }}>{o.nombre}</span>
+                      <span className="text-sm" style={{ color: 'var(--foreground)' }}>{o.nombre}</span>
                     </div>
-                    <span className="text-xs flex items-center gap-1" style={{ color: '#6B6B80' }}>
+                    <span className="text-xs flex items-center gap-1" style={{ color: 'var(--muted)' }}>
                       <Clock size={11} /> {minutosDesde(o.desde)} min · {o.enBreak ? 'en break' : 'en turno'}
                     </span>
                   </div>
@@ -427,18 +427,18 @@ export default async function DashboardPage() {
             {/* Novedades del turno */}
             <div>
               <SectionTitle>Últimas novedades del turno</SectionTitle>
-              <div className="rounded-2xl border" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+              <div className="rounded-2xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
                 {staff.novedades.length === 0 ? (
-                  <p className="text-sm text-center py-6" style={{ color: '#6B6B80' }}>Sin novedades recientes.</p>
+                  <p className="text-sm text-center py-6" style={{ color: 'var(--muted)' }}>Sin novedades recientes.</p>
                 ) : (
-                  <div className="divide-y" style={{ borderColor: '#1E1E2E' }}>
+                  <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
                     {staff.novedades.map((n, i) => (
                       <div key={i} className="px-4 py-3">
                         <div className="flex items-start gap-2">
-                          <ClipboardList size={13} style={{ color: '#C9A84C', marginTop: 2 }} />
+                          <ClipboardList size={13} style={{ color: 'var(--gold)', marginTop: 2 }} />
                           <div className="min-w-0">
-                            <p className="text-sm" style={{ color: '#F0F0F5' }}>{n.texto}</p>
-                            <p className="text-[11px] mt-0.5" style={{ color: '#6B6B80' }}>
+                            <p className="text-sm" style={{ color: 'var(--foreground)' }}>{n.texto}</p>
+                            <p className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>
                               {n.equipo ? `Equipo ${n.equipo} · ` : ''}
                               {new Date(n.created_at).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                             </p>
@@ -459,7 +459,7 @@ export default async function DashboardPage() {
         <div className="mb-8 space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Kpi
-              icon={<Circle size={12} fill={chatter.enTurno ? (chatter.enBreak ? '#EAB308' : '#4ADE80') : '#6B6B80'} style={{ color: chatter.enTurno ? (chatter.enBreak ? '#EAB308' : '#4ADE80') : '#6B6B80' }} />}
+              icon={<Circle size={12} fill={chatter.enTurno ? (chatter.enBreak ? '#EAB308' : '#4ADE80') : 'var(--muted)'} style={{ color: chatter.enTurno ? (chatter.enBreak ? '#EAB308' : '#4ADE80') : 'var(--muted)' }} />}
               label="Tu turno"
               value={chatter.enTurno ? (chatter.enBreak ? 'En break' : 'En turno') : 'Fuera'}
               tone={chatter.enTurno && !chatter.enBreak ? 'green' : 'default'} />
@@ -474,15 +474,15 @@ export default async function DashboardPage() {
           </div>
 
           {chatter.meta != null && chatter.falta != null && (
-            <div className="rounded-2xl border p-5" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+            <div className="rounded-2xl border p-5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium" style={{ color: '#F0F0F5' }}>Avance de tu meta</p>
-                <p className="text-sm font-bold" style={{ color: chatter.pct! >= 100 ? '#4ADE80' : '#C9A84C' }}>{chatter.pct}%</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Avance de tu meta</p>
+                <p className="text-sm font-bold" style={{ color: chatter.pct! >= 100 ? '#4ADE80' : 'var(--gold)' }}>{chatter.pct}%</p>
               </div>
-              <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: '#1E1E2E' }}>
-                <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(chatter.pct!, 100)}%`, backgroundColor: chatter.pct! >= 100 ? '#4ADE80' : '#C9A84C' }} />
+              <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
+                <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(chatter.pct!, 100)}%`, backgroundColor: chatter.pct! >= 100 ? '#4ADE80' : 'var(--gold)' }} />
               </div>
-              <p className="text-xs mt-2" style={{ color: '#6B6B80' }}>
+              <p className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
                 {chatter.falta > 0 ? `Te faltan ${money(chatter.falta)} para tu meta.` : '¡Meta cumplida! 🎉'}
               </p>
             </div>
@@ -493,29 +493,29 @@ export default async function DashboardPage() {
       {/* Botones de acceso rápido — solo para modelos */}
       {role === 'modelo' && (
         <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#6B6B80' }}>Acceso rápido</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--muted)' }}>Acceso rápido</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {profile?.content_snare_url ? (
               <a href={profile.content_snare_url} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-4 p-4 rounded-2xl border transition-all hover:opacity-90 active:scale-[0.98] group"
-                style={{ backgroundColor: 'rgba(201,168,76,0.08)', borderColor: 'rgba(201,168,76,0.25)' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(201,168,76,0.15)' }}>
-                  <FileText size={18} style={{ color: '#C9A84C' }} />
+                style={{ backgroundColor: 'rgba(201,168,76,0.08)', borderColor: 'var(--gold-25)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--gold-15)' }}>
+                  <FileText size={18} style={{ color: 'var(--gold)' }} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-sm" style={{ color: '#C9A84C' }}>Plantilla OF</p>
-                  <p className="text-xs truncate" style={{ color: '#6B6B80' }}>Content Snare</p>
+                  <p className="font-semibold text-sm" style={{ color: 'var(--gold)' }}>Plantilla OF</p>
+                  <p className="text-xs truncate" style={{ color: 'var(--muted)' }}>Content Snare</p>
                 </div>
-                <ExternalLink size={14} style={{ color: '#C9A84C' }} className="flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
+                <ExternalLink size={14} style={{ color: 'var(--gold)' }} className="flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
               </a>
             ) : (
-              <div className="flex items-center gap-4 p-4 rounded-2xl border opacity-40 cursor-default" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#1E1E2E' }}>
-                  <FileText size={18} style={{ color: '#6B6B80' }} />
+              <div className="flex items-center gap-4 p-4 rounded-2xl border opacity-40 cursor-default" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--border)' }}>
+                  <FileText size={18} style={{ color: 'var(--muted)' }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm" style={{ color: '#6B6B80' }}>Plantilla OF</p>
-                  <p className="text-xs" style={{ color: '#6B6B80' }}>Pendiente de configurar</p>
+                  <p className="font-semibold text-sm" style={{ color: 'var(--muted)' }}>Plantilla OF</p>
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>Pendiente de configurar</p>
                 </div>
               </div>
             )}
@@ -523,24 +523,24 @@ export default async function DashboardPage() {
             {profile?.notion_url ? (
               <a href={profile.notion_url} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-4 p-4 rounded-2xl border transition-all hover:opacity-90 active:scale-[0.98] group"
-                style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#1E1E2E' }}>
-                  <ListTodo size={18} style={{ color: '#F0F0F5' }} />
+                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--border)' }}>
+                  <ListTodo size={18} style={{ color: 'var(--foreground)' }} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-sm" style={{ color: '#F0F0F5' }}>TO-DO Marketing</p>
-                  <p className="text-xs truncate" style={{ color: '#6B6B80' }}>Notion</p>
+                  <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>TO-DO Marketing</p>
+                  <p className="text-xs truncate" style={{ color: 'var(--muted)' }}>Notion</p>
                 </div>
-                <ExternalLink size={14} style={{ color: '#6B6B80' }} className="flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
+                <ExternalLink size={14} style={{ color: 'var(--muted)' }} className="flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
               </a>
             ) : (
-              <div className="flex items-center gap-4 p-4 rounded-2xl border opacity-40 cursor-default" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#1E1E2E' }}>
-                  <ListTodo size={18} style={{ color: '#6B6B80' }} />
+              <div className="flex items-center gap-4 p-4 rounded-2xl border opacity-40 cursor-default" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--border)' }}>
+                  <ListTodo size={18} style={{ color: 'var(--muted)' }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm" style={{ color: '#6B6B80' }}>TO-DO Marketing</p>
-                  <p className="text-xs" style={{ color: '#6B6B80' }}>Pendiente de configurar</p>
+                  <p className="font-semibold text-sm" style={{ color: 'var(--muted)' }}>TO-DO Marketing</p>
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>Pendiente de configurar</p>
                 </div>
               </div>
             )}
@@ -552,8 +552,8 @@ export default async function DashboardPage() {
       {!staff && !chatter && role !== 'modelo' && modules.length > 0 && (
         <>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>Módulos</h2>
-            <span className="text-xs" style={{ color: '#6B6B80' }}>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Módulos</h2>
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>
               {modules.filter((m) => m.isBuilt).length} activos ·{' '}
               {modules.filter((m) => !m.isBuilt).length} próximamente
             </span>

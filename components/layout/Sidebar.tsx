@@ -63,7 +63,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
     flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm font-medium transition-all
     ${active
       ? 'bg-gold/10 text-gold border border-gold/20'
-      : 'text-zinc-300 hover:text-white hover:bg-surface'}
+      : 'text-muted hover:text-foreground hover:bg-surface'}
   `
 
   return (
@@ -86,10 +86,9 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-border">
           <Link href="/" className="flex items-center gap-3 group" onClick={onClose}>
-            <Image src="/logo.png" alt="OF Star Management" width={36} height={36} className="rounded-lg flex-shrink-0" />
+            <Image src="/logo.png" alt="Skeilab" width={54} height={54} className="rounded-lg flex-shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-foreground leading-tight">OF Star</p>
-              <p className="text-xs text-muted leading-tight">Management</p>
+              <p className="text-xl font-extrabold tracking-tight text-foreground leading-tight">Skei<span className="text-gold">lab</span></p>
             </div>
           </Link>
           <button onClick={onClose} className="lg:hidden text-muted hover:text-foreground p-1 rounded transition-colors">
@@ -142,7 +141,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
                         group flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm transition-all
                         ${isActive
                           ? 'bg-gold/10 text-gold border border-gold/20 font-medium'
-                          : 'text-zinc-300 hover:text-white hover:bg-white/5 font-normal'}
+                          : 'text-muted hover:text-foreground hover:bg-[var(--hover)] font-normal'}
                       `}
                     >
                       {Icon && <Icon size={16} className="flex-shrink-0" />}

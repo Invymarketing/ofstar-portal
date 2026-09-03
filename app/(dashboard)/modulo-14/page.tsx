@@ -5,7 +5,7 @@ import Tareas from '@/components/modulo-14/Tareas'
 import { CheckSquare } from 'lucide-react'
 import type { UserRole } from '@/types'
 
-export const metadata = { title: 'Tareas — OF Star Management' }
+export const metadata = { title: 'Tareas — Skeilab' }
 
 export default async function Modulo14Page() {
   const supabase = await createClient()
@@ -47,12 +47,12 @@ export default async function Modulo14Page() {
     <div className="max-w-4xl mx-auto">
       <div className="flex items-start gap-3 mb-8">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-          style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)' }}>
-          <CheckSquare size={18} style={{ color: '#C9A84C' }} />
+          style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-15)' }}>
+          <CheckSquare size={18} style={{ color: 'var(--gold)' }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Tareas</h1>
-          <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Tareas</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
             {esStaff ? 'Tus tareas y las que asignaste' : 'Tus tareas asignadas'}
           </p>
         </div>
@@ -61,7 +61,7 @@ export default async function Modulo14Page() {
       {!tablesReady ? (
         <div className="rounded-2xl border p-5" style={{ backgroundColor: 'rgba(234,179,8,0.05)', borderColor: 'rgba(234,179,8,0.2)' }}>
           <p className="text-sm" style={{ color: '#EAB308' }}>Migración pendiente</p>
-          <p className="text-xs mt-1" style={{ color: '#6B6B80' }}>Ejecuta 016_tareas.sql (y 027_tarea_timer.sql) en Supabase.</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>Ejecuta 016_tareas.sql (y 027_tarea_timer.sql) en Supabase.</p>
         </div>
       ) : (
         <Tareas

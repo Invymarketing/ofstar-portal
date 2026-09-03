@@ -5,7 +5,7 @@ import Fichaje from '@/components/modulo-15/Fichaje'
 import { Timer } from 'lucide-react'
 import type { UserRole } from '@/types'
 
-export const metadata = { title: 'Fichaje — OF Star Management' }
+export const metadata = { title: 'Fichaje — Skeilab' }
 
 export default async function Modulo15Page() {
   const supabase = await createClient()
@@ -60,12 +60,12 @@ export default async function Modulo15Page() {
     <div className="max-w-4xl mx-auto">
       <div className="flex items-start gap-3 mb-8">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-          style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)' }}>
-          <Timer size={18} style={{ color: '#C9A84C' }} />
+          style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-15)' }}>
+          <Timer size={18} style={{ color: 'var(--gold)' }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Fichaje</h1>
-          <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>Marca tu turno y tus breaks · control de tiempo</p>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Fichaje</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>Marca tu turno y tus breaks · control de tiempo</p>
         </div>
       </div>
 

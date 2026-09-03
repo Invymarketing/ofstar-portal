@@ -17,7 +17,7 @@ const RANGOS = [
 // Categorías principales con ícono (como el panel de Infloww)
 const TIPOS = [
   { key: 'subscription', label: 'Suscripciones', icon: CreditCard, color: '#22C55E' },
-  { key: 'tip', label: 'Propinas', icon: Gift, color: '#C9A84C' },
+  { key: 'tip', label: 'Propinas', icon: Gift, color: 'var(--gold)' },
   { key: 'message', label: 'Mensajes', icon: MessageSquare, color: '#A855F7' },
 ] as const
 
@@ -197,13 +197,13 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
     <div>
       {/* Barra superior: rango + sincronizar */}
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div className="flex gap-1 p-1 rounded-xl" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E' }}>
+        <div className="flex gap-1 p-1 rounded-xl" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
           {RANGOS.map((r) => (
             <button key={r.id} onClick={() => setRango(r.id)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
               style={{
-                backgroundColor: rango === r.id ? 'rgba(201,168,76,0.15)' : 'transparent',
-                color: rango === r.id ? '#C9A84C' : '#8B8B9E',
+                backgroundColor: rango === r.id ? 'var(--gold-15)' : 'transparent',
+                color: rango === r.id ? 'var(--gold)' : 'var(--muted)',
               }}>
               {r.label}
             </button>
@@ -211,15 +211,15 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
         </div>
         <select value={filtroModelo} onChange={(e) => setFiltroModelo(e.target.value)}
           className="rounded-lg px-3 py-1.5 text-xs"
-          style={{ backgroundColor: '#13131A', border: '1px solid #1E1E2E', color: filtroModelo ? '#C9A84C' : '#8B8B9E' }}>
+          style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: filtroModelo ? 'var(--gold)' : 'var(--muted)' }}>
           <option value="">Todos los modelos</option>
           {modelosPresentes.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
         <div className="flex items-center gap-3 ml-auto">
-          {msg && <span className="text-xs" style={{ color: '#C9A84C' }}>{msg}</span>}
+          {msg && <span className="text-xs" style={{ color: 'var(--gold)' }}>{msg}</span>}
           <button onClick={sincronizar} disabled={syncing}
             className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50"
-            style={{ backgroundColor: '#1E1E2E', color: '#F0F0F5' }}>
+            style={{ backgroundColor: 'var(--border)', color: 'var(--foreground)' }}>
             <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
             {syncing ? 'Sincronizando…' : 'Sincronizar Infloww'}
           </button>
@@ -227,20 +227,20 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
       </div>
 
       {/* Hero: ingresos totales + desglose por tipo (estilo Infloww) */}
-      <div className="rounded-2xl border p-6 mb-4" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+      <div className="rounded-2xl border p-6 mb-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
         <div className="flex flex-wrap items-end gap-8">
           <div>
-            <p className="text-xs mb-1" style={{ color: '#6B6B80' }}>Ingresos totales <span style={{ color: 'rgba(107,107,128,0.7)' }}>(sin reembolsos)</span></p>
-            <p className="text-4xl font-bold" style={{ color: '#F0F0F5' }}>{money(total.bruto)}</p>
-            <p className="text-xs mt-2" style={{ color: '#6B6B80' }}>
-              Comisión <span style={{ color: '#C9A84C' }}>{money(total.comision)}</span> ·
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Ingresos totales <span style={{ color: 'rgba(107,107,128,0.7)' }}>(sin reembolsos)</span></p>
+            <p className="text-4xl font-bold" style={{ color: 'var(--foreground)' }}>{money(total.bruto)}</p>
+            <p className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
+              Comisión <span style={{ color: 'var(--gold)' }}>{money(total.comision)}</span> ·
               Neto modelos <span style={{ color: '#22C55E' }}> {money(total.neto)}</span> ·
               {total.n} ventas
             </p>
             {reembolsos.n > 0 && (
-              <p className="text-[11px] mt-1" style={{ color: '#6B6B80' }}>
+              <p className="text-[11px] mt-1" style={{ color: 'var(--muted)' }}>
                 Reembolsos <span style={{ color: '#EF4444' }}>−{money(reembolsos.monto)}</span> ({reembolsos.n}) ·
-                Bruto con reembolsos <span style={{ color: '#F0F0F5' }}>{money(total.bruto + reembolsos.monto)}</span>
+                Bruto con reembolsos <span style={{ color: 'var(--foreground)' }}>{money(total.bruto + reembolsos.monto)}</span>
                 <span style={{ color: 'rgba(107,107,128,0.7)' }}> = "Gross" de Infloww</span>
               </p>
             )}
@@ -256,8 +256,8 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
                     <Icon size={15} style={{ color: t.color }} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold" style={{ color: '#F0F0F5' }}>{money(val)}</p>
-                    <p className="text-[11px]" style={{ color: '#6B6B80' }}>{t.label}</p>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{money(val)}</p>
+                    <p className="text-[11px]" style={{ color: 'var(--muted)' }}>{t.label}</p>
                   </div>
                 </div>
               )
@@ -267,27 +267,27 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
       </div>
 
       {/* Gráfica de ventas por día */}
-      <div className="rounded-2xl border p-4 mb-6" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-        <p className="text-xs mb-3" style={{ color: '#6B6B80' }}>Ventas por día</p>
+      <div className="rounded-2xl border p-4 mb-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>Ventas por día</p>
         <div style={{ width: '100%', height: 220 }}>
           <ResponsiveContainer>
             <AreaChart data={serie} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="gVentas" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#C9A84C" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#C9A84C" stopOpacity={0} />
+                  <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2E" vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: '#6B6B80', fontSize: 11 }} axisLine={false} tickLine={false}
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: 'var(--muted)', fontSize: 11 }} axisLine={false} tickLine={false}
                 interval="preserveStartEnd" minTickGap={24} />
-              <YAxis tick={{ fill: '#6B6B80', fontSize: 11 }} axisLine={false} tickLine={false} width={44}
+              <YAxis tick={{ fill: 'var(--muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={44}
                 tickFormatter={(v) => `$${v}`} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: '#F0F0F5' }}
+                contentStyle={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: 'var(--foreground)' }}
                 formatter={(value) => [money(Number(value) || 0), 'Ventas'] as [string, string]} />
-              <Area type="monotone" dataKey="total" stroke="#C9A84C" strokeWidth={2} fill="url(#gVentas)" />
+              <Area type="monotone" dataKey="total" stroke="var(--gold)" strokeWidth={2} fill="url(#gVentas)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -295,13 +295,13 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
 
       {/* Caja por modelo */}
       {porModelo.length > 0 && (
-        <div className="rounded-2xl border mb-6 overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-          <div className="px-4 py-2.5 text-xs font-medium" style={{ color: '#6B6B80', borderBottom: '1px solid #1E1E2E' }}>
+        <div className="rounded-2xl border mb-6 overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <div className="px-4 py-2.5 text-xs font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
             Caja por modelo
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ color: '#6B6B80' }}>
+              <tr style={{ color: 'var(--muted)' }}>
                 <th className="text-left font-normal px-4 py-2 text-xs">Modelo</th>
                 <th className="text-right font-normal px-4 py-2 text-xs">Ventas</th>
                 <th className="text-right font-normal px-4 py-2 text-xs">Bruto</th>
@@ -311,11 +311,11 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
             </thead>
             <tbody>
               {porModelo.map((r, i) => (
-                <tr key={i} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
+                <tr key={i} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
                   <td className="px-4 py-2">{r.modelo}</td>
-                  <td className="px-4 py-2 text-right" style={{ color: '#6B6B80' }}>{r.n}</td>
+                  <td className="px-4 py-2 text-right" style={{ color: 'var(--muted)' }}>{r.n}</td>
                   <td className="px-4 py-2 text-right">{money(r.bruto)}</td>
-                  <td className="px-4 py-2 text-right" style={{ color: '#C9A84C' }}>{money(r.comision)}</td>
+                  <td className="px-4 py-2 text-right" style={{ color: 'var(--gold)' }}>{money(r.comision)}</td>
                   <td className="px-4 py-2 text-right" style={{ color: '#22C55E' }}>{money(r.neto)}</td>
                 </tr>
               ))}
@@ -325,26 +325,26 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
       )}
 
       {/* Últimas ventas */}
-      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
-        <div className="px-4 py-2.5 flex items-center gap-2 flex-wrap" style={{ borderBottom: '1px solid #1E1E2E' }}>
-          <span className="text-xs font-medium mr-1" style={{ color: '#6B6B80' }}>Últimas ventas</span>
+      <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="px-4 py-2.5 flex items-center gap-2 flex-wrap" style={{ borderBottom: '1px solid var(--border)' }}>
+          <span className="text-xs font-medium mr-1" style={{ color: 'var(--muted)' }}>Últimas ventas</span>
           {['todos', ...tiposPresentes].map((t) => (
             <button key={t} onClick={() => setFiltroTipo(t)}
               className="rounded-full px-2.5 py-1 text-[11px] font-medium capitalize"
               style={{
-                backgroundColor: filtroTipo === t ? 'rgba(201,168,76,0.15)' : '#1E1E2E',
-                color: filtroTipo === t ? '#C9A84C' : '#6B6B80',
+                backgroundColor: filtroTipo === t ? 'var(--gold-15)' : 'var(--border)',
+                color: filtroTipo === t ? 'var(--gold)' : 'var(--muted)',
               }}>
               {t === 'todos' ? 'Todos' : t}
             </button>
           ))}
         </div>
         {recientes.length === 0 ? (
-          <p className="text-sm px-4 py-6 text-center" style={{ color: '#6B6B80' }}>Sin ventas en este rango.</p>
+          <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--muted)' }}>Sin ventas en este rango.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ color: '#6B6B80' }}>
+              <tr style={{ color: 'var(--muted)' }}>
                 <th className="text-left font-normal px-4 py-2 text-xs">Fecha</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Fan</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Modelo</th>
@@ -357,17 +357,17 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
             </thead>
             <tbody>
               {recientes.map((v) => (
-                <tr key={v.id} style={{ borderTop: '1px solid #1E1E2E', color: '#F0F0F5' }}>
-                  <td className="px-4 py-2 whitespace-nowrap" style={{ color: '#6B6B80' }}>
+                <tr key={v.id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                  <td className="px-4 py-2 whitespace-nowrap" style={{ color: 'var(--muted)' }}>
                     {new Date(v.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
                   </td>
                   <td className="px-4 py-2">{v.fan_name ?? '—'}</td>
-                  <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{v.modelo ?? '—'}</td>
-                  <td className="px-4 py-2" style={{ color: v.chatter ? '#C9A84C' : '#6B6B80' }}>{v.chatter ?? '—'}</td>
-                  <td className="px-4 py-2" style={{ color: '#6B6B80' }}>{v.tipo ?? '—'}</td>
+                  <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{v.modelo ?? '—'}</td>
+                  <td className="px-4 py-2" style={{ color: v.chatter ? 'var(--gold)' : 'var(--muted)' }}>{v.chatter ?? '—'}</td>
+                  <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{v.tipo ?? '—'}</td>
                   <td className="px-4 py-2 text-right">{money(v.monto_bruto)}</td>
                   <td className="px-4 py-2 text-right" style={{ color: '#22C55E' }}>{money(v.venta_neto)}</td>
-                  <td className="px-4 py-2 text-center text-xs" style={{ color: ESTADO_COLOR[v.estado] ?? '#6B6B80' }}>{v.estado}</td>
+                  <td className="px-4 py-2 text-center text-xs" style={{ color: ESTADO_COLOR[v.estado] ?? 'var(--muted)' }}>{v.estado}</td>
                 </tr>
               ))}
             </tbody>

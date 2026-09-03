@@ -5,7 +5,7 @@ import MetasPanel from '@/components/modulo-16/MetasPanel'
 import { Target } from 'lucide-react'
 import type { UserRole } from '@/types'
 
-export const metadata = { title: 'Metas & Productividad — OF Star Management' }
+export const metadata = { title: 'Metas & Productividad — Skeilab' }
 
 function quincena() {
   const f = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
@@ -74,12 +74,12 @@ export default async function Modulo16Page() {
     <div className="max-w-5xl mx-auto">
       <div className="flex items-start gap-3 mb-8">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-          style={{ backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)' }}>
-          <Target size={18} style={{ color: '#C9A84C' }} />
+          style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-15)' }}>
+          <Target size={18} style={{ color: 'var(--gold)' }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: '#F0F0F5' }}>Metas & Productividad</h1>
-          <p className="text-sm mt-0.5" style={{ color: '#6B6B80' }}>Avance de meta y rendimiento por chatter · quincena {label}</p>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Metas & Productividad</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>Avance de meta y rendimiento por chatter · quincena {label}</p>
         </div>
       </div>
 

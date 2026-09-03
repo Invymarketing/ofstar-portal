@@ -74,10 +74,10 @@ export default function ModelsList({ models: initialModels }: ModelsListProps) {
     return (
       <div
         className="rounded-2xl border border-dashed p-10 text-center"
-        style={{ borderColor: '#1E1E2E' }}
+        style={{ borderColor: 'var(--border)' }}
       >
-        <AtSign size={28} className="mx-auto mb-3" style={{ color: '#6B6B80' }} />
-        <p className="text-sm font-medium mb-1" style={{ color: '#6B6B80' }}>
+        <AtSign size={28} className="mx-auto mb-3" style={{ color: 'var(--muted)' }} />
+        <p className="text-sm font-medium mb-1" style={{ color: 'var(--muted)' }}>
           Sin modelos en la automatización
         </p>
         <p className="text-xs" style={{ color: 'rgba(107,107,128,0.6)' }}>
@@ -99,19 +99,19 @@ export default function ModelsList({ models: initialModels }: ModelsListProps) {
           key={model.id}
           className="flex items-center gap-4 px-5 py-4 rounded-2xl border transition-all"
           style={{
-            backgroundColor: '#13131A',
-            borderColor: model.is_active ? 'rgba(201,168,76,0.15)' : '#1E1E2E',
+            backgroundColor: 'var(--surface)',
+            borderColor: model.is_active ? 'var(--gold-15)' : 'var(--border)',
           }}
         >
           {/* Status dot */}
           <div
             className="w-2 h-2 rounded-full flex-shrink-0 transition-colors"
-            style={{ backgroundColor: model.is_active ? '#22C55E' : '#6B6B80' }}
+            style={{ backgroundColor: model.is_active ? '#22C55E' : 'var(--muted)' }}
           />
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate" style={{ color: '#F0F0F5' }}>
+            <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>
               {model.model_name}
             </p>
             <a
@@ -119,7 +119,7 @@ export default function ModelsList({ models: initialModels }: ModelsListProps) {
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs hover:underline transition-colors"
-              style={{ color: '#6B6B80' }}
+              style={{ color: 'var(--muted)' }}
             >
               @{model.instagram_handle}
             </a>
@@ -133,7 +133,7 @@ export default function ModelsList({ models: initialModels }: ModelsListProps) {
               rel="noopener noreferrer"
               title="Abrir página de Notion"
               className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors flex-shrink-0 hover:opacity-80"
-              style={{ backgroundColor: '#1E1E2E', color: '#6B6B80' }}
+              style={{ backgroundColor: 'var(--border)', color: 'var(--muted)' }}
             >
               <ExternalLink size={11} />
               Notion
@@ -152,7 +152,7 @@ export default function ModelsList({ models: initialModels }: ModelsListProps) {
               disabled={!model.is_active || loadingId === `exe-${model.id}`}
               title="Crear trabajo de ejecución"
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 hover:opacity-80 active:scale-95"
-              style={{ backgroundColor: 'rgba(201,168,76,0.12)', color: '#C9A84C' }}
+              style={{ backgroundColor: 'rgba(201,168,76,0.12)', color: 'var(--gold)' }}
             >
               {loadingId === `exe-${model.id}` ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -167,7 +167,7 @@ export default function ModelsList({ models: initialModels }: ModelsListProps) {
               disabled={loadingId === model.id}
               title={model.is_active ? 'Pausar' : 'Activar'}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 hover:opacity-80 active:scale-95"
-              style={{ backgroundColor: '#1E1E2E', color: '#6B6B80' }}
+              style={{ backgroundColor: 'var(--border)', color: 'var(--muted)' }}
             >
               {loadingId === model.id ? (
                 <Loader2 size={14} className="animate-spin" />

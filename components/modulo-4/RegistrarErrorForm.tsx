@@ -66,14 +66,14 @@ export default function RegistrarErrorForm({
     }
   }
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid #1E1E2E', color: '#F0F0F5' } as const
+  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   return (
     <form onSubmit={submit}
       className="rounded-2xl border p-5 grid grid-cols-1 sm:grid-cols-2 gap-4"
-      style={{ backgroundColor: '#13131A', borderColor: '#1E1E2E' }}>
+      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
       <div>
-        <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Chatter</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Chatter</label>
         <select value={chatterId} onChange={(e) => setChatterId(e.target.value)} required
           className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
           <option value="">Elegir…</option>
@@ -82,7 +82,7 @@ export default function RegistrarErrorForm({
       </div>
 
       <div>
-        <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Categoría del error</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Categoría del error</label>
         <select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} required
           className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
           <option value="">Elegir…</option>
@@ -96,7 +96,7 @@ export default function RegistrarErrorForm({
       </div>
 
       <div>
-        <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Modelo (opcional)</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Modelo (opcional)</label>
         <select value={modeloId} onChange={(e) => setModeloId(e.target.value)}
           className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
           <option value="">— sin modelo —</option>
@@ -106,7 +106,7 @@ export default function RegistrarErrorForm({
 
       {/* Zona de imagen (arrastrar o clic) */}
       <div>
-        <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Prueba / captura (opcional)</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Prueba / captura (opcional)</label>
         {!preview ? (
           <div
             onClick={() => inputRef.current?.click()}
@@ -114,12 +114,12 @@ export default function RegistrarErrorForm({
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); elegirArchivo(e.dataTransfer.files?.[0] ?? null) }}
             className="flex flex-col items-center justify-center gap-1 rounded-lg py-4 cursor-pointer text-center"
-            style={{ backgroundColor: '#0D0D14', border: `1px dashed ${dragOver ? '#C9A84C' : '#1E1E2E'}`, color: '#6B6B80' }}>
+            style={{ backgroundColor: '#0D0D14', border: `1px dashed ${dragOver ? 'var(--gold)' : 'var(--border)'}`, color: 'var(--muted)' }}>
             <ImagePlus size={18} />
             <span className="text-xs">Arrastra una imagen aquí o haz clic</span>
           </div>
         ) : (
-          <div className="relative rounded-lg overflow-hidden" style={{ border: '1px solid #1E1E2E' }}>
+          <div className="relative rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={preview} alt="prueba" className="w-full max-h-32 object-cover" />
             <button type="button" onClick={quitarImagen}
@@ -134,7 +134,7 @@ export default function RegistrarErrorForm({
       </div>
 
       <div className="sm:col-span-2">
-        <label className="text-xs block mb-1" style={{ color: '#6B6B80' }}>Descripción</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Descripción</label>
         <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={2}
           className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}
           placeholder="Qué pasó exactamente…" />
@@ -143,7 +143,7 @@ export default function RegistrarErrorForm({
       <div className="sm:col-span-2 flex items-center gap-3">
         <button type="submit" disabled={saving}
           className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
-          style={{ backgroundColor: '#C9A84C', color: '#0D0D14' }}>
+          style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
           <Plus size={15} /> {saving ? 'Guardando…' : 'Registrar error'}
         </button>
         {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}
