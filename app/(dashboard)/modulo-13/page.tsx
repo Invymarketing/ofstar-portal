@@ -15,7 +15,7 @@ export default async function Modulo13Page() {
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
   const role = profile?.role as UserRole
-  if (!['admin', 'manager', 'team_leader'].includes(role)) redirect('/')
+  if (!['admin', 'manager', 'team_leader', 'va'].includes(role)) redirect('/')
 
   const { data: modelos } = await admin
     .from('modelos').select('id, model_name, activa, telegram_group_id').eq('activa', true).order('model_name')
