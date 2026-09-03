@@ -20,7 +20,7 @@ export default async function Modulo1Page() {
     .from('profiles').select('role').eq('id', user.id).single()
 
   const role = profile?.role as UserRole
-  if (!['admin', 'manager'].includes(role)) redirect('/')
+  if (!['admin', 'manager', 'va'].includes(role)) redirect('/')
 
   // Fetch models and executions
   const [{ data: models }, { data: executions }] = await Promise.all([
