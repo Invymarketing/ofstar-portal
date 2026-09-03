@@ -64,8 +64,9 @@ function turnoActivoAhora(turno: string | null): number | null {
 }
 
 // ── Tarjeta KPI ──────────────────────────────────────────────
-function Kpi({ icon, label, value, sub, tone = 'default' }: {
-  icon: React.ReactNode; label: string; value: string; sub?: string; tone?: 'default' | 'gold' | 'green' | 'red'
+function Kpi({ icon, label, value, sub, tone = 'default', subColor }: {
+  icon: React.ReactNode; label: string; value: string; sub?: string
+  tone?: 'default' | 'gold' | 'green' | 'red'; subColor?: string
 }) {
   const color = tone === 'gold' ? '#C9A84C' : tone === 'green' ? '#4ADE80' : tone === 'red' ? '#F87171' : '#F0F0F5'
   return (
@@ -75,7 +76,7 @@ function Kpi({ icon, label, value, sub, tone = 'default' }: {
         <p className="text-xs">{label}</p>
       </div>
       <p className="text-2xl font-bold" style={{ color }}>{value}</p>
-      {sub && <p className="text-[11px] mt-0.5" style={{ color: 'rgba(107,107,128,0.7)' }}>{sub}</p>}
+      {sub && <p className="text-[11px] mt-0.5" style={{ color: subColor ?? 'rgba(107,107,128,0.7)' }}>{sub}</p>}
     </div>
   )
 }
@@ -292,6 +293,10 @@ export default async function DashboardPage() {
               sub={`${staff.online.filter((o) => o.enBreak).length} en break`} />
             <Kpi icon={<DollarSign size={14} />} label="Ventas de hoy" tone="gold"
               value={money(staff.ventasHoy)}
+              subColor={(() => {
+                const d = staff.ventasHoy - staff.ventasAyer
+                return d > 0 ? '#4ADE80' : d < 0 ? '#F87171' : 'rgba(107,107,128,0.7)'
+              })()}
               sub={(() => {
                 const d = staff.ventasHoy - staff.ventasAyer
                 const pct = staff.ventasAyer > 0 ? Math.round((d / staff.ventasAyer) * 100) : null
