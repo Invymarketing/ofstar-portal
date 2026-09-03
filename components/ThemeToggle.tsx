@@ -5,7 +5,12 @@ import { Sun, Moon } from 'lucide-react'
 export default function ThemeToggle() {
   const [dark, setDark] = useState(false)
   useEffect(() => {
-    setDark(document.documentElement.getAttribute('data-theme') === 'dark')
+    let stored: string | null = null
+    try { stored = localStorage.getItem('skeilab-theme') } catch (e) {}
+    const isDark = stored === 'dark'
+    if (isDark) document.documentElement.setAttribute('data-theme', 'dark')
+    else document.documentElement.removeAttribute('data-theme')
+    setDark(isDark)
   }, [])
   function toggle() {
     const el = document.documentElement
