@@ -17,7 +17,7 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 3, slug: 'modulo-3', name: 'Ventas',
     description: 'Caja, ventas de Infloww, comisiones y CRM de fans (ballenas).',
-    icon: 'DollarSign', phase: 4, area: 'comercial',
+    icon: 'DollarSign', phase: 4, area: 'chatting',
     allowedRoles: ['admin', 'manager', 'team_leader'], isBuilt: true,
   },
   {
@@ -71,7 +71,7 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 12, slug: 'modulo-12', name: 'Mis Ventas',
     description: 'Reporta tus ventas y mira tu meta de la quincena.',
-    icon: 'DollarSign', phase: 8, area: 'comercial',
+    icon: 'DollarSign', phase: 8, area: 'chatting',
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter'], isBuilt: true,
   },
   {
@@ -101,7 +101,7 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 17, slug: 'modulo-17', name: 'Customs',
     description: 'Pedidos de customs y videollamadas; el chatter los registra y le llega tarea al manager.',
-    icon: 'PhoneCall', phase: 8, area: 'comercial',
+    icon: 'PhoneCall', phase: 8, area: 'chatting',
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter'], isBuilt: true,
   },
   {
