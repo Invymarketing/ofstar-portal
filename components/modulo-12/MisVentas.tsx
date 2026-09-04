@@ -1,12 +1,12 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { reportarVenta, eliminarReporte } from '@/app/(dashboard)/modulo-12/actions'
-import { Plus, Trash2, CheckCircle2, Clock, XCircle } from 'lucide-react'
+import { reportarVenta, editarReporte, eliminarReporte } from '@/app/(dashboard)/modulo-12/actions'
+import { Plus, Trash2, Pencil, X, CheckCircle2, Clock, XCircle } from 'lucide-react'
 
 interface Modelo { id: string; model_name: string }
 interface Reporte {
-  id: string; modelo: string | null; fan_name: string | null
+  id: string; modelo_id?: string | null; modelo: string | null; fan_name: string | null
   monto: number; tipo: string | null; fecha_venta: string; estado: string
 }
 interface VentaAtribuida {
@@ -14,8 +14,13 @@ interface VentaAtribuida {
   venta_neto: number; tipo: string | null; estado: string; modelo: string | null
 }
 
-const TIPOS = ['subscription', 'tip', 'message']
 const money = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })
+
+const TIPOS = [
+  { v: 'tip', l: 'Tip' },
+  { v: 'message', l: 'Mensaje' },
+  { v: 'externa', l: 'Venta por fuera' },
+]
 
 const RANGOS = [
   { id: 'hoy', label: 'Hoy', dias: 1 },
@@ -37,8 +42,9 @@ export default function MisVentas({
   const [modeloId, setModeloId] = useState('')
   const [fanName, setFanName] = useState('')
   const [monto, setMonto] = useState('')
-  const [tipo, setTipo] = useState('subscription')
+  const [tipo, setTipo] = useState('tip')
   const [fecha, setFecha] = useState('')
+  const [editId, setEditId] = useState<string | null>(null)
   const [rango, setRango] = useState<string>('mes')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,18 +62,36 @@ export default function MisVentas({
 
   const totales = useMemo(() => {
     const enRango = ventas.filter((v) => v.estado !== 'Reverso' && new Date(v.fecha) >= inicio)
-    return {
-      n: enRango.length,
-      bruto: enRango.reduce((a, v) => a + v.monto_bruto, 0),
-    }
+    return { n: enRango.length, bruto: enRango.reduce((a, v) => a + v.monto_bruto, 0) }
   }, [ventas, inicio])
+
+  function limpiar() {
+    setEditId(null); setModeloId(''); setFanName(''); setMonto(''); setTipo('tip'); setFecha('')
+  }
+
+  function editar(r: Reporte) {
+    setEditId(r.id)
+    setModeloId(r.modelo_id ?? '')
+    setFanName(r.fan_name ?? '')
+    setMonto(String(r.monto))
+    setTipo(r.tipo && ['tip', 'message', 'externa'].includes(r.tipo) ? r.tipo : 'tip')
+    setFecha(r.fecha_venta ? new Date(r.fecha_venta).toISOString().slice(0, 10) : '')
+    setOk(false); setError(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(null); setOk(false); setSaving(true)
     try {
-      await reportarVenta({ modelo_id: modeloId || null, fan_name: fanName, monto: bruto, tipo, fecha_venta: fecha || undefined })
-      setOk(true); setFanName(''); setMonto(''); setTipo('subscription'); setFecha('')
+      if (editId) {
+        await editarReporte(editId, { modelo_id: modeloId || null, fan_name: fanName, monto: bruto, tipo, fecha_venta: fecha || undefined })
+      } else if (tipo === 'externa') {
+        await reportarVenta({ modelo_id: modeloId || null, fan_name: fanName, monto: bruto, fecha_venta: fecha || undefined, externa: true })
+      } else {
+        await reportarVenta({ modelo_id: modeloId || null, fan_name: fanName, monto: bruto, tipo, fecha_venta: fecha || undefined })
+      }
+      setOk(true); limpiar()
       setTimeout(() => window.location.reload(), 1200)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar')
@@ -82,7 +106,7 @@ export default function MisVentas({
 
   return (
     <div className="space-y-6">
-      {/* Meta de la quincena */}
+      {/* Meta */}
       {meta && meta.meta ? (
         <div className="rounded-2xl border p-5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
           <div className="flex items-end justify-between mb-2 flex-wrap gap-2">
@@ -107,16 +131,13 @@ export default function MisVentas({
         </div>
       ) : null}
 
-      {/* Totales del chatter */}
+      {/* Totales */}
       <div>
         <div className="flex gap-1 p-1 rounded-xl mb-3 w-fit" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
           {RANGOS.map((r) => (
             <button key={r.id} onClick={() => setRango(r.id)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-              style={{
-                backgroundColor: rango === r.id ? 'var(--gold-15)' : 'transparent',
-                color: rango === r.id ? 'var(--gold)' : 'var(--muted)',
-              }}>
+              style={{ backgroundColor: rango === r.id ? 'var(--gold-15)' : 'transparent', color: rango === r.id ? 'var(--gold)' : 'var(--muted)' }}>
               {r.label}
             </button>
           ))}
@@ -133,10 +154,18 @@ export default function MisVentas({
         </div>
       </div>
 
-      {/* Formulario */}
+      {/* Formulario (crear o editar) */}
       <form onSubmit={submit}
         className="rounded-2xl border p-5 grid grid-cols-1 sm:grid-cols-2 gap-4"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+        style={{ backgroundColor: 'var(--surface)', borderColor: editId ? 'var(--gold)' : 'var(--border)' }}>
+        {editId && (
+          <div className="sm:col-span-2 flex items-center justify-between">
+            <span className="text-sm font-medium" style={{ color: 'var(--gold)' }}>Editando reporte</span>
+            <button type="button" onClick={limpiar} className="text-xs flex items-center gap-1" style={{ color: 'var(--muted)' }}>
+              <X size={13} /> Cancelar
+            </button>
+          </div>
+        )}
         <div>
           <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Modelo</label>
           <select value={modeloId} onChange={(e) => setModeloId(e.target.value)} required
@@ -159,23 +188,27 @@ export default function MisVentas({
           <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Tipo</label>
           <select value={tipo} onChange={(e) => setTipo(e.target.value)}
             className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
-            {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
+            {TIPOS.map((t) => <option key={t.v} value={t.v}>{t.l}</option>)}
           </select>
         </div>
-        <div>
+        <div className="sm:col-span-2">
           <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Fecha de la venta</label>
           <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)}
-            className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} />
-          <p className="text-[10px] mt-1" style={{ color: 'var(--muted)' }}>Si es de un día anterior, elígelo aquí (así cuadra con Infloww).</p>
+            className="w-full rounded-lg px-3 py-2 text-sm sm:w-1/2" style={inputStyle} />
+          <p className="text-[10px] mt-1" style={{ color: 'var(--muted)' }}>
+            {tipo === 'externa'
+              ? 'Venta por fuera: se registra ya confirmada y cuenta a tu total.'
+              : 'Si es de un día anterior, elígelo aquí (así cuadra con Infloww).'}
+          </p>
         </div>
         <div className="sm:col-span-2 flex items-center gap-3">
           <button type="submit" disabled={saving}
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
             style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
-            <Plus size={15} /> {saving ? 'Guardando…' : 'Reportar venta'}
+            <Plus size={15} /> {saving ? 'Guardando…' : editId ? 'Guardar cambios' : 'Reportar venta'}
           </button>
           {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}
-          {ok && <span className="text-xs" style={{ color: '#22C55E' }}>✓ Reportada — se confirmará contra Infloww</span>}
+          {ok && <span className="text-xs" style={{ color: '#22C55E' }}>✓ Guardado</span>}
         </div>
       </form>
 
@@ -193,10 +226,9 @@ export default function MisVentas({
                 <th className="text-left font-normal px-4 py-2 text-xs">Fecha</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Modelo</th>
                 <th className="text-left font-normal px-4 py-2 text-xs">Fan</th>
-                <th className="text-left font-normal px-4 py-2 text-xs">Tipo</th>
                 <th className="text-right font-normal px-4 py-2 text-xs">Monto</th>
                 <th className="text-center font-normal px-4 py-2 text-xs">Estado</th>
-                <th className="px-2"></th>
+                <th className="px-2 text-right"></th>
               </tr>
             </thead>
             <tbody>
@@ -210,20 +242,17 @@ export default function MisVentas({
                     </td>
                     <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.modelo ?? '—'}</td>
                     <td className="px-4 py-2">{r.fan_name ?? '—'}</td>
-                    <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.tipo ?? '—'}</td>
                     <td className="px-4 py-2 text-right">{money(r.monto)}</td>
                     <td className="px-4 py-2 text-center">
                       <span className="inline-flex items-center gap-1 text-xs" style={{ color: est.color }}>
                         <Icon size={13} /> {est.label}
                       </span>
                     </td>
-                    <td className="px-2 py-2 text-right">
-                      <button
-                        onClick={async () => {
-                          if (!confirm('¿Eliminar este reporte?')) return
-                          await eliminarReporte(r.id)
-                          window.location.reload()
-                        }}
+                    <td className="px-2 py-2 text-right whitespace-nowrap">
+                      <button onClick={() => editar(r)} title="Editar" className="mr-2" style={{ color: 'var(--gold)' }}>
+                        <Pencil size={14} />
+                      </button>
+                      <button onClick={async () => { if (confirm('¿Eliminar este reporte?')) { await eliminarReporte(r.id); window.location.reload() } }}
                         title="Eliminar" style={{ color: 'var(--muted)' }}>
                         <Trash2 size={14} />
                       </button>
