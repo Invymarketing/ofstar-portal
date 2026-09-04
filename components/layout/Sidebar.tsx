@@ -39,12 +39,16 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
   // Flyout: qué categoría está abierta y a qué altura mostrarla
   const [flyout, setFlyout] = useState<{ key: string; top: number } | null>(null)
   const railRef = useRef<HTMLElement>(null)
+  const flyoutRef = useRef<HTMLDivElement>(null)
 
   // Cerrar el flyout al hacer clic fuera o al cambiar de ruta
   useEffect(() => { setFlyout(null) }, [pathname])
   useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (railRef.current && !railRef.current.contains(e.target as Node)) setFlyout(null)
+      const t = e.target as Node
+      const dentroRail = railRef.current?.contains(t)
+      const dentroFlyout = flyoutRef.current?.contains(t)
+      if (!dentroRail && !dentroFlyout) setFlyout(null)
     }
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
@@ -139,6 +143,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
       {/* FLYOUT: panel de módulos de la categoría clicada */}
       {abierta && (
         <div
+          ref={flyoutRef}
           className="fixed z-40 w-60 rounded-2xl border shadow-2xl p-2"
           style={{
             left: 80,
