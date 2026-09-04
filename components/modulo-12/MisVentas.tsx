@@ -38,6 +38,7 @@ export default function MisVentas({
   const [fanName, setFanName] = useState('')
   const [monto, setMonto] = useState('')
   const [tipo, setTipo] = useState('subscription')
+  const [fecha, setFecha] = useState('')
   const [rango, setRango] = useState<string>('mes')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -65,8 +66,8 @@ export default function MisVentas({
     e.preventDefault()
     setError(null); setOk(false); setSaving(true)
     try {
-      await reportarVenta({ modelo_id: modeloId || null, fan_name: fanName, monto: bruto, tipo })
-      setOk(true); setFanName(''); setMonto(''); setTipo('subscription')
+      await reportarVenta({ modelo_id: modeloId || null, fan_name: fanName, monto: bruto, tipo, fecha_venta: fecha || undefined })
+      setOk(true); setFanName(''); setMonto(''); setTipo('subscription'); setFecha('')
       setTimeout(() => window.location.reload(), 1200)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar')
@@ -160,6 +161,12 @@ export default function MisVentas({
             className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
             {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
+        </div>
+        <div>
+          <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Fecha de la venta</label>
+          <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)}
+            className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle} />
+          <p className="text-[10px] mt-1" style={{ color: 'var(--muted)' }}>Si es de un día anterior, elígelo aquí (así cuadra con Infloww).</p>
         </div>
         <div className="sm:col-span-2 flex items-center gap-3">
           <button type="submit" disabled={saving}
