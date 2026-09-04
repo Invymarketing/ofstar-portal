@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, LayoutDashboard, UserCircle2,
-  ChevronDown, X,
+  X, Layers,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 import { getAccessibleModules } from '@/lib/modules'
@@ -17,12 +17,13 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall,
 }
 
-const AREAS: { key: string; label: string }[] = [
-  { key: 'comercial', label: 'Comercial' },
-  { key: 'chatting', label: 'Chatting' },
-  { key: 'contenido', label: 'Contenido' },
-  { key: 'modelos', label: 'Modelos' },
-  { key: 'admin', label: 'Administración' },
+// Cada categoría tiene su propio ícono para el rail colapsado.
+const AREAS: { key: string; label: string; icon: React.ElementType }[] = [
+  { key: 'comercial', label: 'Comercial', icon: DollarSign },
+  { key: 'chatting', label: 'Chatting', icon: MessageSquare },
+  { key: 'contenido', label: 'Contenido', icon: Sparkles },
+  { key: 'modelos', label: 'Modelos', icon: UserCircle2 },
+  { key: 'admin', label: 'Administración', icon: Bell },
 ]
 
 interface SidebarProps {
@@ -35,98 +36,136 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
   const visibles = getAccessibleModules(role).filter((m) => m.isBuilt && m.area !== 'topbar')
 
-  const [abiertas, setAbiertas] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(AREAS.map((a) => [a.key, true]))
-  )
-  const toggle = (k: string) => setAbiertas((p) => ({ ...p, [k]: !p[k] }))
+  // Flyout: qué categoría está abierta y a qué altura mostrarla
+  const [flyout, setFlyout] = useState<{ key: string; top: number } | null>(null)
+  const railRef = useRef<HTMLElement>(null)
 
-  const linkClass = (active: boolean) => `
-    flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm font-medium transition-all
+  // Cerrar el flyout al hacer clic fuera o al cambiar de ruta
+  useEffect(() => { setFlyout(null) }, [pathname])
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (railRef.current && !railRef.current.contains(e.target as Node)) setFlyout(null)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [])
+
+  const areasConMods = AREAS
+    .map((a) => ({ ...a, mods: visibles.filter((m) => m.area === a.key) }))
+    .filter((a) => a.mods.length > 0)
+
+  const areaActiva = (key: string) =>
+    visibles.some((m) => m.area === key && pathname.startsWith(`/${m.slug}`))
+
+  function toggleFlyout(key: string, e: React.MouseEvent) {
+    const btn = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    setFlyout((prev) => (prev?.key === key ? null : { key, top: btn.top }))
+  }
+
+  // Botón redondo del rail (íconos)
+  const railBtn = (active: boolean) => `
+    flex items-center justify-center w-11 h-11 rounded-xl transition-all
     ${active
-      ? 'bg-gold/10 text-gold border border-gold/20'
-      : 'text-muted hover:text-foreground hover:bg-[var(--hover)]'}
+      ? 'bg-gold/15 text-gold border border-gold/30'
+      : 'text-muted hover:text-foreground hover:bg-[var(--hover)] border border-transparent'}
   `
+
+  const abierta = flyout ? areasConMods.find((a) => a.key === flyout.key) : null
 
   return (
     <>
+      {/* Overlay móvil */}
       {isOpen && <div className="fixed inset-0 z-20 bg-black/60 lg:hidden" onClick={onClose} />}
 
       <aside
+        ref={railRef}
         className={`
-          fixed top-0 left-0 z-30 h-full w-64 flex flex-col
+          fixed top-0 left-0 z-30 h-full w-[72px] flex flex-col items-center
           bg-surface border-r border-border
           transform transition-transform duration-200 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0 lg:static lg:z-auto
         `}
       >
-        {/* Marca */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-border">
-          <Link href="/" className="flex items-center gap-3 group" onClick={onClose}>
-            <Image src="/logo.png" alt="Skeilab" width={40} height={40} className="rounded-lg flex-shrink-0" />
-            <p className="text-xl font-extrabold tracking-tight text-foreground leading-tight">Skei<span className="text-gold">lab</span></p>
+        {/* Logo */}
+        <div className="w-full flex items-center justify-center py-4 border-b border-border">
+          <Link href="/" title="Skeilab" onClick={onClose} className="flex items-center justify-center">
+            <Image src="/logo.png" alt="Skeilab" width={38} height={38} className="rounded-lg" />
           </Link>
-          <button onClick={onClose} className="lg:hidden text-muted hover:text-foreground p-1 rounded transition-colors">
+          <button onClick={onClose} className="lg:hidden absolute right-3 top-4 text-muted hover:text-foreground p-1">
             <X size={18} />
           </button>
         </div>
 
-        {/* Navegación */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2">
-          <Link href="/" onClick={onClose} className={linkClass(pathname === '/')}>
-            <LayoutDashboard size={16} className="flex-shrink-0" /> <span>Inicio</span>
+        {/* Navegación (rail de íconos) */}
+        <nav className="flex-1 w-full overflow-y-auto py-3 flex flex-col items-center gap-1.5">
+          <Link href="/" title="Inicio" onClick={onClose} className={railBtn(pathname === '/')}>
+            <LayoutDashboard size={20} />
           </Link>
 
           {(role === 'admin' || role === 'manager') && (
-            <Link href="/modelos" onClick={onClose} className={linkClass(pathname.startsWith('/modelos'))}>
-              <UserCircle2 size={16} className="flex-shrink-0" /> <span>Modelos</span>
+            <Link href="/modelos" title="Modelos" onClick={onClose} className={railBtn(pathname.startsWith('/modelos'))}>
+              <UserCircle2 size={20} />
             </Link>
           )}
 
           {(role === 'admin' || role === 'manager' || role === 'team_leader') && (
-            <Link href="/usuarios" onClick={onClose} className={linkClass(pathname.startsWith('/usuarios'))}>
-              <UserPlus size={16} className="flex-shrink-0" /> <span>{role === 'team_leader' ? 'Chatters' : 'Empleados'}</span>
+            <Link href="/usuarios" title={role === 'team_leader' ? 'Chatters' : 'Empleados'} onClick={onClose}
+              className={railBtn(pathname.startsWith('/usuarios'))}>
+              <UserPlus size={20} />
             </Link>
           )}
 
-          {AREAS.map((area) => {
-            const mods = visibles.filter((m) => m.area === area.key)
-            if (mods.length === 0) return null
-            const open = abiertas[area.key]
+          {areasConMods.length > 0 && <div className="w-8 h-px bg-border my-1.5" />}
+
+          {/* Un ícono por categoría → abre el flyout con sus módulos */}
+          {areasConMods.map((area) => {
+            const Icon = area.icon
+            const active = areaActiva(area.key) || flyout?.key === area.key
             return (
-              <div key={area.key} className="mt-3">
-                <button onClick={() => toggle(area.key)}
-                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-[var(--hover)] transition-colors">
-                  <span className="text-xs font-semibold text-muted uppercase tracking-wider">{area.label}</span>
-                  <ChevronDown size={14} className={`text-muted transition-transform ${open ? '' : '-rotate-90'}`} />
-                </button>
-                {open && (
-                  <div className="mt-0.5">
-                    {mods.map((mod) => {
-                      const Icon = ICON_MAP[mod.icon]
-                      const isActive = pathname.startsWith(`/${mod.slug}`)
-                      return (
-                        <Link key={mod.id} href={`/${mod.slug}`} onClick={onClose}
-                          className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm transition-all
-                            ${isActive
-                              ? 'bg-gold/10 text-gold border border-gold/20 font-medium'
-                              : 'text-muted hover:text-foreground hover:bg-[var(--hover)] font-normal'}`}>
-                          {Icon && <Icon size={16} className="flex-shrink-0" />}
-                          <span className="flex-1 truncate">{mod.name}</span>
-                        </Link>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
+              <button key={area.key} title={area.label} onClick={(e) => toggleFlyout(area.key, e)}
+                className={railBtn(active)}>
+                <Icon size={20} />
+              </button>
             )
           })}
         </nav>
 
-        <div className="px-5 py-3 border-t border-border">
-          <p className="text-xs text-muted/60">v1.0.0 · INVY Marketing FZE LLC</p>
+        <div className="w-full flex items-center justify-center py-3 border-t border-border">
+          <Layers size={14} className="text-muted/40" />
         </div>
       </aside>
+
+      {/* FLYOUT: panel de módulos de la categoría clicada */}
+      {abierta && (
+        <div
+          className="fixed z-40 w-60 rounded-2xl border shadow-2xl p-2"
+          style={{
+            left: 80,
+            top: Math.min(flyout!.top, (typeof window !== 'undefined' ? window.innerHeight : 800) - 60 - abierta.mods.length * 44),
+            backgroundColor: 'var(--surface)',
+            borderColor: 'var(--border)',
+          }}
+        >
+          <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+            {abierta.label}
+          </p>
+          {abierta.mods.map((mod) => {
+            const Icon = ICON_MAP[mod.icon]
+            const isActive = pathname.startsWith(`/${mod.slug}`)
+            return (
+              <Link key={mod.id} href={`/${mod.slug}`} onClick={() => { setFlyout(null); onClose() }}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all
+                  ${isActive
+                    ? 'bg-gold/10 text-gold font-medium'
+                    : 'text-muted hover:text-foreground hover:bg-[var(--hover)]'}`}>
+                {Icon && <Icon size={16} className="flex-shrink-0" />}
+                <span className="truncate">{mod.name}</span>
+              </Link>
+            )
+          })}
+        </div>
+      )}
     </>
   )
 }
