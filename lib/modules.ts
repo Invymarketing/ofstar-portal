@@ -122,6 +122,12 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'Languages', phase: 8, area: 'herramientas',
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va'], isBuilt: true,
   },
+  {
+    id: 21, slug: 'modulo-21', name: 'Fichas de Modelo',
+    description: 'Toda la info de cada modelo para los chatters: datos, tono, precios y redes.',
+    icon: 'BookUser', phase: 8, area: 'chatting',
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va'], isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
