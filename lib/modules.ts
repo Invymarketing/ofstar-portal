@@ -3,15 +3,15 @@ import type { ModuleDefinition, UserRole } from '@/types'
 // area: comercial | chatting | contenido | modelos | admin | topbar (topbar no sale en el sidebar)
 export const MODULES: ModuleDefinition[] = [
   {
-    id: 1, slug: 'modulo-1', name: 'Instagram',
-    description: 'Panel del bot de Instagram: modelos, ejecución y logs.',
-    icon: 'Bot', phase: 2, area: 'contenido',
+    id: 1, slug: 'modulo-1', name: 'Buscador de Reels',
+    description: 'Panel del bot: búsqueda de reels, modelos, ejecución y logs.',
+    icon: 'Search', phase: 2, area: 'herramientas',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
   {
-    id: 2, slug: 'modulo-2', name: 'Analytics',
+    id: 2, slug: 'modulo-2', name: 'Instagram',
     description: 'Métricas de cuentas propias e inteligencia de competencia por nicho.',
-    icon: 'BarChart3', phase: 3, area: 'contenido',
+    icon: 'Instagram', phase: 3, area: 'marketing',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
   {
@@ -77,7 +77,7 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 13, slug: 'modulo-13', name: 'Telegram',
     description: 'Programa mensajes (texto, foto o video) al grupo de cada modelo.',
-    icon: 'Megaphone', phase: 12, area: 'contenido',
+    icon: 'Megaphone', phase: 12, area: 'herramientas',
     allowedRoles: ['admin', 'manager', 'va'], isBuilt: true,
   },
   {
@@ -107,7 +107,7 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 18, slug: 'modulo-18', name: 'Metadata',
     description: 'Cambia la metadata de una imagen o video y genera varias versiones únicas.',
-    icon: 'Sparkles', phase: 8, area: 'contenido',
+    icon: 'Sparkles', phase: 8, area: 'herramientas',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
   {
@@ -119,7 +119,7 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 20, slug: 'modulo-20', name: 'Españolizador',
     description: 'Convierte texto latino a español de España, castizo y juvenil.',
-    icon: 'Languages', phase: 8, area: 'contenido',
+    icon: 'Languages', phase: 8, area: 'herramientas',
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va'], isBuilt: true,
   },
 ]
