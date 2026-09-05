@@ -111,10 +111,6 @@ export default async function DashboardPage() {
   const esAdminOManager = ['admin', 'manager'].includes(role)
   const esChatter = role === 'chatter'
 
-  const today = new Date().toLocaleDateString('es-ES', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  })
-
   // ── Datos del dashboard STAFF ──────────────────────────────
   let staff: null | {
     online: { nombre: string; enBreak: boolean; desde: string }[]
@@ -344,14 +340,9 @@ export default async function DashboardPage() {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-sm mb-1" style={{ color: 'var(--muted)' }}>{today}</p>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
-          Bienvenido{firstName ? `, ${firstName}` : ''} 👋
+          {firstName || 'Hola'} <span className="font-medium" style={{ color: 'var(--gold)' }}>— {ROLE_LABELS[role]}</span>
         </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-          Accediendo como{' '}
-          <span style={{ color: 'var(--gold)' }} className="font-medium">{ROLE_LABELS[role]}</span>
-        </p>
       </div>
 
       {/* ── DASHBOARD STAFF (admin / manager / team_leader) ── */}
@@ -388,7 +379,6 @@ export default async function DashboardPage() {
                   <TrendingUp size={16} style={{ color: 'var(--gold)' }} />
                   <div>
                     <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Seguidores de la agencia</p>
-                    <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Marketing · todas las cuentas propias</p>
                   </div>
                 </div>
                 <SerieChart serie={panelCharts.serieSeguidores} hoy={panelCharts.hoy} formato="numero" gradId="segAgencia" />
@@ -398,7 +388,6 @@ export default async function DashboardPage() {
                   <DollarSign size={16} style={{ color: 'var(--gold)' }} />
                   <div>
                     <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Facturación de la agencia</p>
-                    <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Suscripciones + ventas · Infloww</p>
                   </div>
                 </div>
                 <SerieChart serie={panelCharts.serieVentas} hoy={panelCharts.hoy} formato="money" gradId="ventasAgencia" />
