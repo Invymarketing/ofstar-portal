@@ -7,21 +7,22 @@ import { usePathname } from 'next/navigation'
 import {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, LayoutDashboard, UserCircle2,
-  X, Layers, CheckSquare,
+  X, Layers, CheckSquare, Languages, Wrench, Instagram, Search, TrendingUp,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 import { getAccessibleModules } from '@/lib/modules'
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
-  Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, CheckSquare,
+  Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, CheckSquare, Languages,
+  Wrench, Instagram, Search, TrendingUp,
 }
 
 // Cada categoría tiene su propio ícono para el rail colapsado.
 const AREAS: { key: string; label: string; icon: React.ElementType }[] = [
-  { key: 'comercial', label: 'Comercial', icon: DollarSign },
   { key: 'chatting', label: 'Chatting', icon: MessageSquare },
-  { key: 'contenido', label: 'Contenido', icon: Sparkles },
+  { key: 'herramientas', label: 'Herramientas', icon: Wrench },
+  { key: 'marketing', label: 'Marketing', icon: TrendingUp },
   { key: 'modelos', label: 'Modelos', icon: UserCircle2 },
   { key: 'admin', label: 'Administración', icon: Bell },
 ]

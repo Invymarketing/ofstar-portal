@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Bell, Menu, LogOut, ChevronDown, CheckCheck } from 'lucide-react'
+import { Bell, Menu, LogOut, ChevronDown, CheckCheck, Sun, Moon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ROLE_LABELS } from '@/lib/roles'
@@ -20,7 +20,23 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
   const [showNotifs, setShowNotifs] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [notifs, setNotifs] = useState<Notif[]>([])
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const router = useRouter()
+
+  // Modo claro/oscuro: lee la preferencia guardada y la aplica al <html>.
+  useEffect(() => {
+    const saved = (typeof window !== 'undefined' && localStorage.getItem('theme')) as 'dark' | 'light' | null
+    const initial = saved ?? 'dark'
+    setTheme(initial)
+    document.documentElement.setAttribute('data-theme', initial)
+  }, [])
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    document.documentElement.setAttribute('data-theme', next)
+    try { localStorage.setItem('theme', next) } catch { /* noop */ }
+  }
 
   const cargar = useCallback(async () => {
     try {
@@ -88,6 +104,12 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
       </button>
 
       <div className="flex-1" />
+
+      {/* Modo claro / oscuro */}
+      <button onClick={toggleTheme} title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+        className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-white/5 transition-colors">
+        {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
 
       {/* Notifications */}
       <div className="relative">
