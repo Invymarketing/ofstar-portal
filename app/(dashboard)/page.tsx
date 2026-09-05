@@ -5,10 +5,11 @@ import { ROLE_LABELS } from '@/lib/roles'
 import ModuleCard from '@/components/ui/ModuleCard'
 import {
   ExternalLink, FileText, ListTodo, Users, DollarSign, CheckSquare,
-  Target, AlertTriangle, Circle, Coffee, Clock, ClipboardList,
+  Target, AlertTriangle, Circle, Coffee, Clock, ClipboardList, TrendingUp,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 import VentasChart from '@/components/dashboard/VentasChart'
+import SerieChart from '@/components/dashboard/SerieChart'
 
 const money = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -107,6 +108,7 @@ export default async function DashboardPage() {
   const modules = getAccessibleModules(role)
 
   const esStaff = ['admin', 'manager', 'team_leader'].includes(role)
+  const esAdminOManager = ['admin', 'manager'].includes(role)
   const esChatter = role === 'chatter'
 
   const today = new Date().toLocaleDateString('es-ES', {
@@ -234,6 +236,50 @@ export default async function DashboardPage() {
     }
   }
 
+  // ── Gráficos del panel (solo admin/manager) ────────────────
+  let panelCharts: null | {
+    hoy: string
+    serieVentas: { fecha: string; valor: number }[]
+    serieSeguidores: { fecha: string; valor: number }[]
+  } = null
+
+  if (esAdminOManager) {
+    const hoyMadrid = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+    const [hy, hm, hd] = hoyMadrid.split('-').map(Number)
+    const hace40 = new Date(Date.UTC(hy, hm - 1, hd) - 40 * 86400000).toISOString()
+    const diasP: string[] = []
+    for (let i = 39; i >= 0; i--) diasP.push(new Date(Date.UTC(hy, hm - 1, hd) - i * 86400000).toISOString().slice(0, 10))
+
+    const [ventasRows, cuentasProp] = await Promise.all([
+      admin.from('ventas').select('monto_bruto, estado, fecha').gte('fecha', hace40),
+      admin.from('cuentas_analytics').select('id, metricas_analytics ( fecha, seguidores )').eq('activa', true).neq('tipo', 'competencia'),
+    ])
+
+    const bV = new Map<string, number>(diasP.map((f) => [f, 0]))
+    for (const v of ventasRows.data ?? []) {
+      if ((v as { estado: string }).estado === 'Reverso') continue
+      const f = fechaMadrid((v as { fecha: string }).fecha)
+      if (bV.has(f)) bV.set(f, (bV.get(f) ?? 0) + Number((v as { monto_bruto: number }).monto_bruto ?? 0))
+    }
+    const serieVentas = diasP.map((f) => ({ fecha: f, valor: bV.get(f) ?? 0 }))
+
+    const serieSeguidores = diasP.map((dia) => {
+      let total = 0
+      for (const c of (cuentasProp.data ?? []) as { metricas_analytics?: { fecha: string; seguidores: number }[] }[]) {
+        const ms = c.metricas_analytics ?? []
+        let val: number | null = null
+        let best = ''
+        for (const m of ms) {
+          if (m.fecha <= dia && m.fecha >= best) { best = m.fecha; val = Number(m.seguidores ?? 0) }
+        }
+        if (val != null) total += val
+      }
+      return { fecha: dia, valor: total }
+    })
+
+    panelCharts = { hoy: hoyMadrid, serieVentas, serieSeguidores }
+  }
+
   // ── Datos del dashboard CHATTER ────────────────────────────
   let chatter: null | {
     enTurno: boolean; enBreak: boolean
@@ -334,6 +380,31 @@ export default async function DashboardPage() {
               sub={`${staff.metaChatters} chatters con meta`}
               tone={staff.metaPct != null && staff.metaPct >= 100 ? 'green' : 'default'} />
           </div>
+
+          {panelCharts && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="rounded-2xl border p-5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp size={16} style={{ color: 'var(--gold)' }} />
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Seguidores de la agencia</p>
+                    <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Marketing · todas las cuentas propias</p>
+                  </div>
+                </div>
+                <SerieChart serie={panelCharts.serieSeguidores} hoy={panelCharts.hoy} formato="numero" gradId="segAgencia" />
+              </div>
+              <div className="rounded-2xl border p-5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign size={16} style={{ color: 'var(--gold)' }} />
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Facturación de la agencia</p>
+                    <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Suscripciones + ventas · Infloww</p>
+                  </div>
+                </div>
+                <SerieChart serie={panelCharts.serieVentas} hoy={panelCharts.hoy} formato="money" gradId="ventasAgencia" />
+              </div>
+            </div>
+          )}
 
           {/* En turno ahora según horario: esperados vs fichados */}
           {staff.turnoAhora.esperados > 0 && (
