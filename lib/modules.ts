@@ -3,15 +3,15 @@ import type { ModuleDefinition, UserRole } from '@/types'
 // area: comercial | chatting | contenido | modelos | admin | topbar (topbar no sale en el sidebar)
 export const MODULES: ModuleDefinition[] = [
   {
-    id: 1, slug: 'modulo-1', name: 'Búsqueda Reels',
+    id: 1, slug: 'modulo-1', name: 'Instagram',
     description: 'Panel del bot de Instagram: modelos, ejecución y logs.',
-    icon: 'Search', phase: 2, area: 'herramientas',
+    icon: 'Bot', phase: 2, area: 'contenido',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
   {
-    id: 2, slug: 'modulo-2', name: 'Instagram',
+    id: 2, slug: 'modulo-2', name: 'Analytics',
     description: 'Métricas de cuentas propias e inteligencia de competencia por nicho.',
-    icon: 'Instagram', phase: 3, area: 'contenido',
+    icon: 'BarChart3', phase: 3, area: 'contenido',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
   {
@@ -77,13 +77,13 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 13, slug: 'modulo-13', name: 'Telegram',
     description: 'Programa mensajes (texto, foto o video) al grupo de cada modelo.',
-    icon: 'Megaphone', phase: 12, area: 'herramientas',
+    icon: 'Megaphone', phase: 12, area: 'contenido',
     allowedRoles: ['admin', 'manager', 'va'], isBuilt: true,
   },
   {
     id: 14, slug: 'modulo-14', name: 'Tareas',
     description: 'Asigna tareas a tu equipo, con notificaciones y seguimiento.',
-    icon: 'Calendar', phase: 7, area: 'topbar',
+    icon: 'CheckSquare', phase: 7, area: 'admin',
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo'], isBuilt: true,
   },
   {
@@ -107,14 +107,14 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 18, slug: 'modulo-18', name: 'Metadata',
     description: 'Cambia la metadata de una imagen o video y genera varias versiones únicas.',
-    icon: 'Sparkles', phase: 8, area: 'herramientas',
+    icon: 'Sparkles', phase: 8, area: 'contenido',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
   {
-    id: 19, slug: 'modulo-19', name: 'Métricas',
-    description: 'Registro semanal de audiencia por las VAs: países, edad, género, alcance y visitas.',
-    icon: 'BarChart3', phase: 5, area: 'contenido',
-    allowedRoles: ['admin', 'manager', 'va'], isBuilt: true,
+    id: 19, slug: 'modulo-19', name: 'Horas VA',
+    description: 'Horas fichadas por cada VA por quincena, con aprobación para pago.',
+    icon: 'BarChart3', phase: 8, area: 'chatting',
+    allowedRoles: ['admin', 'manager'], isBuilt: true,
   },
 ]
 
