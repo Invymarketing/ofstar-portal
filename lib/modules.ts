@@ -116,6 +116,12 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'BarChart3', phase: 8, area: 'chatting',
     allowedRoles: ['admin', 'manager'], isBuilt: true,
   },
+  {
+    id: 20, slug: 'modulo-20', name: 'Españolizador',
+    description: 'Convierte texto latino a español de España, castizo y juvenil.',
+    icon: 'Languages', phase: 8, area: 'contenido',
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va'], isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
