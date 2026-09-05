@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Bell, Menu, LogOut, ChevronDown, CheckCheck, CheckSquare } from 'lucide-react'
+import { Bell, Menu, LogOut, ChevronDown, CheckCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ROLE_LABELS } from '@/lib/roles'
 import type { UserRole } from '@/types'
-import ThemeToggle from '@/components/ThemeToggle'
 
 interface HeaderProps {
   fullName: string
@@ -21,7 +20,6 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
   const [showNotifs, setShowNotifs] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [notifs, setNotifs] = useState<Notif[]>([])
-  const [tareasPend, setTareasPend] = useState(0)
   const router = useRouter()
 
   const cargar = useCallback(async () => {
@@ -36,11 +34,6 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
         .order('created_at', { ascending: false })
         .limit(20)
       setNotifs(data ?? [])
-      const { count } = await supabase
-        .from('tareas')
-        .select('id', { count: 'exact', head: true })
-        .eq('asignado_a', user.id).eq('estado', 'pendiente')
-      setTareasPend(count ?? 0)
     } catch { /* noop */ }
   }, [])
 
@@ -90,27 +83,16 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
 
   return (
     <header className="h-14 bg-surface border-b border-border flex items-center px-4 gap-4 flex-shrink-0">
-      <button onClick={onMenuClick} className="lg:hidden text-muted hover:text-foreground p-1.5 rounded-lg hover:bg-[var(--hover)] transition-colors">
+      <button onClick={onMenuClick} className="lg:hidden text-muted hover:text-foreground p-1.5 rounded-lg hover:bg-white/5 transition-colors">
         <Menu size={20} />
       </button>
 
       <div className="flex-1" />
-      <ThemeToggle />
-
-      {/* Tareas (acceso rápido) */}
-      <button onClick={() => router.push('/modulo-14')} title="Tareas"
-        className="relative p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-[var(--hover)] transition-colors">
-        <CheckSquare size={18} />
-        {tareasPend > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold flex items-center justify-center"
-            style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>{tareasPend > 9 ? '9+' : tareasPend}</span>
-        )}
-      </button>
 
       {/* Notifications */}
       <div className="relative">
         <button onClick={() => setShowNotifs(!showNotifs)}
-          className="relative p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-[var(--hover)] transition-colors">
+          className="relative p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-white/5 transition-colors">
           <Bell size={18} />
           {noLeidas > 0 && (
             <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 rounded-full text-[9px] font-bold flex items-center justify-center"
@@ -125,7 +107,7 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
                 <p className="text-sm font-medium text-foreground">Notificaciones</p>
                 {noLeidas > 0 && (
-                  <button onClick={marcarTodas} className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--gold)' }}>
+                  <button onClick={marcarTodas} className="flex items-center gap-1 text-[11px]" style={{ color: '#C9A84C' }}>
                     <CheckCheck size={12} /> marcar leídas
                   </button>
                 )}
@@ -136,9 +118,9 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
                 ) : (
                   notifs.map((n) => (
                     <button key={n.id} onClick={() => abrir(n)}
-                      className="w-full text-left px-4 py-3 border-b border-border hover:bg-[var(--hover)] transition-colors flex gap-2.5"
+                      className="w-full text-left px-4 py-3 border-b border-border hover:bg-white/5 transition-colors flex gap-2.5"
                       style={{ backgroundColor: n.read ? 'transparent' : 'rgba(201,168,76,0.05)' }}>
-                      <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: n.read ? 'transparent' : 'var(--gold)' }} />
+                      <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: n.read ? 'transparent' : '#C9A84C' }} />
                       <div className="min-w-0">
                         <p className="text-xs font-medium text-foreground">{n.title}</p>
                         {n.body && <p className="text-[11px] text-muted mt-0.5 line-clamp-2">{n.body}</p>}
@@ -156,7 +138,7 @@ export default function Header({ fullName, role, onMenuClick }: HeaderProps) {
       {/* User menu */}
       <div className="relative">
         <button onClick={() => setShowUserMenu(!showUserMenu)}
-          className="flex items-center gap-2.5 pl-2 pr-1.5 py-1.5 rounded-lg hover:bg-[var(--hover)] transition-colors">
+          className="flex items-center gap-2.5 pl-2 pr-1.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors">
           <div className="w-7 h-7 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center flex-shrink-0">
             <span className="text-xs font-semibold text-gold">{initials}</span>
           </div>
