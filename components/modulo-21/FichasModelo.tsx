@@ -50,7 +50,7 @@ export default function FichasModelo(
   async function guardar() {
     setSaving(true); setError(null)
     try {
-      await guardarFicha(sel, form as Record<string, unknown>)
+      await guardarFicha(sel, form as unknown as Record<string, unknown>)
       setEditando(false)
       window.location.reload()
     } catch (e) {
