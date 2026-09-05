@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, LayoutDashboard, UserCircle2,
-  X, Layers, CheckSquare, Languages, Wrench, Search,
+  X, Layers, CheckSquare, Languages, Wrench, Search, BookUser,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 import { getAccessibleModules } from '@/lib/modules'
