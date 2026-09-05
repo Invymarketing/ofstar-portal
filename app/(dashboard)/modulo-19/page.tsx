@@ -34,12 +34,15 @@ export default async function Modulo19Page() {
     .neq('tipo', 'competencia')
     .order('ig_username')
 
-  const lista = (cuentas ?? []).map((c: { id: string; ig_username: string; es_principal: boolean; modelos?: { model_name?: string } | null }) => ({
-    id: c.id,
-    ig_username: c.ig_username,
-    modelo: c.modelos?.model_name ?? 'Sin modelo',
-    es_principal: !!c.es_principal,
-  }))
+  const lista = (cuentas ?? []).map((c: any) => {
+    const mm = Array.isArray(c.modelos) ? c.modelos[0] : c.modelos
+    return {
+      id: c.id as string,
+      ig_username: c.ig_username as string,
+      modelo: (mm?.model_name as string) ?? 'Sin modelo',
+      es_principal: !!c.es_principal,
+    }
+  })
 
   const ids = lista.map((c) => c.id)
   const { data: fichas } = ids.length
