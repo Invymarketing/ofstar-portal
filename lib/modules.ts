@@ -110,6 +110,12 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'Sparkles', phase: 8, area: 'herramientas',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
+  {
+    id: 19, slug: 'modulo-19', name: 'Métricas',
+    description: 'Registro semanal de audiencia por las VAs: países, edad, género, alcance y visitas.',
+    icon: 'BarChart3', phase: 5, area: 'contenido',
+    allowedRoles: ['admin', 'manager', 'va'], isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {

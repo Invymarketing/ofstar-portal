@@ -27,11 +27,11 @@ export const ROLE_ACCESS: Record<UserRole, string[]> = {
   manager: [
     '/modulo-1', '/modulo-2', '/modulo-3', '/modulo-4',
     '/modulo-5', '/modulo-6', '/modulo-7', '/modulo-8',
-    '/modulo-9', '/modulo-10', '/modulo-11',
+    '/modulo-9', '/modulo-10', '/modulo-11', '/modulo-19',
   ],
   team_leader: ['/modulo-4', '/modulo-7', '/modulo-8', '/modulo-11'],
   chatter: ['/modulo-4'],
-  va: ['/modulo-5'],
+  va: ['/modulo-5', '/modulo-19'],
   modelo: [],
 }
 
