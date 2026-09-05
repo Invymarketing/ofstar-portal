@@ -76,11 +76,15 @@ export async function GET(request: NextRequest) {
   const segFase1 = Math.round(transcurrido() / 1000)
 
   // ---------- FASE 2: REELS con el tiempo que sobre ----------
+  const reelsPendientes = lista.filter((c: any) => {
+    if (!c.ultima_sync) return true
+    return new Date(c.ultima_sync).toISOString().split('T')[0] !== hoy
+  })
   let reelsOk = 0
   const fallosReels: { cuenta: string; motivo: string }[] = []
-  for (let i = 0; i < lista.length; i += CONC_REELS) {
+  for (let i = 0; i < reelsPendientes.length; i += CONC_REELS) {
     if (transcurrido() > PRESUPUESTO_TOTAL_MS) break
-    const tanda = lista.slice(i, i + CONC_REELS)
+    const tanda = reelsPendientes.slice(i, i + CONC_REELS)
     await Promise.all(tanda.map(async (c: any) => {
       try {
         let pk = pkPorCuenta.get(c.id)
