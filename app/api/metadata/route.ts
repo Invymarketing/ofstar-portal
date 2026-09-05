@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: 'no_autenticado' }, { status: 401 })
   const admin = createAdminClient()
   const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
-  if (!me || !['admin', 'manager', 'creativo', 'team_leader'].includes(me.role)) {
+  if (!me || !['admin', 'manager', 'creativo', 'team_leader', 'va'].includes(me.role)) {
     return NextResponse.json({ error: 'sin_permiso' }, { status: 403 })
   }
 
