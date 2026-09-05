@@ -11,7 +11,7 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 2, slug: 'modulo-2', name: 'Instagram',
     description: 'Métricas de cuentas propias e inteligencia de competencia por nicho.',
-    icon: 'Instagram', phase: 3, area: 'marketing',
+    icon: 'Camera', phase: 3, area: 'marketing',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
   {
