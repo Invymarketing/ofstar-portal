@@ -21,7 +21,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
 const AREAS: { key: string; label: string; icon: React.ElementType }[] = [
   { key: 'comercial', label: 'Comercial', icon: DollarSign },
   { key: 'chatting', label: 'Chatting', icon: MessageSquare },
-  { key: 'contenido', label: 'Contenido', icon: Sparkles },
+  { key: 'contenido', label: 'Marketing', icon: Sparkles },
   { key: 'modelos', label: 'Modelos', icon: UserCircle2 },
   { key: 'admin', label: 'Administración', icon: Bell },
 ]

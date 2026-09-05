@@ -110,12 +110,6 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'Sparkles', phase: 8, area: 'contenido',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
-  {
-    id: 19, slug: 'modulo-19', name: 'Horas VA',
-    description: 'Horas fichadas por cada VA por quincena, con aprobación para pago.',
-    icon: 'BarChart3', phase: 8, area: 'chatting',
-    allowedRoles: ['admin', 'manager'], isBuilt: true,
-  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
