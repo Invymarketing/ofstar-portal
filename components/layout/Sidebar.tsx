@@ -7,22 +7,34 @@ import { usePathname } from 'next/navigation'
 import {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, LayoutDashboard, UserCircle2,
-  X, Layers, CheckSquare, Languages, Wrench, Camera, Search, TrendingUp,
+  X, Layers, CheckSquare, Languages, Wrench, Search,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 import { getAccessibleModules } from '@/lib/modules'
 
+// Logo de Instagram (lucide-react ya no trae el ícono de marca).
+function InstagramIcon({ size = 16, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  )
+}
+
 const ICON_MAP: Record<string, React.ElementType> = {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, CheckSquare, Languages,
-  Wrench, Camera, Search, TrendingUp,
+  Wrench, Search, Instagram: InstagramIcon,
 }
 
 // Cada categoría tiene su propio ícono para el rail colapsado.
 const AREAS: { key: string; label: string; icon: React.ElementType }[] = [
   { key: 'chatting', label: 'Chatting', icon: MessageSquare },
   { key: 'herramientas', label: 'Herramientas', icon: Wrench },
-  { key: 'marketing', label: 'Marketing', icon: TrendingUp },
+  { key: 'marketing', label: 'Marketing', icon: InstagramIcon },
   { key: 'modelos', label: 'Modelos', icon: UserCircle2 },
   { key: 'admin', label: 'Administración', icon: Bell },
 ]
