@@ -8,6 +8,7 @@ import {
   Target, AlertTriangle, Circle, Coffee, Clock, ClipboardList,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
+import VentasChart from '@/components/dashboard/VentasChart'
 
 const money = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -36,6 +37,10 @@ function inicioHoyISO() {
   const signo = offStr.includes('-') ? -1 : 1
   const horas = Number(offStr.replace(/[^0-9]/g, '')) || 0
   return new Date(Date.UTC(y, m - 1, d, 0, 0, 0) - signo * horas * 3600000).toISOString()
+}
+
+function fechaMadrid(iso: string) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso))
 }
 
 function minutosDesde(iso: string) {
@@ -234,22 +239,38 @@ export default async function DashboardPage() {
     enTurno: boolean; enBreak: boolean
     meta: number | null; ventasQ: number; pct: number | null; falta: number | null
     ventasHoy: number; tareasPend: number; proxTarea: string | null
+    serie: { fecha: string; monto: number }[]; quincenaLabel: string; hoy: string
   } = null
 
   if (esChatter) {
     const inicioHoy = inicioHoyISO()
-    const { start: qStart, end: qEnd } = quincena()
+    const { start: qStart, end: qEnd, label: qLabel } = quincena()
+
+    const hoyMadrid = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+    const [hy, hm, hd] = hoyMadrid.split('-').map(Number)
+    const hace40 = new Date(Date.UTC(hy, hm - 1, hd) - 40 * 86400000).toISOString()
 
     const { data: mi } = await admin.from('chatters').select('id, meta_quincena').eq('profile_id', user!.id).maybeSingle()
     const chatterId = mi?.id ?? null
 
-    const [jAbierta, dAbierto, ventasHoyRows, ventasQRows, tareasRows] = await Promise.all([
+    const [jAbierta, dAbierto, ventasHoyRows, ventasQRows, tareasRows, ventasSerieRows] = await Promise.all([
       admin.from('jornadas').select('id').eq('user_id', user!.id).is('fin', null).limit(1),
       admin.from('descansos').select('id').eq('user_id', user!.id).is('fin', null).limit(1),
       chatterId ? admin.from('ventas').select('monto_bruto, estado').eq('chatter_id', chatterId).gte('fecha', inicioHoy) : Promise.resolve({ data: [] as { monto_bruto: number; estado: string }[] }),
       chatterId ? admin.from('ventas').select('monto_bruto, estado').eq('chatter_id', chatterId).gte('fecha', qStart).lt('fecha', qEnd) : Promise.resolve({ data: [] as { monto_bruto: number; estado: string }[] }),
       admin.from('tareas').select('id, titulo, fecha_limite').eq('asignado_a', user!.id).is('completada_at', null).order('fecha_limite', { ascending: true, nullsFirst: false }),
+      chatterId ? admin.from('ventas').select('monto_bruto, estado, fecha').eq('chatter_id', chatterId).gte('fecha', hace40) : Promise.resolve({ data: [] as { monto_bruto: number; estado: string; fecha: string }[] }),
     ])
+
+    const diasSerie: string[] = []
+    for (let i = 39; i >= 0; i--) diasSerie.push(new Date(Date.UTC(hy, hm - 1, hd) - i * 86400000).toISOString().slice(0, 10))
+    const bucketSerie = new Map<string, number>(diasSerie.map((f) => [f, 0]))
+    for (const v of ventasSerieRows.data ?? []) {
+      if ((v as { estado: string }).estado === 'Reverso') continue
+      const f = fechaMadrid((v as { fecha: string }).fecha)
+      if (bucketSerie.has(f)) bucketSerie.set(f, (bucketSerie.get(f) ?? 0) + Number((v as { monto_bruto: number }).monto_bruto ?? 0))
+    }
+    const serie = diasSerie.map((f) => ({ fecha: f, monto: bucketSerie.get(f) ?? 0 }))
 
     const sumar = (rows: { monto_bruto: number; estado: string }[] | null) =>
       (rows ?? []).filter((v) => v.estado !== 'Reverso').reduce((s, v) => s + Number(v.monto_bruto ?? 0), 0)
@@ -267,6 +288,9 @@ export default async function DashboardPage() {
       ventasHoy: sumar(ventasHoyRows.data),
       tareasPend: (tareasRows.data ?? []).length,
       proxTarea: (tareasRows.data ?? [])[0]?.titulo ?? null,
+      serie,
+      quincenaLabel: qLabel,
+      hoy: hoyMadrid,
     }
   }
 
@@ -473,20 +497,7 @@ export default async function DashboardPage() {
               sub={chatter.proxTarea ?? undefined} />
           </div>
 
-          {chatter.meta != null && chatter.falta != null && (
-            <div className="rounded-2xl border p-5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Avance de tu meta</p>
-                <p className="text-sm font-bold" style={{ color: chatter.pct! >= 100 ? '#4ADE80' : 'var(--gold)' }}>{chatter.pct}%</p>
-              </div>
-              <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
-                <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(chatter.pct!, 100)}%`, backgroundColor: chatter.pct! >= 100 ? '#4ADE80' : 'var(--gold)' }} />
-              </div>
-              <p className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
-                {chatter.falta > 0 ? `Te faltan ${money(chatter.falta)} para tu meta.` : '¡Meta cumplida! 🎉'}
-              </p>
-            </div>
-          )}
+          <VentasChart serie={chatter.serie} meta={chatter.meta} metaVendido={chatter.ventasQ} quincenaLabel={chatter.quincenaLabel} hoy={chatter.hoy} />
         </div>
       )}
 
