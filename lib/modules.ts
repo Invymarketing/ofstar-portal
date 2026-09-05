@@ -11,7 +11,7 @@ export const MODULES: ModuleDefinition[] = [
   {
     id: 2, slug: 'modulo-2', name: 'Instagram',
     description: 'Métricas de cuentas propias e inteligencia de competencia por nicho.',
-    icon: 'Camera', phase: 3, area: 'marketing',
+    icon: 'Instagram', phase: 3, area: 'marketing',
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
   {
@@ -111,9 +111,9 @@ export const MODULES: ModuleDefinition[] = [
     allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
   },
   {
-    id: 19, slug: 'modulo-19', name: 'Horas VA',
+    id: 19, slug: 'modulo-19', name: 'Métricas',
     description: 'Horas fichadas por cada VA por quincena, con aprobación para pago.',
-    icon: 'BarChart3', phase: 8, area: 'chatting',
+    icon: 'BarChart3', phase: 8, area: 'marketing',
     allowedRoles: ['admin', 'manager'], isBuilt: true,
   },
   {
