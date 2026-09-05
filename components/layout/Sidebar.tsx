@@ -27,7 +27,7 @@ function InstagramIcon({ size = 16, className = '' }: { size?: number; className
 const ICON_MAP: Record<string, React.ElementType> = {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, CheckSquare, Languages,
-  Wrench, Search, Instagram: InstagramIcon,
+  Wrench, Search, BookUser, Instagram: InstagramIcon,
 }
 
 // Cada categoría tiene su propio ícono para el rail colapsado.
