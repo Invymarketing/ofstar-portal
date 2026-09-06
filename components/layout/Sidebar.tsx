@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, LayoutDashboard, UserCircle2,
-  X, Layers, CheckSquare, Languages, Wrench, Search, BookUser,
+  X, CheckSquare, Languages, Wrench, Search, BookUser, Wallet, Settings,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 import { getAccessibleModules } from '@/lib/modules'
@@ -27,16 +27,17 @@ function InstagramIcon({ size = 16, className = '' }: { size?: number; className
 const ICON_MAP: Record<string, React.ElementType> = {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, CheckSquare, Languages,
-  Wrench, Search, BookUser, Instagram: InstagramIcon,
+  Wrench, Search, BookUser, Wallet, Instagram: InstagramIcon,
 }
 
 // Cada categoría tiene su propio ícono para el rail colapsado.
 const AREAS: { key: string; label: string; icon: React.ElementType }[] = [
+  { key: 'marketing', label: 'Marketing', icon: InstagramIcon },
   { key: 'chatting', label: 'Chatting', icon: MessageSquare },
   { key: 'herramientas', label: 'Herramientas', icon: Wrench },
-  { key: 'marketing', label: 'Marketing', icon: InstagramIcon },
   { key: 'modelos', label: 'Modelos', icon: UserCircle2 },
   { key: 'admin', label: 'Administración', icon: Bell },
+  { key: 'finanzas', label: 'Finanzas', icon: Wallet },
 ]
 
 interface SidebarProps {
@@ -149,7 +150,9 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         </nav>
 
         <div className="w-full flex items-center justify-center py-3 border-t border-border">
-          <Layers size={14} className="text-muted/40" />
+          <Link href="/ajustes" title="Ajustes" onClick={onClose} className={railBtn(pathname.startsWith('/ajustes'))}>
+            <Settings size={20} />
+          </Link>
         </div>
       </aside>
 

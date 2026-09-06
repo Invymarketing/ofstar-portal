@@ -128,6 +128,12 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'BookUser', phase: 8, area: 'chatting',
     allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va'], isBuilt: true,
   },
+  {
+    id: 22, slug: 'modulo-22', name: 'Finanzas',
+    description: 'Panel financiero: comisiones por modelo, gastos y beneficio neto. Solo admin.',
+    icon: 'Wallet', phase: 9, area: 'finanzas',
+    allowedRoles: ['admin'], isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
