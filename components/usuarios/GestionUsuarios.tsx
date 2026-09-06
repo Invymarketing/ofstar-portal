@@ -14,7 +14,7 @@ const ROL_LABEL: Record<Rol, string> = {
 interface Usuario { id: string; full_name: string; role: string; email: string; activo: boolean }
 
 export default function GestionUsuarios(
-  { usuarios, miId, miRole }: { usuarios: Usuario[]; miId: string; miRole: string }
+  { usuarios, miId, miRole, rolInicial }: { usuarios: Usuario[]; miId: string; miRole: string; rolInicial?: Rol }
 ) {
   const esAdmin = miRole === 'admin'
   const esTeamLeader = miRole === 'team_leader'
@@ -28,7 +28,7 @@ export default function GestionUsuarios(
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<Rol>('chatter')
+  const [role, setRole] = useState<Rol>(rolInicial ?? 'chatter')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState<string | null>(null)

@@ -7,7 +7,7 @@ import type { UserRole } from '@/types'
 
 export const metadata = { title: 'Usuarios — Skeilab' }
 
-export default async function UsuariosPage() {
+export default async function UsuariosPage({ searchParams }: { searchParams: Promise<{ nuevo?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -18,6 +18,8 @@ export default async function UsuariosPage() {
   if (!['admin', 'manager', 'team_leader'].includes(miRole)) redirect('/')
 
   const esTeamLeader = miRole === 'team_leader'
+  const sp = await searchParams
+  const rolInicial = sp?.nuevo === 'modelo' ? 'modelo' : 'chatter'
 
   // Perfiles + emails/estado desde auth
   const [{ data: profiles }, authList] = await Promise.all([
@@ -62,7 +64,7 @@ export default async function UsuariosPage() {
         </div>
       </div>
 
-      <GestionUsuarios usuarios={usuarios} miId={user.id} miRole={miRole} />
+      <GestionUsuarios usuarios={usuarios} miId={user.id} miRole={miRole} rolInicial={rolInicial} key={rolInicial} />
     </div>
   )
 }
