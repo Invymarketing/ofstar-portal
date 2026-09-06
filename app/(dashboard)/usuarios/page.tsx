@@ -20,6 +20,7 @@ export default async function UsuariosPage({ searchParams }: { searchParams: Pro
   const esTeamLeader = miRole === 'team_leader'
   const sp = await searchParams
   const rolInicial = sp?.nuevo === 'modelo' ? 'modelo' : 'chatter'
+  const modoModelo = sp?.nuevo === 'modelo'
 
   // Perfiles + emails/estado desde auth
   const [{ data: profiles }, authList] = await Promise.all([
@@ -44,6 +45,8 @@ export default async function UsuariosPage({ searchParams }: { searchParams: Pro
 
   // El team leader solo ve chatters en la lista
   if (esTeamLeader) usuarios = usuarios.filter((u) => u.role === 'chatter')
+  else if (modoModelo) usuarios = usuarios.filter((u) => u.role === 'modelo')
+  else usuarios = usuarios.filter((u) => u.role !== 'modelo')
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -54,7 +57,7 @@ export default async function UsuariosPage({ searchParams }: { searchParams: Pro
         </div>
         <div>
           <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
-            {esTeamLeader ? 'Chatters' : 'Usuarios'}
+            {esTeamLeader ? 'Chatters' : modoModelo ? 'Modelos' : 'Usuarios'}
           </h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
             {esTeamLeader
@@ -64,7 +67,7 @@ export default async function UsuariosPage({ searchParams }: { searchParams: Pro
         </div>
       </div>
 
-      <GestionUsuarios usuarios={usuarios} miId={user.id} miRole={miRole} rolInicial={rolInicial} key={rolInicial} />
+      <GestionUsuarios usuarios={usuarios} miId={user.id} miRole={miRole} rolInicial={rolInicial} modoModelo={modoModelo} key={rolInicial} />
     </div>
   )
 }

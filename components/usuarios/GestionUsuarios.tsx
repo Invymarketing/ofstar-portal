@@ -14,7 +14,7 @@ const ROL_LABEL: Record<Rol, string> = {
 interface Usuario { id: string; full_name: string; role: string; email: string; activo: boolean }
 
 export default function GestionUsuarios(
-  { usuarios, miId, miRole, rolInicial }: { usuarios: Usuario[]; miId: string; miRole: string; rolInicial?: Rol }
+  { usuarios, miId, miRole, rolInicial, modoModelo }: { usuarios: Usuario[]; miId: string; miRole: string; rolInicial?: Rol; modoModelo?: boolean }
 ) {
   const esAdmin = miRole === 'admin'
   const esTeamLeader = miRole === 'team_leader'
@@ -84,6 +84,8 @@ export default function GestionUsuarios(
           <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Rol</label>
           {esTeamLeader ? (
             <div className="w-full rounded-lg px-3 py-2 text-sm" style={{ ...inputStyle, color: 'var(--muted)' }}>Chatter</div>
+          ) : modoModelo ? (
+            <div className="w-full rounded-lg px-3 py-2 text-sm" style={{ ...inputStyle, color: 'var(--muted)' }}>Modelo</div>
           ) : (
             <select value={role} onChange={(e) => setRole(e.target.value as Rol)}
               className="w-full rounded-lg px-3 py-2 text-sm" style={inputStyle}>
@@ -95,7 +97,7 @@ export default function GestionUsuarios(
           <button type="submit" disabled={saving}
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
             style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
-            <UserPlus size={15} /> {saving ? 'Creando…' : esTeamLeader ? 'Añadir chatter' : 'Añadir usuario'}
+            <UserPlus size={15} /> {saving ? 'Creando…' : esTeamLeader ? 'Añadir chatter' : modoModelo ? 'Añadir modelo' : 'Añadir usuario'}
           </button>
           {error && <span className="text-xs" style={{ color: '#EF4444' }}>{error}</span>}
           {ok && <span className="text-xs" style={{ color: '#22C55E' }}>{ok}</span>}
@@ -105,7 +107,7 @@ export default function GestionUsuarios(
       {/* Lista */}
       <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
         <div className="px-4 py-2.5 text-xs font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
-          {usuarios.length} {esTeamLeader ? 'chatters' : 'usuarios'}
+          {usuarios.length} {esTeamLeader ? 'chatters' : modoModelo ? 'modelos' : 'usuarios'}
         </div>
         <table className="w-full text-sm">
           <thead>
