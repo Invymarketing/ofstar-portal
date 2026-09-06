@@ -73,7 +73,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
     .filter((a) => a.mods.length > 0)
 
   const areaActiva = (key: string) =>
-    visibles.some((m) => m.area === key && pathname.startsWith(`/${m.slug}`))
+    visibles.some((m) => m.area === key && (pathname === `/${m.slug}` || pathname.startsWith(`/${m.slug}/`)))
 
   function toggleFlyout(key: string, e: React.MouseEvent) {
     const btn = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -173,7 +173,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
           </p>
           {abierta.mods.map((mod) => {
             const Icon = ICON_MAP[mod.icon]
-            const isActive = pathname.startsWith(`/${mod.slug}`)
+            const isActive = pathname === `/${mod.slug}` || pathname.startsWith(`/${mod.slug}/`)
             return (
               <Link key={mod.id} href={`/${mod.slug}`} onClick={() => { setFlyout(null); onClose() }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all
