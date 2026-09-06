@@ -121,18 +121,6 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
             <LayoutDashboard size={20} />
           </Link>
 
-          {(role === 'admin' || role === 'manager') && (
-            <Link href="/modelos" title="Modelos" onClick={onClose} className={railBtn(pathname.startsWith('/modelos'))}>
-              <UserCircle2 size={20} />
-            </Link>
-          )}
-
-          {(role === 'admin' || role === 'manager' || role === 'team_leader') && (
-            <Link href="/usuarios" title={role === 'team_leader' ? 'Chatters' : 'Empleados'} onClick={onClose}
-              className={railBtn(pathname.startsWith('/usuarios'))}>
-              <UserPlus size={20} />
-            </Link>
-          )}
 
           {areasConMods.length > 0 && <div className="w-8 h-px bg-border my-1.5" />}
 
@@ -147,6 +135,18 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
               </button>
             )
           })}
+          {(role === 'admin' || role === 'manager') && (
+            <Link href="/modelos" title="Modelos" onClick={onClose} className={railBtn(pathname.startsWith('/modelos'))}>
+              <UserCircle2 size={20} />
+            </Link>
+          )}
+
+          {(role === 'admin' || role === 'manager' || role === 'team_leader') && (
+            <Link href="/usuarios" title={role === 'team_leader' ? 'Chatters' : 'Empleados'} onClick={onClose}
+              className={railBtn(pathname.startsWith('/usuarios'))}>
+              <UserPlus size={20} />
+            </Link>
+          )}
         </nav>
 
         <div className="w-full flex items-center justify-center py-3 border-t border-border">

@@ -134,6 +134,12 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'Wallet', phase: 9, area: 'finanzas',
     allowedRoles: ['admin'], isBuilt: true,
   },
+  {
+    id: 23, slug: 'modulo-23', name: 'Horario semanal',
+    description: 'Tablero semanal de tareas por modelo, con seguimiento de cumplimiento.',
+    icon: 'Calendar', phase: 6, area: 'modelos',
+    allowedRoles: ['admin', 'manager', 'modelo'], isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {

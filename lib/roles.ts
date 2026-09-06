@@ -39,6 +39,7 @@ export function canAccessRoute(role: UserRole, pathname: string): boolean {
   if (role === 'admin') return true
   if (pathname === '/') return true
   if (pathname.startsWith('/ajustes')) return true
+  if (pathname.startsWith('/modulo-23') && ['admin', 'manager', 'modelo'].includes(role)) return true
   const allowed = ROLE_ACCESS[role] || []
   return allowed.some((path) => pathname.startsWith(path))
 }
