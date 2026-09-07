@@ -74,6 +74,35 @@ export async function getCreators(): Promise<InflowwCreator[]> {
   return [...seen.values()]
 }
 
+// DEBUG: prueba varias formas de pedir /creators para ver cómo pagina Infloww
+// de verdad (o si el filtro de plataforma es el que excluye cuentas).
+export async function debugCreators(): Promise<unknown> {
+  const variantes: Record<string, Record<string, string>> = {
+    base:         { platformCode: 'OnlyFans', limit: '100' },
+    page2:        { platformCode: 'OnlyFans', limit: '100', page: '2' },
+    pageNo2:      { platformCode: 'OnlyFans', limit: '100', pageNo: '2' },
+    pageNum2:     { platformCode: 'OnlyFans', limit: '100', pageNum: '2' },
+    current2:     { platformCode: 'OnlyFans', limit: '100', current: '2' },
+    offset8:      { platformCode: 'OnlyFans', limit: '100', offset: '8' },
+    sin_platform: { limit: '100' },
+    limit_alto:   { platformCode: 'OnlyFans', limit: '500' },
+  }
+  const out: Record<string, unknown> = {}
+  for (const [k, p] of Object.entries(variantes)) {
+    try {
+      const r = await inflowwGet<{ data: Record<string, unknown> & { list?: { name?: string; username?: string }[] } }>('/creators', p)
+      const list = (r?.data?.list ?? []) as { name?: string; username?: string }[]
+      const metaKeys = Object.keys(r?.data ?? {}).filter((x) => x !== 'list')
+      const meta: Record<string, unknown> = {}
+      for (const mk of metaKeys) meta[mk] = (r.data as Record<string, unknown>)[mk]
+      out[k] = { count: list.length, names: list.map((c) => c.name || c.username), meta }
+    } catch (e) {
+      out[k] = { error: String(e) }
+    }
+  }
+  return out
+}
+
 const PAGE_LIMIT = 100
 const MIN_SLICE_MS = 15 * 60 * 1000 // no partir por debajo de 15 min
 const MAX_CALLS = 500 // tope de seguridad de llamadas por modelo/corrida
