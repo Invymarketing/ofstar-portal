@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X } from 'lucide-react'
+import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X, Upload, BookOpen, Link2 } from 'lucide-react'
 
 interface Tarea { id: string; dia_semana: number; titulo: string }
-interface Todo { id: string; texto: string; hecho: boolean }
+interface Todo { id: string; texto: string; hecho: boolean; enlace_subir?: string | null; enlace_guia?: string | null }
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const hrefOf = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`)
 
 export default function HorarioModelo({ modeloId, editable = true }: { modeloId: string; editable?: boolean }) {
   const [tareas, setTareas] = useState<Tarea[]>([])
@@ -15,6 +16,9 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
   const [drafts, setDrafts] = useState<Record<number, string>>({})
   const [sel, setSel] = useState<Tarea | null>(null)
   const [todoDraft, setTodoDraft] = useState('')
+  const [selTodo, setSelTodo] = useState<Todo | null>(null)
+  const [linkSubir, setLinkSubir] = useState('')
+  const [linkGuia, setLinkGuia] = useState('')
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -50,6 +54,12 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
     if (!texto) return
     setTodoDraft('')
     await post({ op: 'todoAdd', texto })
+  }
+
+  function abrirEnlaces(t: Todo) {
+    setSelTodo(t)
+    setLinkSubir(t.enlace_subir ?? '')
+    setLinkGuia(t.enlace_guia ?? '')
   }
 
   const hechos = todos.filter((t) => t.hecho).length
@@ -130,18 +140,35 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
         </div>
         <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{editable ? 'Objetivos de la semana. La modelo marca el check cuando los completa.' : 'Marca el check cuando completes cada objetivo.'}</p>
 
-        <div className="flex flex-col gap-1.5 mb-3">
+        <div className="flex flex-col gap-2 mb-3">
           {todos.map((t) => (
-            <div key={t.id} className="group flex items-center gap-2 rounded-lg px-2.5 py-2" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
-              <button onClick={() => post({ op: 'todoToggle', todoId: t.id, hecho: !t.hecho })} className="shrink-0 h-4 w-4 rounded grid place-items-center transition-colors" style={{ border: '1px solid var(--border)', backgroundColor: t.hecho ? 'var(--gold)' : 'transparent' }} aria-label="Completar">
-                {t.hecho && <Check size={11} style={{ color: '#000' }} />}
+            <div key={t.id} className="group flex items-center gap-3 rounded-xl px-3.5 py-3" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
+              <button onClick={() => post({ op: 'todoToggle', todoId: t.id, hecho: !t.hecho })} className="shrink-0 h-5 w-5 rounded grid place-items-center transition-colors" style={{ border: '1px solid var(--border)', backgroundColor: t.hecho ? 'var(--gold)' : 'transparent' }} aria-label="Completar">
+                {t.hecho && <Check size={13} style={{ color: '#000' }} />}
               </button>
-              <span className="flex-1 text-sm" style={{ color: t.hecho ? 'var(--muted)' : 'var(--gold)', textDecoration: t.hecho ? 'line-through' : 'none' }}>{t.texto}</span>
-              {editable && (
-                <button onClick={() => post({ op: 'todoDel', todoId: t.id })} className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#ef4444' }} aria-label="Eliminar">
-                  <Trash2 size={14} />
-                </button>
-              )}
+              <span className="flex-1 text-[15px]" style={{ color: t.hecho ? 'var(--muted)' : 'var(--gold)', textDecoration: t.hecho ? 'line-through' : 'none' }}>{t.texto}</span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {t.enlace_subir && (
+                  <a href={hrefOf(t.enlace_subir)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid var(--gold-25)', color: 'var(--gold)' }}>
+                    <Upload size={13} /> Subir
+                  </a>
+                )}
+                {t.enlace_guia && (
+                  <a href={hrefOf(t.enlace_guia)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                    <BookOpen size={13} /> Guía
+                  </a>
+                )}
+                {editable && (
+                  <button onClick={() => abrirEnlaces(t)} className="shrink-0 p-1 transition-opacity hover:opacity-100 opacity-60" style={{ color: 'var(--muted)' }} title="Enlaces (subir / guía)" aria-label="Enlaces">
+                    <Link2 size={15} />
+                  </button>
+                )}
+                {editable && (
+                  <button onClick={() => post({ op: 'todoDel', todoId: t.id })} className="shrink-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#ef4444' }} aria-label="Eliminar">
+                    <Trash2 size={15} />
+                  </button>
+                )}
+              </div>
             </div>
           ))}
           {!cargando && todos.length === 0 && <p className="text-xs py-1" style={{ color: 'var(--muted)' }}>Aún no hay objetivos esta semana.</p>}
@@ -157,7 +184,7 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
         )}
       </div>
 
-      {/* ===== POP-UP: mover / eliminar tarea ===== */}
+      {/* ===== POP-UP: mover / eliminar tarea del horario ===== */}
       {sel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setSel(null)}>
           <div className="w-full max-w-sm rounded-2xl p-5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }} onClick={(e) => e.stopPropagation()}>
@@ -169,12 +196,12 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
             <p className="text-[11px] uppercase tracking-wide mb-2" style={{ color: 'var(--muted)' }}>Mover a otro día</p>
             <div className="grid grid-cols-2 gap-2 mb-4">
               {DIAS.map((dn, di) => {
-                const aqui = di === sel.dia_semana
+                const aqui = di === sel!.dia_semana
                 return (
                   <button
                     key={di}
                     disabled={aqui}
-                    onClick={() => { post({ op: 'move', tareaId: sel.id, dia: di }); setSel(null) }}
+                    onClick={() => { post({ op: 'move', tareaId: sel!.id, dia: di }); setSel(null) }}
                     className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors disabled:cursor-default"
                     style={{
                       border: `1px solid ${aqui ? 'var(--border)' : 'var(--gold-25)'}`,
@@ -189,13 +216,40 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
             </div>
             {editable && (
               <button
-                onClick={() => { post({ op: 'del', tareaId: sel.id }); setSel(null) }}
+                onClick={() => { post({ op: 'del', tareaId: sel!.id }); setSel(null) }}
                 className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444' }}
               >
                 <Trash2 size={14} /> Eliminar tarea
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ===== POP-UP: enlaces del objetivo (solo admin/manager) ===== */}
+      {selTodo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setSelTodo(null)}>
+          <div className="w-full max-w-sm rounded-2xl p-5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h4 className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>Enlaces del objetivo</h4>
+              <button onClick={() => setSelTodo(null)} style={{ color: 'var(--muted)' }} aria-label="Cerrar"><X size={16} /></button>
+            </div>
+            <p className="text-sm mb-4 font-medium" style={{ color: 'var(--gold)' }}>{selTodo.texto}</p>
+
+            <label className="text-xs mb-1 flex items-center gap-1.5" style={{ color: 'var(--muted)' }}><Upload size={12} /> Enlace para subir contenido</label>
+            <input value={linkSubir} onChange={(e) => setLinkSubir(e.target.value)} placeholder="https://…" className="w-full rounded-lg px-3 py-2 text-sm mb-3 outline-none" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+
+            <label className="text-xs mb-1 flex items-center gap-1.5" style={{ color: 'var(--muted)' }}><BookOpen size={12} /> Enlace de la guía</label>
+            <input value={linkGuia} onChange={(e) => setLinkGuia(e.target.value)} placeholder="https://…" className="w-full rounded-lg px-3 py-2 text-sm mb-4 outline-none" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+
+            <button
+              onClick={() => { post({ op: 'todoLinks', todoId: selTodo!.id, enlace_subir: linkSubir, enlace_guia: linkGuia }); setSelTodo(null) }}
+              className="w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-transform active:scale-95"
+              style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}
+            >
+              Guardar enlaces
+            </button>
           </div>
         </div>
       )}

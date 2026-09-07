@@ -26,7 +26,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const perm = await puede(c, id); if (!perm) return NextResponse.json({ error: 'no' }, { status: 403 })
   const [{ data: tareas }, { data: todos }] = await Promise.all([
     c.admin.from('modelo_tareas').select('id, dia_semana, titulo').eq('modelo_id', id).not('dia_semana', 'is', null).order('dia_semana').order('created_at'),
-    c.admin.from('modelo_todos').select('id, texto, hecho, hecho_at').eq('modelo_id', id).order('created_at'),
+    c.admin.from('modelo_todos').select('id, texto, hecho, hecho_at, enlace_subir, enlace_guia').eq('modelo_id', id).order('created_at'),
   ])
   return NextResponse.json({ tareas: tareas ?? [], todos: todos ?? [], editable: perm === 'edit' })
 }
@@ -37,7 +37,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const perm = await puede(c, id); if (!perm) return NextResponse.json({ error: 'no' }, { status: 403 })
   const b = await req.json()
   const t = c.admin
-  // La modelo solo puede marcar el TO-DO y mover tareas de día (no añadir ni borrar).
   if (perm === 'modelo' && !['todoToggle', 'move'].includes(b.op)) return NextResponse.json({ error: 'solo lectura' }, { status: 403 })
   const dia = Number(b.dia)
   if (b.op === 'add') {
@@ -50,5 +49,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   else if (b.op === 'todoAdd') { const texto = String(b.texto || '').trim(); if (texto) await t.from('modelo_todos').insert({ modelo_id: id, texto, created_by: c.uid }) }
   else if (b.op === 'todoToggle') await t.from('modelo_todos').update({ hecho: !!b.hecho, hecho_at: b.hecho ? new Date().toISOString() : null }).eq('id', b.todoId).eq('modelo_id', id)
   else if (b.op === 'todoDel') await t.from('modelo_todos').delete().eq('id', b.todoId).eq('modelo_id', id)
+  else if (b.op === 'todoLinks') await t.from('modelo_todos').update({ enlace_subir: b.enlace_subir ? String(b.enlace_subir).trim() : null, enlace_guia: b.enlace_guia ? String(b.enlace_guia).trim() : null }).eq('id', b.todoId).eq('modelo_id', id)
   return NextResponse.json({ ok: true })
 }
