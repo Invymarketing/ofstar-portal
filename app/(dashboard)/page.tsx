@@ -10,7 +10,7 @@ import {
 import type { UserRole } from '@/types'
 import VentasChart from '@/components/dashboard/VentasChart'
 import SerieChart from '@/components/dashboard/SerieChart'
-import HorarioModelo from '@/components/modelos/HorarioModelo'
+import MetricasModelo from '@/components/modelos/MetricasModelo'
 
 const money = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -572,10 +572,16 @@ export default async function DashboardPage() {
       {role === 'modelo' && (
         <div className="mb-8">
           {modeloRosterId ? (
-            <HorarioModelo modeloId={modeloRosterId} editable={false} />
+            <>
+              <MetricasModelo modeloId={modeloRosterId} />
+              <div className="rounded-2xl border p-5 mt-6 text-center" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Ranking de la agencia</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>Disponible en cuanto activemos el sistema de cumplimiento.</p>
+              </div>
+            </>
           ) : (
             <div className="rounded-2xl border p-6 text-center" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <p className="text-sm" style={{ color: 'var(--foreground)' }}>Tu horario aún no está configurado.</p>
+              <p className="text-sm" style={{ color: 'var(--foreground)' }}>Tu perfil de modelo aún no está vinculado.</p>
               <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>Pídele a tu manager que vincule tu cuenta con tu ficha.</p>
             </div>
           )}

@@ -1,5 +1,4 @@
 // app/api/modelos/[id]/metricas/route.ts
-// Devuelve el histórico de métricas (serie temporal) de una modelo, agregando sus cuentas
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -13,9 +12,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
-  if (!['admin', 'manager', 'creativo'].includes(profile?.role ?? '')) {
-    return NextResponse.json({ error: 'sin_permiso' }, { status: 403 })
+  const role = profile?.role ?? ''
+  let permitido = ['admin', 'manager', 'creativo'].includes(role)
+  if (!permitido && role === 'modelo') {
+    const { data: m } = await admin.from('modelos').select('id').eq('id', id).eq('user_id', user.id).maybeSingle()
+    permitido = !!m
   }
+  if (!permitido) return NextResponse.json({ error: 'sin_permiso' }, { status: 403 })
 
   const { data: cuentas, error } = await admin
     .from('cuentas_analytics')

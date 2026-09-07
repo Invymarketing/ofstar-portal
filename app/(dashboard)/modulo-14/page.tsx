@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Tareas from '@/components/modulo-14/Tareas'
+import HorarioModelo from '@/components/modelos/HorarioModelo'
 import { CheckSquare } from 'lucide-react'
 import type { UserRole } from '@/types'
 
@@ -15,13 +16,40 @@ export default async function Modulo14Page() {
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
   const role = profile?.role as UserRole
+
+  // La modelo ve aquí su horario semanal + TO-DO (no el sistema de tareas asignadas)
+  if (role === 'modelo') {
+    const { data: ficha } = await admin.from('modelos').select('id').eq('user_id', user.id).maybeSingle()
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-start gap-3 mb-8">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-15)' }}>
+            <CheckSquare size={18} style={{ color: 'var(--gold)' }} />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Tareas</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>Tu horario semanal y tus objetivos</p>
+          </div>
+        </div>
+        {ficha ? (
+          <HorarioModelo modeloId={ficha.id} editable={false} />
+        ) : (
+          <div className="rounded-2xl border p-6 text-center" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+            <p className="text-sm" style={{ color: 'var(--foreground)' }}>Tu horario aún no está configurado.</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>Pídele a tu manager que vincule tu cuenta con tu ficha.</p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const esStaff = ['admin', 'manager', 'team_leader'].includes(role)
 
   const { data: personas } = esStaff
     ? await admin.from('profiles').select('id, full_name, role').order('full_name')
     : { data: [] }
 
-  // Cada persona ve: las tareas asignadas A ELLA + las que ELLA asignó a otros.
   const { data: tareas, error } = await admin.from('tareas')
     .select('id, titulo, descripcion, asignado_a, asignado_por, estado, fecha_limite, started_at, completada_at, created_at')
     .or(`asignado_a.eq.${user.id},asignado_por.eq.${user.id}`)
