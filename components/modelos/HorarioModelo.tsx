@@ -59,13 +59,13 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
       {menuId && <div className="fixed inset-0 z-10" onClick={() => setMenuId(null)} />}
 
       {/* ===== HORARIO SEMANAL ===== */}
-      <div className="rounded-2xl border overflow-hidden" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}>
-        <div className="flex items-center gap-2.5 px-5 py-4" style={{ background: 'linear-gradient(90deg, var(--gold-15), transparent)', borderBottom: '1px solid var(--border)' }}>
-          <div className="grid place-items-center h-9 w-9 rounded-xl" style={{ backgroundColor: 'var(--gold-15)' }}>
-            <CalendarDays size={18} style={{ color: 'var(--gold)' }} />
+      <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid var(--gold-25)', backgroundColor: 'var(--surface)' }}>
+        <div className="flex items-center gap-2.5 px-5 py-4" style={{ background: 'linear-gradient(90deg, var(--gold-15), transparent)', borderBottom: '1px solid var(--gold-25)' }}>
+          <div className="grid place-items-center h-10 w-10 rounded-xl" style={{ backgroundColor: 'var(--gold-15)' }}>
+            <CalendarDays size={20} style={{ color: 'var(--gold)' }} />
           </div>
           <div>
-            <h3 className="text-base font-bold" style={{ color: 'var(--foreground)' }}>Horario semanal</h3>
+            <h3 className="text-lg font-bold" style={{ color: 'var(--gold)' }}>Horario semanal</h3>
             <p className="text-xs" style={{ color: 'var(--muted)' }}>{editable ? 'Plantilla fija · se repite cada semana' : 'Tus tareas de esta semana'}</p>
           </div>
         </div>
@@ -76,15 +76,15 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
               const tDia = tareas.filter((t) => t.dia_semana === dia)
               return (
                 <div key={dia} className="rounded-xl flex flex-col" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--background)' }}>
-                  <div className="px-2.5 pt-2.5 pb-2 flex items-center gap-1.5">
-                    <span className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>{nombre}</span>
+                  <div className="px-2.5 pt-2.5 pb-2 flex items-center justify-between gap-1">
+                    <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>{nombre}</span>
                     {tDia.length > 0 && <span className="text-[11px] font-semibold" style={{ color: 'var(--gold)' }}>{tDia.length}</span>}
                   </div>
 
                   <div className="px-2 flex flex-col gap-1.5 min-h-[16px] pb-2">
                     {tDia.map((t) => (
-                      <div key={t.id} className="group rounded-lg px-2 py-1.5 text-xs flex items-start gap-1.5 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-                        <span className="flex-1 leading-snug break-words" style={{ color: 'var(--foreground)' }}>{t.titulo}</span>
+                      <div key={t.id} className="group rounded-lg px-2 py-1.5 text-xs flex items-start gap-1.5 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }}>
+                        <span className="flex-1 leading-snug break-words font-medium" style={{ color: 'var(--gold)' }}>{t.titulo}</span>
                         {editable && (
                           <button onClick={() => setMenuId(menuId === t.id ? null : t.id)} className="shrink-0 opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--muted)' }} aria-label="Opciones">
                             <MoreVertical size={13} />
@@ -109,9 +109,24 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
 
                   {editable && (
                     <div className="p-2 pt-0">
-                      <div className="flex items-center gap-1 rounded-lg px-1.5" style={{ border: '1px dashed var(--border)' }}>
-                        <Plus size={13} style={{ color: 'var(--muted)' }} className="shrink-0" />
-                        <input value={drafts[dia] ?? ''} onChange={(e) => setDrafts((s) => ({ ...s, [dia]: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') addTarea(dia) }} placeholder="Añadir tarea" className="flex-1 bg-transparent py-1.5 text-xs outline-none" style={{ color: 'var(--foreground)' }} />
+                      <div className="flex items-center gap-1 rounded-lg px-1.5" style={{ border: '1px dashed var(--gold-25)' }}>
+                        <input
+                          value={drafts[dia] ?? ''}
+                          onChange={(e) => setDrafts((s) => ({ ...s, [dia]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === 'Enter') addTarea(dia) }}
+                          placeholder="Añadir tarea"
+                          className="flex-1 bg-transparent py-1.5 text-xs outline-none"
+                          style={{ color: 'var(--foreground)' }}
+                        />
+                        <button
+                          onClick={() => addTarea(dia)}
+                          className="shrink-0 grid place-items-center h-6 w-6 rounded-md transition-transform active:scale-90"
+                          style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}
+                          title="Añadir tarea"
+                          aria-label="Añadir tarea"
+                        >
+                          <Plus size={15} />
+                        </button>
                       </div>
                     </div>
                   )}
@@ -126,7 +141,7 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
       <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}>
         <div className="flex items-center gap-2 mb-1">
           <ListTodo size={16} style={{ color: 'var(--gold)' }} />
-          <h3 className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>TO-DO List</h3>
+          <h3 className="text-sm font-bold" style={{ color: 'var(--gold)' }}>TO-DO List</h3>
           {todos.length > 0 && <span className="text-xs" style={{ color: 'var(--muted)' }}>{hechos}/{todos.length}</span>}
         </div>
         <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{editable ? 'Objetivos de la semana. La modelo marca el check cuando los completa.' : 'Marca el check cuando completes cada objetivo.'}</p>
@@ -137,7 +152,7 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
               <button onClick={() => post({ op: 'todoToggle', todoId: t.id, hecho: !t.hecho })} className="shrink-0 h-4 w-4 rounded grid place-items-center transition-colors" style={{ border: '1px solid var(--border)', backgroundColor: t.hecho ? 'var(--gold)' : 'transparent' }} aria-label="Completar">
                 {t.hecho && <Check size={11} style={{ color: '#000' }} />}
               </button>
-              <span className="flex-1 text-sm" style={{ color: t.hecho ? 'var(--muted)' : 'var(--foreground)', textDecoration: t.hecho ? 'line-through' : 'none' }}>{t.texto}</span>
+              <span className="flex-1 text-sm" style={{ color: t.hecho ? 'var(--muted)' : 'var(--gold)', textDecoration: t.hecho ? 'line-through' : 'none' }}>{t.texto}</span>
               {editable && (
                 <button onClick={() => post({ op: 'todoDel', todoId: t.id })} className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#ef4444' }} aria-label="Eliminar">
                   <Trash2 size={14} />
@@ -149,9 +164,11 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
         </div>
 
         {editable && (
-          <div className="flex items-center gap-1.5 rounded-lg px-2" style={{ border: '1px dashed var(--border)' }}>
-            <Plus size={14} style={{ color: 'var(--muted)' }} className="shrink-0" />
+          <div className="flex items-center gap-1.5 rounded-lg px-2" style={{ border: '1px dashed var(--gold-25)' }}>
             <input value={todoDraft} onChange={(e) => setTodoDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addTodo() }} placeholder="Añadir objetivo (ej. 21 Reels)…" className="flex-1 bg-transparent py-2 text-sm outline-none" style={{ color: 'var(--foreground)' }} />
+            <button onClick={addTodo} className="shrink-0 grid place-items-center h-7 w-7 rounded-md transition-transform active:scale-90" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }} title="Añadir objetivo" aria-label="Añadir objetivo">
+              <Plus size={16} />
+            </button>
           </div>
         )}
       </div>
