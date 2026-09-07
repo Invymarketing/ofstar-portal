@@ -22,7 +22,6 @@ export default async function UsuariosPage({ searchParams }: { searchParams: Pro
   const rolInicial = sp?.nuevo === 'modelo' ? 'modelo' : 'chatter'
   const modoModelo = sp?.nuevo === 'modelo'
 
-  // Perfiles + emails/estado desde auth
   const [{ data: profiles }, authList] = await Promise.all([
     admin.from('profiles').select('id, full_name, role, created_at').order('full_name'),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
@@ -43,10 +42,19 @@ export default async function UsuariosPage({ searchParams }: { searchParams: Pro
     activo: !(authMap.get(p.id)?.banned ?? false),
   }))
 
-  // El team leader solo ve chatters en la lista
   if (esTeamLeader) usuarios = usuarios.filter((u) => u.role === 'chatter')
   else if (modoModelo) usuarios = usuarios.filter((u) => u.role === 'modelo')
   else usuarios = usuarios.filter((u) => u.role !== 'modelo')
+
+  let fichas: { id: string; nombre: string; vinculada: boolean }[] = []
+  if (modoModelo) {
+    const { data: fichasRaw } = await admin.from('modelos').select('id, model_name, full_name, user_id').order('model_name')
+    fichas = (fichasRaw ?? []).map((m) => ({
+      id: m.id as string,
+      nombre: (m.model_name || m.full_name || 'Sin nombre') as string,
+      vinculada: !!m.user_id,
+    }))
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -67,7 +75,7 @@ export default async function UsuariosPage({ searchParams }: { searchParams: Pro
         </div>
       </div>
 
-      <GestionUsuarios usuarios={usuarios} miId={user.id} miRole={miRole} rolInicial={rolInicial} modoModelo={modoModelo} key={rolInicial} />
+      <GestionUsuarios usuarios={usuarios} miId={user.id} miRole={miRole} rolInicial={rolInicial} modoModelo={modoModelo} fichas={fichas} key={rolInicial} />
     </div>
   )
 }

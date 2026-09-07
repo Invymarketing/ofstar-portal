@@ -7,8 +7,6 @@ import { createAdminClient } from '@/lib/supabase/admin'
 const ROLES = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo'] as const
 type Rol = (typeof ROLES)[number]
 
-// Admin, manager o team_leader pueden gestionar empleados. Devuelve el rol del actor.
-// El team_leader queda limitado a chatters (se valida en cada acción).
 async function requireGestor() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -26,6 +24,7 @@ export async function crearUsuario(data: {
   full_name: string
   password: string
   role: Rol
+  modeloFichaId?: string
 }) {
   const { role: actorRole } = await requireGestor()
   const admin = createAdminClient()
@@ -36,7 +35,6 @@ export async function crearUsuario(data: {
   if (!data.password || data.password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres')
   if (!ROLES.includes(data.role)) throw new Error('Rol inválido')
   if (data.role === 'admin' && actorRole !== 'admin') throw new Error('Solo un admin puede crear cuentas admin')
-  // El team_leader solo puede crear chatters
   if (actorRole === 'team_leader' && data.role !== 'chatter') {
     throw new Error('Un team leader solo puede crear chatters')
   }
@@ -60,6 +58,11 @@ export async function crearUsuario(data: {
     }
   }
 
+  if (data.role === 'modelo' && data.modeloFichaId) {
+    await admin.from('modelos').update({ user_id: uid }).eq('id', data.modeloFichaId)
+    revalidatePath('/modelos')
+  }
+
   revalidatePath('/usuarios')
 }
 
@@ -70,11 +73,9 @@ export async function cambiarRol(id: string, role: Rol) {
 
   const { data: target } = await admin.from('profiles').select('role, full_name').eq('id', id).single()
 
-  // Un manager no puede tocar cuentas admin ni ascender a nadie a admin
   if (actorRole !== 'admin' && (role === 'admin' || target?.role === 'admin')) {
     throw new Error('Solo un admin puede gestionar cuentas admin')
   }
-  // El team_leader solo gestiona chatters y no puede cambiarles el rol a otra cosa
   if (actorRole === 'team_leader' && (target?.role !== 'chatter' || role !== 'chatter')) {
     throw new Error('Un team leader solo puede gestionar chatters')
   }
@@ -82,7 +83,6 @@ export async function cambiarRol(id: string, role: Rol) {
   await admin.from('profiles').update({ role }).eq('id', id)
   await admin.auth.admin.updateUserById(id, { user_metadata: { role } })
 
-  // Si pasa a Chatter, crea su ficha en Control de Chatters (si no existe)
   if (role === 'chatter') {
     const { data: existente } = await admin.from('chatters').select('id').eq('profile_id', id).maybeSingle()
     if (!existente) {
@@ -92,6 +92,27 @@ export async function cambiarRol(id: string, role: Rol) {
 
   revalidatePath('/usuarios')
   revalidatePath('/modulo-4')
+}
+
+export async function editarNombre(id: string, nombre: string) {
+  const { role: actorRole } = await requireGestor()
+  const admin = createAdminClient()
+  const nuevo = nombre.trim()
+  if (!nuevo) throw new Error('El nombre no puede estar vacío')
+
+  const { data: target } = await admin.from('profiles').select('role').eq('id', id).single()
+  if (actorRole !== 'admin' && target?.role === 'admin') {
+    throw new Error('Solo un admin puede editar cuentas admin')
+  }
+  if (actorRole === 'team_leader' && target?.role !== 'chatter') {
+    throw new Error('Un team leader solo puede gestionar chatters')
+  }
+
+  await admin.from('profiles').update({ full_name: nuevo }).eq('id', id)
+  await admin.auth.admin.updateUserById(id, { user_metadata: { full_name: nuevo } })
+  await admin.from('chatters').update({ nombre: nuevo }).eq('profile_id', id)
+
+  revalidatePath('/usuarios')
 }
 
 export async function toggleUsuario(id: string, activar: boolean) {
@@ -120,6 +141,7 @@ export async function eliminarUsuario(id: string) {
     throw new Error('Un team leader solo puede gestionar chatters')
   }
   await admin.from('chatters').update({ profile_id: null }).eq('profile_id', id)
+  await admin.from('modelos').update({ user_id: null }).eq('user_id', id)
   const { error } = await admin.auth.admin.deleteUser(id)
   if (error) throw new Error(error.message)
   revalidatePath('/usuarios')
