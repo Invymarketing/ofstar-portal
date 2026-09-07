@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getCreators, getTransactions, mapTransaction, type VentaRow } from '@/lib/infloww'
+import { getCreators, getTransactions, mapTransaction, debugCreators, type VentaRow } from '@/lib/infloww'
 
 export const maxDuration = 300 // hasta 5 min
 
@@ -48,6 +48,15 @@ export async function GET(request: NextRequest) {
   else if (Number.isFinite(daysParam) && daysParam > 0) lookbackHours = daysParam * 24
 
   const sinceISO = new Date(Date.now() - lookbackHours * 3600 * 1000).toISOString()
+
+  // Modo creators: prueba varias formas de listar /creators para ver cómo pagina. Uso: ...?creators=1
+  if (url.searchParams.get('creators')) {
+    try {
+      return NextResponse.json(await debugCreators())
+    } catch (err) {
+      return NextResponse.json({ error: 'creators', detalle: String(err) }, { status: 502 })
+    }
+  }
 
   // Modo debug: muestra los campos crudos de una transacción de Infloww. Uso: ...?debug=1
   if (url.searchParams.get('debug')) {
