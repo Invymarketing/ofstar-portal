@@ -37,7 +37,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const perm = await puede(c, id); if (!perm) return NextResponse.json({ error: 'no' }, { status: 403 })
   const b = await req.json()
   const t = c.admin
-  if (perm === 'modelo' && b.op !== 'todoToggle') return NextResponse.json({ error: 'solo lectura' }, { status: 403 })
+  // La modelo solo puede marcar el TO-DO y mover tareas de día (no añadir ni borrar).
+  if (perm === 'modelo' && !['todoToggle', 'move'].includes(b.op)) return NextResponse.json({ error: 'solo lectura' }, { status: 403 })
   const dia = Number(b.dia)
   if (b.op === 'add') {
     if (!(dia >= 0 && dia <= 6)) return NextResponse.json({ error: 'dia' }, { status: 400 })

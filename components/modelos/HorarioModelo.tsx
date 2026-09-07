@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check } from 'lucide-react'
+import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X } from 'lucide-react'
 
 interface Tarea { id: string; dia_semana: number; titulo: string }
 interface Todo { id: string; texto: string; hecho: boolean }
@@ -13,7 +13,7 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
   const [todos, setTodos] = useState<Todo[]>([])
   const [cargando, setCargando] = useState(true)
   const [drafts, setDrafts] = useState<Record<number, string>>({})
-  const [menuId, setMenuId] = useState<string | null>(null)
+  const [sel, setSel] = useState<Tarea | null>(null)
   const [todoDraft, setTodoDraft] = useState('')
 
   const cargar = useCallback(async () => {
@@ -56,8 +56,6 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
 
   return (
     <div className="space-y-4">
-      {menuId && <div className="fixed inset-0 z-10" onClick={() => setMenuId(null)} />}
-
       {/* ===== HORARIO SEMANAL ===== */}
       <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid var(--gold-25)', backgroundColor: 'var(--surface)' }}>
         <div className="flex items-center gap-2.5 px-5 py-4" style={{ background: 'linear-gradient(90deg, var(--gold-15), transparent)', borderBottom: '1px solid var(--gold-25)' }}>
@@ -83,25 +81,11 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
 
                   <div className="px-2 flex flex-col gap-1.5 min-h-[16px] pb-2">
                     {tDia.map((t) => (
-                      <div key={t.id} className="group rounded-lg px-2 py-1.5 text-xs flex items-start gap-1.5 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }}>
+                      <div key={t.id} className="group rounded-lg px-2 py-1.5 text-xs flex items-start gap-1.5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }}>
                         <span className="flex-1 leading-snug break-words font-medium" style={{ color: 'var(--gold)' }}>{t.titulo}</span>
-                        {editable && (
-                          <button onClick={() => setMenuId(menuId === t.id ? null : t.id)} className="shrink-0 opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--muted)' }} aria-label="Opciones">
-                            <MoreVertical size={13} />
-                          </button>
-                        )}
-                        {editable && menuId === t.id && (
-                          <div className="absolute right-1 top-7 z-20 rounded-lg py-1 w-36 shadow-xl" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-                            <p className="px-2.5 py-1 text-[10px] uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Mover a</p>
-                            {DIAS.map((dn, di) => di === dia ? null : (
-                              <button key={di} onClick={() => { post({ op: 'move', tareaId: t.id, dia: di }); setMenuId(null) }} className="w-full text-left px-2.5 py-1 text-xs hover:opacity-70" style={{ color: 'var(--foreground)' }}>{dn}</button>
-                            ))}
-                            <div className="my-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
-                            <button onClick={() => { post({ op: 'del', tareaId: t.id }); setMenuId(null) }} className="w-full text-left px-2.5 py-1 text-xs flex items-center gap-1.5 hover:opacity-70" style={{ color: '#ef4444' }}>
-                              <Trash2 size={12} /> Eliminar
-                            </button>
-                          </div>
-                        )}
+                        <button onClick={() => setSel(t)} className="shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--muted)' }} aria-label="Opciones">
+                          <MoreVertical size={13} />
+                        </button>
                       </div>
                     ))}
                     {!editable && tDia.length === 0 && <span className="text-[11px] px-1 pb-1" style={{ color: 'var(--muted)' }}>—</span>}
@@ -172,6 +156,49 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
           </div>
         )}
       </div>
+
+      {/* ===== POP-UP: mover / eliminar tarea ===== */}
+      {sel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setSel(null)}>
+          <div className="w-full max-w-sm rounded-2xl p-5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h4 className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>Mover tarea</h4>
+              <button onClick={() => setSel(null)} style={{ color: 'var(--muted)' }} aria-label="Cerrar"><X size={16} /></button>
+            </div>
+            <p className="text-sm mb-4 font-medium" style={{ color: 'var(--gold)' }}>{sel.titulo}</p>
+            <p className="text-[11px] uppercase tracking-wide mb-2" style={{ color: 'var(--muted)' }}>Mover a otro día</p>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {DIAS.map((dn, di) => {
+                const aqui = di === sel.dia_semana
+                return (
+                  <button
+                    key={di}
+                    disabled={aqui}
+                    onClick={() => { post({ op: 'move', tareaId: sel.id, dia: di }); setSel(null) }}
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors disabled:cursor-default"
+                    style={{
+                      border: `1px solid ${aqui ? 'var(--border)' : 'var(--gold-25)'}`,
+                      color: aqui ? 'var(--muted)' : 'var(--gold)',
+                      backgroundColor: aqui ? 'var(--background)' : 'transparent',
+                    }}
+                  >
+                    {dn}{aqui ? ' · aquí' : ''}
+                  </button>
+                )
+              })}
+            </div>
+            {editable && (
+              <button
+                onClick={() => { post({ op: 'del', tareaId: sel.id }); setSel(null) }}
+                className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-opacity hover:opacity-80"
+                style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444' }}
+              >
+                <Trash2 size={14} /> Eliminar tarea
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
