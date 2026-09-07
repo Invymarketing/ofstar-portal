@@ -8,7 +8,7 @@ interface Todo { id: string; texto: string; hecho: boolean }
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
-export default function HorarioModelo({ modeloId }: { modeloId: string }) {
+export default function HorarioModelo({ modeloId, editable = true }: { modeloId: string; editable?: boolean }) {
   const [tareas, setTareas] = useState<Tarea[]>([])
   const [todos, setTodos] = useState<Todo[]>([])
   const [cargando, setCargando] = useState(true)
@@ -66,7 +66,7 @@ export default function HorarioModelo({ modeloId }: { modeloId: string }) {
           </div>
           <div>
             <h3 className="text-base font-bold" style={{ color: 'var(--foreground)' }}>Horario semanal</h3>
-            <p className="text-xs" style={{ color: 'var(--muted)' }}>Plantilla fija · se repite cada semana</p>
+            <p className="text-xs" style={{ color: 'var(--muted)' }}>{editable ? 'Plantilla fija · se repite cada semana' : 'Tus tareas de esta semana'}</p>
           </div>
         </div>
 
@@ -81,14 +81,16 @@ export default function HorarioModelo({ modeloId }: { modeloId: string }) {
                     {tDia.length > 0 && <span className="text-[11px] font-semibold" style={{ color: 'var(--gold)' }}>{tDia.length}</span>}
                   </div>
 
-                  <div className="px-2 flex flex-col gap-1.5 min-h-[16px]">
+                  <div className="px-2 flex flex-col gap-1.5 min-h-[16px] pb-2">
                     {tDia.map((t) => (
                       <div key={t.id} className="group rounded-lg px-2 py-1.5 text-xs flex items-start gap-1.5 relative" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
                         <span className="flex-1 leading-snug break-words" style={{ color: 'var(--foreground)' }}>{t.titulo}</span>
-                        <button onClick={() => setMenuId(menuId === t.id ? null : t.id)} className="shrink-0 opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--muted)' }} aria-label="Opciones">
-                          <MoreVertical size={13} />
-                        </button>
-                        {menuId === t.id && (
+                        {editable && (
+                          <button onClick={() => setMenuId(menuId === t.id ? null : t.id)} className="shrink-0 opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--muted)' }} aria-label="Opciones">
+                            <MoreVertical size={13} />
+                          </button>
+                        )}
+                        {editable && menuId === t.id && (
                           <div className="absolute right-1 top-7 z-20 rounded-lg py-1 w-36 shadow-xl" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
                             <p className="px-2.5 py-1 text-[10px] uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Mover a</p>
                             {DIAS.map((dn, di) => di === dia ? null : (
@@ -102,14 +104,17 @@ export default function HorarioModelo({ modeloId }: { modeloId: string }) {
                         )}
                       </div>
                     ))}
+                    {!editable && tDia.length === 0 && <span className="text-[11px] px-1 pb-1" style={{ color: 'var(--muted)' }}>—</span>}
                   </div>
 
-                  <div className="p-2">
-                    <div className="flex items-center gap-1 rounded-lg px-1.5" style={{ border: '1px dashed var(--border)' }}>
-                      <Plus size={13} style={{ color: 'var(--muted)' }} className="shrink-0" />
-                      <input value={drafts[dia] ?? ''} onChange={(e) => setDrafts((s) => ({ ...s, [dia]: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') addTarea(dia) }} placeholder="Añadir tarea" className="flex-1 bg-transparent py-1.5 text-xs outline-none" style={{ color: 'var(--foreground)' }} />
+                  {editable && (
+                    <div className="p-2 pt-0">
+                      <div className="flex items-center gap-1 rounded-lg px-1.5" style={{ border: '1px dashed var(--border)' }}>
+                        <Plus size={13} style={{ color: 'var(--muted)' }} className="shrink-0" />
+                        <input value={drafts[dia] ?? ''} onChange={(e) => setDrafts((s) => ({ ...s, [dia]: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') addTarea(dia) }} placeholder="Añadir tarea" className="flex-1 bg-transparent py-1.5 text-xs outline-none" style={{ color: 'var(--foreground)' }} />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )
             })}
@@ -124,7 +129,7 @@ export default function HorarioModelo({ modeloId }: { modeloId: string }) {
           <h3 className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>TO-DO List</h3>
           {todos.length > 0 && <span className="text-xs" style={{ color: 'var(--muted)' }}>{hechos}/{todos.length}</span>}
         </div>
-        <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>Objetivos de la semana. La modelo marca el check cuando los completa.</p>
+        <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{editable ? 'Objetivos de la semana. La modelo marca el check cuando los completa.' : 'Marca el check cuando completes cada objetivo.'}</p>
 
         <div className="flex flex-col gap-1.5 mb-3">
           {todos.map((t) => (
@@ -133,18 +138,22 @@ export default function HorarioModelo({ modeloId }: { modeloId: string }) {
                 {t.hecho && <Check size={11} style={{ color: '#000' }} />}
               </button>
               <span className="flex-1 text-sm" style={{ color: t.hecho ? 'var(--muted)' : 'var(--foreground)', textDecoration: t.hecho ? 'line-through' : 'none' }}>{t.texto}</span>
-              <button onClick={() => post({ op: 'todoDel', todoId: t.id })} className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#ef4444' }} aria-label="Eliminar">
-                <Trash2 size={14} />
-              </button>
+              {editable && (
+                <button onClick={() => post({ op: 'todoDel', todoId: t.id })} className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#ef4444' }} aria-label="Eliminar">
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           ))}
           {!cargando && todos.length === 0 && <p className="text-xs py-1" style={{ color: 'var(--muted)' }}>Aún no hay objetivos esta semana.</p>}
         </div>
 
-        <div className="flex items-center gap-1.5 rounded-lg px-2" style={{ border: '1px dashed var(--border)' }}>
-          <Plus size={14} style={{ color: 'var(--muted)' }} className="shrink-0" />
-          <input value={todoDraft} onChange={(e) => setTodoDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addTodo() }} placeholder="Añadir objetivo (ej. 21 Reels)…" className="flex-1 bg-transparent py-2 text-sm outline-none" style={{ color: 'var(--foreground)' }} />
-      </div>
+        {editable && (
+          <div className="flex items-center gap-1.5 rounded-lg px-2" style={{ border: '1px dashed var(--border)' }}>
+            <Plus size={14} style={{ color: 'var(--muted)' }} className="shrink-0" />
+            <input value={todoDraft} onChange={(e) => setTodoDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addTodo() }} placeholder="Añadir objetivo (ej. 21 Reels)…" className="flex-1 bg-transparent py-2 text-sm outline-none" style={{ color: 'var(--foreground)' }} />
+          </div>
+        )}
       </div>
     </div>
   )

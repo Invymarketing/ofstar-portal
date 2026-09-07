@@ -10,6 +10,7 @@ import {
 import type { UserRole } from '@/types'
 import VentasChart from '@/components/dashboard/VentasChart'
 import SerieChart from '@/components/dashboard/SerieChart'
+import HorarioModelo from '@/components/modelos/HorarioModelo'
 
 const money = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -106,6 +107,12 @@ export default async function DashboardPage() {
   const fullName = profile?.full_name ?? ''
   const firstName = fullName.split(' ')[0]
   const modules = getAccessibleModules(role)
+
+  let modeloRosterId: string | null = null
+  if (role === 'modelo') {
+    const { data: ficha } = await admin.from('modelos').select('id').eq('user_id', user!.id).maybeSingle()
+    modeloRosterId = ficha?.id ?? null
+  }
 
   const esStaff = ['admin', 'manager', 'team_leader'].includes(role)
   const esAdminOManager = ['admin', 'manager'].includes(role)
@@ -558,6 +565,20 @@ export default async function DashboardPage() {
           </div>
 
           <VentasChart serie={chatter.serie} meta={chatter.meta} metaVendido={chatter.ventasQ} quincenaLabel={chatter.quincenaLabel} hoy={chatter.hoy} />
+        </div>
+      )}
+
+      {/* Horario semanal + TO-DO de la modelo */}
+      {role === 'modelo' && (
+        <div className="mb-8">
+          {modeloRosterId ? (
+            <HorarioModelo modeloId={modeloRosterId} editable={false} />
+          ) : (
+            <div className="rounded-2xl border p-6 text-center" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+              <p className="text-sm" style={{ color: 'var(--foreground)' }}>Tu horario aún no está configurado.</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>Pídele a tu manager que vincule tu cuenta con tu ficha.</p>
+            </div>
+          )}
         </div>
       )}
 

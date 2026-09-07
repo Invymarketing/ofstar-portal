@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Loader2, Users, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Loader2, Users, TrendingUp, Link2 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import HorarioModelo from '@/components/modelos/HorarioModelo'
 
@@ -73,9 +73,11 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
         </div>
       </div>
 
+      <VincularCuenta modeloId={modeloId} />
+
       <HorarioModelo modeloId={modeloId} />
 
-      <div className="rounded-2xl p-4 mb-4" style={card}>
+      <div className="rounded-2xl p-4 mb-4 mt-4" style={card}>
         <p className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>Contenido de la semana</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -144,6 +146,56 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+function VincularCuenta({ modeloId }: { modeloId: string }) {
+  const [cuentas, setCuentas] = useState<{ id: string; full_name: string | null }[]>([])
+  const [actual, setActual] = useState<string>('')
+  const [guardado, setGuardado] = useState(false)
+
+  useEffect(() => {
+    let vivo = true
+    ;(async () => {
+      try {
+        const r = await fetch(`/api/modelos/${modeloId}/cuenta`)
+        const d = await r.json()
+        if (!vivo) return
+        setCuentas(d.cuentas ?? [])
+        setActual(d.actual ?? '')
+      } catch { /* noop */ }
+    })()
+    return () => { vivo = false }
+  }, [modeloId])
+
+  async function guardar(v: string) {
+    setActual(v); setGuardado(false)
+    await fetch(`/api/modelos/${modeloId}/cuenta`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: v || null }),
+    })
+    setGuardado(true); setTimeout(() => setGuardado(false), 2500)
+  }
+
+  return (
+    <div className="rounded-2xl p-4 mb-4 flex items-center gap-3 flex-wrap" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center gap-2">
+        <Link2 size={15} style={{ color: 'var(--gold)' }} />
+        <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Cuenta de acceso</span>
+      </div>
+      <select
+        value={actual}
+        onChange={(e) => guardar(e.target.value)}
+        className="text-sm rounded-lg px-2.5 py-1.5 outline-none"
+        style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
+      >
+        <option value="">Sin vincular</option>
+        {cuentas.map((c) => (
+          <option key={c.id} value={c.id}>{c.full_name || c.id.slice(0, 8)}</option>
+        ))}
+      </select>
+      {guardado && <span className="text-xs" style={{ color: '#4ADE80' }}>Guardado ✓</span>}
+      <span className="text-xs" style={{ color: 'var(--muted)' }}>Con qué cuenta entra la modelo para ver su horario.</span>
     </div>
   )
 }
