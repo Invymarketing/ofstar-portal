@@ -52,13 +52,26 @@ async function inflowwGet<T>(path: string, params: Record<string, string>): Prom
   return res.json() as Promise<T>
 }
 
-// Lista de creators (modelos) de la cuenta
+// Lista de creators (modelos) de la cuenta.
+// Infloww pagina /creators (devuelve ~8 por página aunque pidas limit 100),
+// así que recorremos página por página hasta que no lleguen nuevas.
 export async function getCreators(): Promise<InflowwCreator[]> {
-  const r = await inflowwGet<{ data: { list: InflowwCreator[] } }>('/creators', {
-    platformCode: 'OnlyFans',
-    limit: '100',
-  })
-  return r?.data?.list ?? []
+  const seen = new Map<string, InflowwCreator>()
+  const MAX_PAGES = 50
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const r = await inflowwGet<{ data: { list: InflowwCreator[] } }>('/creators', {
+      platformCode: 'OnlyFans',
+      limit: '100',
+      page: String(page),
+    })
+    const list = r?.data?.list ?? []
+    if (list.length === 0) break
+    const antes = seen.size
+    for (const c of list) seen.set(String(c.id), c)
+    // Si esta página no aportó ninguna cuenta nueva, la API ignora `page` o ya no hay más → paramos.
+    if (seen.size === antes) break
+  }
+  return [...seen.values()]
 }
 
 const PAGE_LIMIT = 100
