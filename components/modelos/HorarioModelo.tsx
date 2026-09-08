@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X, Upload, BookOpen, Link2 } from 'lucide-react'
+import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X, Upload, BookOpen, Link2, Clock } from 'lucide-react'
 
 interface Tarea { id: string; dia_semana: number; titulo: string }
 interface Todo { id: string; texto: string; hecho: boolean; enlace_subir?: string | null; enlace_guia?: string | null }
@@ -19,6 +19,9 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
   const [selTodo, setSelTodo] = useState<Todo | null>(null)
   const [linkSubir, setLinkSubir] = useState('')
   const [linkGuia, setLinkGuia] = useState('')
+  const [limDia, setLimDia] = useState(0)
+  const [limHora, setLimHora] = useState('16:00')
+  const [limGuardado, setLimGuardado] = useState(false)
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -27,6 +30,8 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
       const d = await r.json()
       setTareas(d.tareas ?? [])
       setTodos(d.todos ?? [])
+      setLimDia(d.limite?.dia ?? 0)
+      setLimHora(d.limite?.hora ?? '16:00')
     } catch {
       setTareas([]); setTodos([])
     }
@@ -62,7 +67,14 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
     setLinkGuia(t.enlace_guia ?? '')
   }
 
+  async function guardarLimite(dia: number, hora: string) {
+    setLimDia(dia); setLimHora(hora); setLimGuardado(false)
+    await post({ op: 'limite', dia, hora })
+    setLimGuardado(true); setTimeout(() => setLimGuardado(false), 2000)
+  }
+
   const hechos = todos.filter((t) => t.hecho).length
+  const selectStyle = { backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   return (
     <div className="space-y-4">
@@ -138,7 +150,24 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
           <h3 className="text-sm font-bold" style={{ color: 'var(--gold)' }}>TO-DO List</h3>
           {todos.length > 0 && <span className="text-xs" style={{ color: 'var(--muted)' }}>{hechos}/{todos.length}</span>}
         </div>
-        <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{editable ? 'Objetivos de la semana. La modelo marca el check cuando los completa.' : 'Marca el check cuando completes cada objetivo.'}</p>
+        <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>{editable ? 'Objetivos de la semana. La modelo marca el check cuando los completa.' : 'Marca el check cuando completes cada objetivo.'}</p>
+
+        {/* Fecha límite de entrega */}
+        <div className="flex items-center gap-2 flex-wrap mb-3 text-xs" style={{ color: 'var(--muted)' }}>
+          <Clock size={13} style={{ color: 'var(--gold)' }} />
+          {editable ? (
+            <>
+              <span>Fecha límite de entrega:</span>
+              <select value={limDia} onChange={(e) => guardarLimite(Number(e.target.value), limHora)} className="rounded-lg px-2 py-1 text-xs outline-none" style={selectStyle}>
+                {DIAS.map((dn, di) => <option key={di} value={di}>{dn}</option>)}
+              </select>
+              <input type="time" value={limHora} onChange={(e) => guardarLimite(limDia, e.target.value)} className="rounded-lg px-2 py-1 text-xs outline-none" style={selectStyle} />
+              {limGuardado && <span style={{ color: '#22C55E' }}>Guardado ✓</span>}
+            </>
+          ) : (
+            <span>Entrega antes de: <span style={{ color: 'var(--foreground)', fontWeight: 600 }}>{DIAS[limDia]} · {limHora}</span></span>
+          )}
+        </div>
 
         <div className="flex flex-col gap-2 mb-3">
           {todos.map((t) => (

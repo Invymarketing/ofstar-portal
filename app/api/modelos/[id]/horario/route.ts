@@ -24,11 +24,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const c = await ctx(); if (!c) return NextResponse.json({ error: 'no' }, { status: 403 })
   const { id } = await params
   const perm = await puede(c, id); if (!perm) return NextResponse.json({ error: 'no' }, { status: 403 })
-  const [{ data: tareas }, { data: todos }] = await Promise.all([
+  const [{ data: tareas }, { data: todos }, { data: ficha }] = await Promise.all([
     c.admin.from('modelo_tareas').select('id, dia_semana, titulo').eq('modelo_id', id).not('dia_semana', 'is', null).order('dia_semana').order('created_at'),
     c.admin.from('modelo_todos').select('id, texto, hecho, hecho_at, enlace_subir, enlace_guia').eq('modelo_id', id).order('created_at'),
+    c.admin.from('modelos').select('limite_dia, limite_hora').eq('id', id).maybeSingle(),
   ])
-  return NextResponse.json({ tareas: tareas ?? [], todos: todos ?? [], editable: perm === 'edit' })
+  return NextResponse.json({
+    tareas: tareas ?? [],
+    todos: todos ?? [],
+    editable: perm === 'edit',
+    limite: { dia: ficha?.limite_dia ?? 0, hora: ficha?.limite_hora ?? '16:00' },
+  })
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -50,5 +56,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   else if (b.op === 'todoToggle') await t.from('modelo_todos').update({ hecho: !!b.hecho, hecho_at: b.hecho ? new Date().toISOString() : null }).eq('id', b.todoId).eq('modelo_id', id)
   else if (b.op === 'todoDel') await t.from('modelo_todos').delete().eq('id', b.todoId).eq('modelo_id', id)
   else if (b.op === 'todoLinks') await t.from('modelo_todos').update({ enlace_subir: b.enlace_subir ? String(b.enlace_subir).trim() : null, enlace_guia: b.enlace_guia ? String(b.enlace_guia).trim() : null }).eq('id', b.todoId).eq('modelo_id', id)
+  else if (b.op === 'limite') {
+    const d = dia >= 0 && dia <= 6 ? dia : 0
+    const hora = /^\d{1,2}:\d{2}$/.test(String(b.hora || '')) ? String(b.hora) : '16:00'
+    await t.from('modelos').update({ limite_dia: d, limite_hora: hora }).eq('id', id)
+  }
   return NextResponse.json({ ok: true })
 }
