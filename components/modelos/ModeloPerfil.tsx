@@ -21,19 +21,30 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
 
   return (
     <div className="max-w-5xl mx-auto">
+      {/* Layout robusto con CSS directo (no depende de valores arbitrarios de Tailwind) */}
+      <style>{`
+        .mp-layout { display: flex; gap: 20px; align-items: flex-start; }
+        .mp-nav { display: flex; flex-direction: column; gap: 6px; width: 210px; flex-shrink: 0; }
+        .mp-content { flex: 1 1 auto; min-width: 0; }
+        @media (max-width: 767px) {
+          .mp-layout { flex-direction: column; }
+          .mp-nav { flex-direction: row; width: 100%; overflow-x: auto; padding-bottom: 4px; }
+        }
+      `}</style>
+
       <button onClick={onBack} className="flex items-center gap-1.5 text-sm mb-5 px-3 py-1.5 rounded-lg" style={{ color: 'var(--muted)', backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
         <ArrowLeft size={14} /> Volver a modelos
       </button>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center text-xl font-bold shrink-0" style={{ backgroundColor: 'var(--gold-15)', color: 'var(--gold)' }}>
-          {foto ? <img src={foto} alt={nombre} className="w-full h-full object-cover object-center" /> : nombre[0]?.toUpperCase()}
+        <div style={{ width: 48, height: 48, borderRadius: '9999px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18, fontWeight: 700, backgroundColor: 'var(--gold-15)', color: 'var(--gold)' }}>
+          {foto ? <img src={foto} alt={nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} /> : nombre[0]?.toUpperCase()}
         </div>
         <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{nombre}</h1>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-[210px_minmax(0,1fr)] items-start">
-        <nav className="flex md:flex-col gap-1.5 overflow-x-auto pb-1 md:pb-0">
+      <div className="mp-layout">
+        <nav className="mp-nav">
           {TABS.map((tb) => {
             const Icon = tb.icon
             const activo = tab === tb.key
@@ -47,7 +58,7 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
           })}
         </nav>
 
-        <div className="min-w-0">
+        <div className="mp-content">
           {tab === 'portada' && (
             <div className="space-y-4">
               <VincularCuenta modeloId={modeloId} />
