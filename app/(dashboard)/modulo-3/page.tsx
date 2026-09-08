@@ -109,6 +109,7 @@ export default async function Modulo3Page() {
           ventas={ventasView}
           fans={fansView}
           sinMapear={sinMapear}
+          chatters={(chatters ?? []).map((c) => ({ id: c.id, nombre: c.nombre }))}
         />
       )}
     </div>
