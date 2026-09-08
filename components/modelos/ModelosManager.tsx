@@ -4,12 +4,10 @@ import { useState, useEffect } from 'react'
 import { Plus, X, Loader2, Trash2, Pencil, AtSign } from 'lucide-react'
 import ModeloPerfil from './ModeloPerfil'
 
-interface Nicho { id: string; nombre: string; color: string }
 interface Modelo {
   id: string
   full_name: string
   model_name: string | null
-  nicho_id: string | null
   ig_username: string | null
   content_snare_url: string | null
   notion_url: string | null
@@ -19,10 +17,9 @@ interface Modelo {
   drive_content_folder_id: string | null
   of_trial_link: string | null
   created_at?: string | null
-  nichos: Nicho | null
 }
 
-export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
+export default function ModelosManager() {
   const [modelos, setModelos] = useState<Modelo[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -76,47 +73,41 @@ export default function ModelosManager({ nichos }: { nichos: Nicho[] }) {
 
       {!loading && modelos.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {modelos.map(m => {
-            const nicho = m.nichos
-            return (
-              <div key={m.id} onClick={() => setPerfilModelo(m)} className="rounded-2xl p-4 cursor-pointer" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-                <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold" style={{ backgroundColor: nicho ? `${nicho.color}22` : 'var(--gold-15)', color: nicho?.color ?? 'var(--gold)' }}>
-                    {m.foto_url ? (<img src={m.foto_url} alt={m.full_name} className="w-full h-full object-cover" />) : (m.full_name[0]?.toUpperCase())}
-                  </div>
-                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => setEditModelo(m)} title="Editar nombre" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-foreground transition-colors"><Pencil size={14} /></button>
-                    <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
-                  </div>
+          {modelos.map(m => (
+            <div key={m.id} onClick={() => setPerfilModelo(m)} className="rounded-2xl p-4 cursor-pointer" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'var(--gold-15)', color: 'var(--gold)' }}>
+                  {m.foto_url ? (<img src={m.foto_url} alt={m.full_name} className="w-full h-full object-cover" />) : (m.full_name[0]?.toUpperCase())}
                 </div>
-                <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                  <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{m.model_name || m.full_name}</p>
-                  {nicho && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${nicho.color}18`, color: nicho.color, border: `1px solid ${nicho.color}44` }}>{nicho.nombre}</span>}
-                </div>
-                {m.full_name && m.model_name && m.full_name !== m.model_name && (
-                  <p className="text-[11px]" style={{ color: '#6B6B7E' }}>Real: {m.full_name}</p>
-                )}
-                {m.ig_username && <p className="text-xs" style={{ color: 'var(--muted)' }}>@{m.ig_username}</p>}
-                {m.created_at && (
-                  <p className="text-[11px] mb-2" style={{ color: '#6B6B7E' }}>
-                    Ficha desde {new Date(m.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </p>
-                )}
-                <BadgeContenido modeloId={m.id} />
-                <BadgeOnlyFans modeloId={m.id} />
-                <div className="flex gap-2 mt-2 items-center" onClick={(e) => e.stopPropagation()}>
-                  {m.content_snare_url && <span title="Content Snare (vinculado)" className="p-1 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--border)' }}><img src="/content-snare.svg" alt="Content Snare" width={16} height={16} className="rounded" /></span>}
-                  {m.notion_url && <a href={m.notion_url} target="_blank" rel="noopener noreferrer" title="Notion" className="p-1 rounded-lg hover:bg-[var(--hover)] flex items-center justify-center"><img src="/notion.svg" alt="Notion" width={16} height={16} /></a>}
-                  {m.drive_url && <a href={m.drive_url} target="_blank" rel="noopener noreferrer" title="Google Drive" className="p-1 rounded-lg hover:bg-[var(--hover)] flex items-center justify-center"><img src="/drive.svg" alt="Google Drive" width={16} height={16} /></a>}
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => setEditModelo(m)} title="Editar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-foreground transition-colors"><Pencil size={14} /></button>
+                  <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                 </div>
               </div>
-            )
-          })}
+              <p className="text-sm font-semibold mb-0.5" style={{ color: 'var(--foreground)' }}>{m.model_name || m.full_name}</p>
+              {m.full_name && m.model_name && m.full_name !== m.model_name && (
+                <p className="text-[11px]" style={{ color: '#6B6B7E' }}>Real: {m.full_name}</p>
+              )}
+              {m.ig_username && <p className="text-xs" style={{ color: 'var(--muted)' }}>@{m.ig_username}</p>}
+              {m.created_at && (
+                <p className="text-[11px] mb-2" style={{ color: '#6B6B7E' }}>
+                  Ficha desde {new Date(m.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </p>
+              )}
+              <BadgeContenido modeloId={m.id} />
+              <BadgeOnlyFans modeloId={m.id} />
+              <div className="flex gap-2 mt-2 items-center" onClick={(e) => e.stopPropagation()}>
+                {m.content_snare_url && <span title="Content Snare (vinculado)" className="p-1 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--border)' }}><img src="/content-snare.svg" alt="Content Snare" width={16} height={16} className="rounded" /></span>}
+                {m.notion_url && <a href={m.notion_url} target="_blank" rel="noopener noreferrer" title="Notion" className="p-1 rounded-lg hover:bg-[var(--hover)] flex items-center justify-center"><img src="/notion.svg" alt="Notion" width={16} height={16} /></a>}
+                {m.drive_url && <a href={m.drive_url} target="_blank" rel="noopener noreferrer" title="Google Drive" className="p-1 rounded-lg hover:bg-[var(--hover)] flex items-center justify-center"><img src="/drive.svg" alt="Google Drive" width={16} height={16} /></a>}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {showModal && <AddModeloModal nichos={nichos} onClose={() => setShowModal(false)} onAdded={() => { setShowModal(false); cargar() }} />}
-      {editModelo && <EditModeloModal nichos={nichos} modelo={editModelo} onClose={() => setEditModelo(null)} onSaved={() => { setEditModelo(null); cargar() }} />}
+      {showModal && <AddModeloModal onClose={() => setShowModal(false)} onAdded={() => { setShowModal(false); cargar() }} />}
+      {editModelo && <EditModeloModal modelo={editModelo} onClose={() => setEditModelo(null)} onSaved={() => { setEditModelo(null); cargar() }} />}
     </div>
   )
 }
@@ -199,10 +190,9 @@ function BadgeOnlyFans({ modeloId }: { modeloId: string }) {
   )
 }
 
-function AddModeloModal({ nichos, onClose, onAdded }: { nichos: Nicho[]; onClose: () => void; onAdded: () => void }) {
+function AddModeloModal({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
   const [fullName, setFullName] = useState('')
   const [modelName, setModelName] = useState('')
-  const [nichoId, setNichoId] = useState('')
   const [igUsername, setIgUsername] = useState('')
   const [contentSnare, setContentSnare] = useState('')
   const [notion, setNotion] = useState('')
@@ -218,7 +208,7 @@ function AddModeloModal({ nichos, onClose, onAdded }: { nichos: Nicho[]; onClose
       const res = await fetch('/api/modelos-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: fullName, model_name: modelName, nicho_id: nichoId, ig_username: igUsername, content_snare_url: contentSnare, notion_url: notion, drive_url: drive }),
+        body: JSON.stringify({ full_name: fullName, model_name: modelName, ig_username: igUsername, content_snare_url: contentSnare, notion_url: notion, drive_url: drive }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.message || 'Error al crear'); setLoading(false); return }
@@ -242,14 +232,6 @@ function AddModeloModal({ nichos, onClose, onAdded }: { nichos: Nicho[]; onClose
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Nombre en OnlyFans</label>
             <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder="Cómo aparece en OF (opcional)" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
-          </div>
-          <div>
-            <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Nicho</label>
-            <div className="flex flex-wrap gap-2">
-              {nichos.map(n => (
-                <button key={n.id} type="button" onClick={() => setNichoId(nichoId === n.id ? '' : n.id)} disabled={loading} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all disabled:opacity-50" style={{ backgroundColor: nichoId === n.id ? `${n.color}22` : '#0D0D14', color: nichoId === n.id ? n.color : 'var(--muted)', border: nichoId === n.id ? `1px solid ${n.color}66` : '1px solid var(--border)' }}>{n.nombre}</button>
-              ))}
-            </div>
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Instagram</label>
@@ -285,10 +267,9 @@ function AddModeloModal({ nichos, onClose, onAdded }: { nichos: Nicho[]; onClose
   )
 }
 
-function EditModeloModal({ nichos, modelo, onClose, onSaved }: { nichos: Nicho[]; modelo: Modelo; onClose: () => void; onSaved: () => void }) {
+function EditModeloModal({ modelo, onClose, onSaved }: { modelo: Modelo; onClose: () => void; onSaved: () => void }) {
   const [fullName, setFullName] = useState(modelo.full_name ?? '')
   const [modelName, setModelName] = useState(modelo.model_name ?? '')
-  const [nichoId, setNichoId] = useState(modelo.nicho_id ?? '')
   const [igUsername, setIgUsername] = useState(modelo.ig_username ?? '')
   const [telegramGroup, setTelegramGroup] = useState(modelo.telegram_group_id ?? '')
   const [driveFolder, setDriveFolder] = useState(modelo.drive_content_folder_id ?? '')
@@ -304,7 +285,7 @@ function EditModeloModal({ nichos, modelo, onClose, onSaved }: { nichos: Nicho[]
       const res = await fetch('/api/modelos-admin', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: modelo.id, full_name: fullName, model_name: modelName, nicho_id: nichoId, ig_username: igUsername, telegram_group_id: telegramGroup, drive_content_folder_id: driveFolder, of_trial_link: ofLink }),
+        body: JSON.stringify({ id: modelo.id, full_name: fullName, model_name: modelName, ig_username: igUsername, telegram_group_id: telegramGroup, drive_content_folder_id: driveFolder, of_trial_link: ofLink }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.message || 'Error al guardar'); setLoading(false); return }
@@ -329,14 +310,6 @@ function EditModeloModal({ nichos, modelo, onClose, onSaved }: { nichos: Nicho[]
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Nombre en OnlyFans</label>
             <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder="Cómo aparece en OF" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
             <p className="text-[11px] mt-1" style={{ color: '#6B6B7E' }}>Este es el nombre que se ve en el portal y con el que se cruzan las ventas de Infloww.</p>
-          </div>
-          <div>
-            <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Nicho</label>
-            <div className="flex flex-wrap gap-2">
-              {nichos.map(n => (
-                <button key={n.id} type="button" onClick={() => setNichoId(nichoId === n.id ? '' : n.id)} disabled={loading} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all disabled:opacity-50" style={{ backgroundColor: nichoId === n.id ? `${n.color}22` : '#0D0D14', color: nichoId === n.id ? n.color : 'var(--muted)', border: nichoId === n.id ? `1px solid ${n.color}66` : '1px solid var(--border)' }}>{n.nombre}</button>
-              ))}
-            </div>
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Instagram</label>
