@@ -66,3 +66,80 @@ export async function mapearCreator(modeloId: string, creatorId: string) {
   if (e2) throw new Error(e2.message)
   revalidatePath('/modulo-3')
 }
+
+// ----------------------------------------------------------------------------
+// Búsqueda de ventas en TODO el histórico (no solo los 35 días precargados).
+// Filtra por modelo, día y/o fan, y devuelve a qué chatter quedó asignada cada una.
+export interface VentaBuscada {
+  id: string
+  fecha: string
+  fan_name: string | null
+  monto_bruto: number
+  tipo: string | null
+  estado: string
+  modelo: string | null
+  chatter: string | null
+  chatter_id: string | null
+}
+
+export async function buscarVentas(filtros: {
+  modelo_id?: string | null
+  fecha?: string | null      // 'YYYY-MM-DD'
+  fan?: string | null
+}): Promise<VentaBuscada[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const admin = createAdminClient()
+  const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) throw new Error('Sin permiso')
+
+  let q = admin.from('ventas')
+    .select('id, fecha, fan_name, monto_bruto, tipo, estado, modelo_id, chatter_id')
+    .order('fecha', { ascending: false })
+    .limit(2000)
+
+  if (filtros.modelo_id) q = q.eq('modelo_id', filtros.modelo_id)
+  if (filtros.fan && filtros.fan.trim()) q = q.ilike('fan_name', `%${filtros.fan.trim()}%`)
+  if (filtros.fecha) {
+    const desde = new Date(`${filtros.fecha}T00:00:00.000Z`).toISOString()
+    const hasta = new Date(new Date(desde).getTime() + 24 * 3600 * 1000).toISOString()
+    q = q.gte('fecha', desde).lt('fecha', hasta)
+  }
+
+  const { data: ventas, error } = await q
+  if (error) throw new Error(error.message)
+
+  const [{ data: modelos }, { data: chatters }] = await Promise.all([
+    admin.from('modelos').select('id, model_name'),
+    admin.from('chatters').select('id, nombre'),
+  ])
+  const mMap = new Map((modelos ?? []).map((m) => [m.id, m.model_name]))
+  const cMap = new Map((chatters ?? []).map((c) => [c.id, c.nombre]))
+
+  return (ventas ?? []).map((v) => ({
+    id: v.id,
+    fecha: v.fecha,
+    fan_name: v.fan_name,
+    monto_bruto: Number(v.monto_bruto ?? 0),
+    tipo: v.tipo,
+    estado: v.estado,
+    modelo: v.modelo_id ? (mMap.get(v.modelo_id) ?? null) : null,
+    chatter: v.chatter_id ? (cMap.get(v.chatter_id) ?? null) : null,
+    chatter_id: v.chatter_id ?? null,
+  }))
+}
+
+// Reasigna manualmente una venta a otro chatter (o la deja sin asignar con null).
+export async function reasignarVenta(ventaId: string, chatterId: string | null) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const admin = createAdminClient()
+  const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) throw new Error('Sin permiso')
+
+  const { error } = await admin.from('ventas').update({ chatter_id: chatterId }).eq('id', ventaId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/modulo-3')
+}
