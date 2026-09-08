@@ -9,7 +9,7 @@ interface Todo { id: string; texto: string; hecho: boolean; enlace_subir?: strin
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const hrefOf = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`)
 
-export default function HorarioModelo({ modeloId, editable = true }: { modeloId: string; editable?: boolean }) {
+export default function HorarioModelo({ modeloId, editable = true, seccion = 'ambos' }: { modeloId: string; editable?: boolean; seccion?: 'horario' | 'todo' | 'ambos' }) {
   const [tareas, setTareas] = useState<Tarea[]>([])
   const [todos, setTodos] = useState<Todo[]>([])
   const [cargando, setCargando] = useState(true)
@@ -75,10 +75,12 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
 
   const hechos = todos.filter((t) => t.hecho).length
   const selectStyle = { backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
+  const verHorario = seccion !== 'todo'
+  const verTodo = seccion !== 'horario'
 
   return (
     <div className="space-y-4">
-      {/* ===== HORARIO SEMANAL ===== */}
+      {verHorario && (
       <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid var(--gold-25)', backgroundColor: 'var(--surface)' }}>
         <div className="flex items-center gap-2.5 px-5 py-4" style={{ background: 'linear-gradient(90deg, var(--gold-15), transparent)', borderBottom: '1px solid var(--gold-25)' }}>
           <div className="grid place-items-center h-10 w-10 rounded-xl" style={{ backgroundColor: 'var(--gold-15)' }}>
@@ -116,21 +118,8 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
                   {editable && (
                     <div className="p-2 pt-0">
                       <div className="flex items-center gap-1 rounded-lg px-1.5" style={{ border: '1px dashed var(--gold-25)' }}>
-                        <input
-                          value={drafts[dia] ?? ''}
-                          onChange={(e) => setDrafts((s) => ({ ...s, [dia]: e.target.value }))}
-                          onKeyDown={(e) => { if (e.key === 'Enter') addTarea(dia) }}
-                          placeholder="Añadir tarea"
-                          className="flex-1 bg-transparent py-1.5 text-xs outline-none"
-                          style={{ color: 'var(--foreground)' }}
-                        />
-                        <button
-                          onClick={() => addTarea(dia)}
-                          className="shrink-0 grid place-items-center h-6 w-6 rounded-md transition-transform active:scale-90"
-                          style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}
-                          title="Añadir tarea"
-                          aria-label="Añadir tarea"
-                        >
+                        <input value={drafts[dia] ?? ''} onChange={(e) => setDrafts((s) => ({ ...s, [dia]: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') addTarea(dia) }} placeholder="Añadir tarea" className="flex-1 bg-transparent py-1.5 text-xs outline-none" style={{ color: 'var(--foreground)' }} />
+                        <button onClick={() => addTarea(dia)} className="shrink-0 grid place-items-center h-6 w-6 rounded-md transition-transform active:scale-90" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }} title="Añadir tarea" aria-label="Añadir tarea">
                           <Plus size={15} />
                         </button>
                       </div>
@@ -142,8 +131,9 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
           </div>
         </div>
       </div>
+      )}
 
-      {/* ===== TO-DO LIST ===== */}
+      {verTodo && (
       <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}>
         <div className="flex items-center gap-2 mb-1">
           <ListTodo size={16} style={{ color: 'var(--gold)' }} />
@@ -152,7 +142,6 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
         </div>
         <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>{editable ? 'Objetivos de la semana. La modelo marca el check cuando los completa.' : 'Marca el check cuando completes cada objetivo.'}</p>
 
-        {/* Fecha límite de entrega */}
         <div className="flex items-center gap-2 flex-wrap mb-3 text-xs" style={{ color: 'var(--muted)' }}>
           <Clock size={13} style={{ color: 'var(--gold)' }} />
           {editable ? (
@@ -212,8 +201,8 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
           </div>
         )}
       </div>
+      )}
 
-      {/* ===== POP-UP: mover / eliminar tarea del horario ===== */}
       {sel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setSel(null)}>
           <div className="w-full max-w-sm rounded-2xl p-5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }} onClick={(e) => e.stopPropagation()}>
@@ -227,28 +216,16 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
               {DIAS.map((dn, di) => {
                 const aqui = di === sel!.dia_semana
                 return (
-                  <button
-                    key={di}
-                    disabled={aqui}
-                    onClick={() => { post({ op: 'move', tareaId: sel!.id, dia: di }); setSel(null) }}
+                  <button key={di} disabled={aqui} onClick={() => { post({ op: 'move', tareaId: sel!.id, dia: di }); setSel(null) }}
                     className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors disabled:cursor-default"
-                    style={{
-                      border: `1px solid ${aqui ? 'var(--border)' : 'var(--gold-25)'}`,
-                      color: aqui ? 'var(--muted)' : 'var(--gold)',
-                      backgroundColor: aqui ? 'var(--background)' : 'transparent',
-                    }}
-                  >
+                    style={{ border: `1px solid ${aqui ? 'var(--border)' : 'var(--gold-25)'}`, color: aqui ? 'var(--muted)' : 'var(--gold)', backgroundColor: aqui ? 'var(--background)' : 'transparent' }}>
                     {dn}{aqui ? ' · aquí' : ''}
                   </button>
                 )
               })}
             </div>
             {editable && (
-              <button
-                onClick={() => { post({ op: 'del', tareaId: sel!.id }); setSel(null) }}
-                className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-opacity hover:opacity-80"
-                style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444' }}
-              >
+              <button onClick={() => { post({ op: 'del', tareaId: sel!.id }); setSel(null) }} className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444' }}>
                 <Trash2 size={14} /> Eliminar tarea
               </button>
             )}
@@ -256,7 +233,6 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
         </div>
       )}
 
-      {/* ===== POP-UP: enlaces del objetivo (solo admin/manager) ===== */}
       {selTodo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setSelTodo(null)}>
           <div className="w-full max-w-sm rounded-2xl p-5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }} onClick={(e) => e.stopPropagation()}>
@@ -265,18 +241,11 @@ export default function HorarioModelo({ modeloId, editable = true }: { modeloId:
               <button onClick={() => setSelTodo(null)} style={{ color: 'var(--muted)' }} aria-label="Cerrar"><X size={16} /></button>
             </div>
             <p className="text-sm mb-4 font-medium" style={{ color: 'var(--gold)' }}>{selTodo.texto}</p>
-
             <label className="text-xs mb-1 flex items-center gap-1.5" style={{ color: 'var(--muted)' }}><Upload size={12} /> Enlace para subir contenido</label>
             <input value={linkSubir} onChange={(e) => setLinkSubir(e.target.value)} placeholder="https://…" className="w-full rounded-lg px-3 py-2 text-sm mb-3 outline-none" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
-
             <label className="text-xs mb-1 flex items-center gap-1.5" style={{ color: 'var(--muted)' }}><BookOpen size={12} /> Enlace de la guía</label>
             <input value={linkGuia} onChange={(e) => setLinkGuia(e.target.value)} placeholder="https://…" className="w-full rounded-lg px-3 py-2 text-sm mb-4 outline-none" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
-
-            <button
-              onClick={() => { post({ op: 'todoLinks', todoId: selTodo!.id, enlace_subir: linkSubir, enlace_guia: linkGuia }); setSelTodo(null) }}
-              className="w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-transform active:scale-95"
-              style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}
-            >
+            <button onClick={() => { post({ op: 'todoLinks', todoId: selTodo!.id, enlace_subir: linkSubir, enlace_guia: linkGuia }); setSelTodo(null) }} className="w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-transform active:scale-95" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
               Guardar enlaces
             </button>
           </div>
