@@ -1,11 +1,9 @@
 'use client'
 
-import { Users, TrendingUp } from 'lucide-react'
+import { Users } from 'lucide-react'
 import { Grupo, formatNum } from './analytics-utils'
 
 export default function GrupoCard({ grupo, onClick }: { grupo: Grupo; onClick: () => void }) {
-  const nicho = grupo.nicho
-
   return (
     <button
       onClick={onClick}
@@ -18,14 +16,8 @@ export default function GrupoCard({ grupo, onClick }: { grupo: Grupo; onClick: (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={grupo.profilePic} alt={grupo.nombre} className="w-full h-full object-cover" loading="lazy" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-3xl font-bold" style={{ color: nicho?.color ?? 'var(--muted)' }}>
+          <div className="w-full h-full flex items-center justify-center text-3xl font-bold" style={{ color: 'var(--gold)' }}>
             {grupo.nombre[0]?.toUpperCase()}
-          </div>
-        )}
-        {/* Badge de nicho */}
-        {nicho && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full" style={{ backgroundColor: `${nicho.color}dd` }}>
-            <span className="text-[10px] font-bold" style={{ color: '#0D0D14' }}>{nicho.nombre}</span>
           </div>
         )}
         {/* Nº de cuentas */}

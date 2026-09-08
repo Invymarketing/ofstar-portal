@@ -1,6 +1,5 @@
 // components/modulo-2/analytics-utils.ts
 
-export interface Nicho { id: string; nombre: string; color: string }
 export interface Metrica { fecha: string; seguidores: number; siguiendo: number; engagement_rate: number }
 export interface Reel { url: string; thumbnail_url: string | null; caption: string; views: number; likes: number; comentarios: number; ratio_vl: number; fecha_publicacion: string | null }
 export interface ModeloRef { id: string; full_name: string; model_name: string | null }
@@ -9,7 +8,7 @@ export interface Cuenta {
   modelo_id: string | null; grupo_competencia: string | null; es_principal: boolean
   full_name: string | null; profile_pic_url: string | null
   notas: string | null; activa: boolean; ultima_sync: string | null
-  nichos: Nicho | null; modelos: ModeloRef | null
+  modelos: ModeloRef | null
   metricas_analytics: Metrica[]; reels_analytics: Reel[]
 }
 
@@ -17,7 +16,6 @@ export interface Cuenta {
 export interface Grupo {
   key: string              // modelo_id o grupo_competencia
   nombre: string
-  nicho: Nicho | null
   profilePic: string | null
   cuentas: Cuenta[]
   totalSeguidores: number
@@ -66,7 +64,6 @@ export function agruparCuentas(cuentas: Cuenta[], tipo: 'propia' | 'competencia'
     grupos.push({
       key,
       nombre,
-      nicho: principal.nichos,
       profilePic: principal.profile_pic_url,
       cuentas: lista,
       totalSeguidores,

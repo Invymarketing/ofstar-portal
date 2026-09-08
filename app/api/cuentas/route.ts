@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
     .from('cuentas_analytics')
     .select(`
       *,
-      nichos ( id, nombre, color ),
       modelos ( id, full_name, model_name ),
       metricas_analytics ( fecha, seguidores, siguiendo, engagement_rate ),
       reels_analytics ( url, thumbnail_url, caption, views, likes, comentarios, ratio_vl, fecha_publicacion )
@@ -40,13 +39,13 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ cuentas: data ?? [] })
 }
 
-// POST — crea cuenta (ahora con modelo_id o grupo_competencia)
+// POST — crea cuenta (con modelo_id o grupo_competencia)
 export async function POST(request: NextRequest) {
   const auth = await checkAuth()
   if (!auth.ok) return NextResponse.json({ error: 'sin_permiso' }, { status: auth.status })
 
   const body = await request.json()
-  const { tipo, ig_username, nicho_id, modelo_id, grupo_competencia, es_principal, notas } = body
+  const { tipo, ig_username, modelo_id, grupo_competencia, es_principal, notas } = body
 
   if (!tipo || !ig_username) {
     return NextResponse.json({ error: 'faltan_campos' }, { status: 400 })
@@ -57,7 +56,6 @@ export async function POST(request: NextRequest) {
     .insert({
       tipo,
       ig_username: ig_username.replace('@', '').trim(),
-      nicho_id: nicho_id || null,
       modelo_id: modelo_id || null,
       grupo_competencia: grupo_competencia || null,
       es_principal: es_principal ?? false,

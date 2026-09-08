@@ -2,19 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { X, AtSign, Loader2, Star, Check } from 'lucide-react'
-import { Nicho } from './analytics-utils'
 
 interface Modelo { id: string; nombre: string }
 interface Props {
   tipo: 'propia' | 'competencia'
-  nichos: Nicho[]
   onClose: () => void
   onAdded: () => void
 }
 
-export default function AddCuentaModal({ tipo, nichos, onClose, onAdded }: Props) {
+export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
   const [username, setUsername] = useState('')
-  const [nichoId, setNichoId] = useState('')
   const [modeloId, setModeloId] = useState('')                 // propia: 1 modelo
   const [modelosRef, setModelosRef] = useState<Set<string>>(new Set()) // competencia: varias
   const [grupoComp, setGrupoComp] = useState('')
@@ -60,7 +57,7 @@ export default function AddCuentaModal({ tipo, nichos, onClose, onAdded }: Props
       const res = await fetch('/api/cuentas', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tipo, ig_username: username, nicho_id: nichoId,
+          tipo, ig_username: username,
           modelo_id: tipo === 'propia' ? modeloId : null,
           grupo_competencia: tipo === 'competencia' ? grupoComp : null,
           es_principal: esPrincipal, notas,

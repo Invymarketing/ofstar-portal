@@ -4,11 +4,8 @@ import { useState } from 'react'
 import { BarChart3, TrendingUp, Users } from 'lucide-react'
 import GaleriaModelos from './GaleriaModelos'
 import CompetenciaTab from './CompetenciaTab'
-import { Nicho } from './analytics-utils'
 
-interface Props { userId: string; userRole: string; nichos: Nicho[] }
-
-export default function AnalyticsDashboard({ userId, userRole, nichos }: Props) {
+export default function AnalyticsDashboard() {
   const [activeTab, setActiveTab] = useState<'propia' | 'competencia'>('propia')
 
   const tabStyle = (active: boolean) => ({
@@ -26,7 +23,7 @@ export default function AnalyticsDashboard({ userId, userRole, nichos }: Props) 
           </div>
           <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Analytics & Referencias</h1>
         </div>
-        <p className="text-sm ml-12" style={{ color: 'var(--muted)' }}>Métricas de cuentas propias y análisis de competencia por nicho</p>
+        <p className="text-sm ml-12" style={{ color: 'var(--muted)' }}>Métricas de cuentas propias y análisis de la competencia por modelo</p>
       </div>
 
       <div className="flex gap-1 p-1 rounded-xl mb-6 w-fit" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
@@ -38,8 +35,8 @@ export default function AnalyticsDashboard({ userId, userRole, nichos }: Props) 
         </button>
       </div>
 
-      {activeTab === 'propia' && <GaleriaModelos key="propia" tipo="propia" nichos={nichos} />}
-      {activeTab === 'competencia' && <CompetenciaTab nichos={nichos} />}
+      {activeTab === 'propia' && <GaleriaModelos key="propia" tipo="propia" />}
+      {activeTab === 'competencia' && <CompetenciaTab />}
     </div>
   )
 }

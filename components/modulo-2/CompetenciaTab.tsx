@@ -4,9 +4,8 @@ import { useState } from 'react'
 import { Users, Sparkles } from 'lucide-react'
 import GaleriaModelos from './GaleriaModelos'
 import ReferenciasPorModelo from './ReferenciasPorModelo'
-import { Nicho } from './analytics-utils'
 
-export default function CompetenciaTab({ nichos }: { nichos: Nicho[] }) {
+export default function CompetenciaTab() {
   const [vista, setVista] = useState<'competidores' | 'referencias'>('competidores')
 
   return (
@@ -22,7 +21,7 @@ export default function CompetenciaTab({ nichos }: { nichos: Nicho[] }) {
       </div>
 
       {vista === 'competidores' ? (
-        <GaleriaModelos key="competencia" tipo="competencia" nichos={nichos} />
+        <GaleriaModelos key="competencia" tipo="competencia" />
       ) : (
         <ReferenciasPorModelo />
       )}
