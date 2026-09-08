@@ -26,11 +26,14 @@ export interface CreatorSinMapear {
   creator_id: string; creator_name: string | null; ventas: number; ejemplos: string[]
 }
 
+export interface ChatterOpt { id: string; nombre: string }
+
 interface Props {
   modelos: Modelo[]
   ventas: Venta[]
   fans: Fan[]
   sinMapear: CreatorSinMapear[]
+  chatters: ChatterOpt[]
 }
 
 const TABS = [
@@ -41,7 +44,7 @@ const TABS = [
   { id: 'mapear', label: 'Sin mapear', icon: Link2 },
 ] as const
 
-export default function Modulo3Tabs({ modelos, ventas, fans, sinMapear }: Props) {
+export default function Modulo3Tabs({ modelos, ventas, fans, sinMapear, chatters }: Props) {
   const [tab, setTab] = useState<string>('ventas')
   const ballenas = fans.filter((f) => f.tier === '🐋 Ballena')
 
@@ -71,7 +74,7 @@ export default function Modulo3Tabs({ modelos, ventas, fans, sinMapear }: Props)
       </div>
 
       {tab === 'ventas' && <VentasPanel ventas={ventas} />}
-      {tab === 'buscar' && <BuscarVentas ventas={ventas} modelos={modelos} />}
+      {tab === 'buscar' && <BuscarVentas modelos={modelos} chatters={chatters} />}
       {tab === 'ballenas' && <BallenasPanel fans={fans} />}
       {tab === 'fans' && <FansPanel fans={fans} />}
       {tab === 'mapear' && <MapearCreators modelos={modelos} sinMapear={sinMapear} />}
