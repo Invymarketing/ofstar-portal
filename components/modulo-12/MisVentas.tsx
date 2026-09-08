@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { reportarVenta, editarReporte, eliminarReporte } from '@/app/(dashboard)/modulo-12/actions'
-import { Plus, Trash2, Pencil, X, CheckCircle2, Clock, XCircle } from 'lucide-react'
+import { Plus, Trash2, Pencil, X, CheckCircle2, Clock, XCircle, Copy, RotateCcw, ArrowDownUp } from 'lucide-react'
 
 interface Modelo { id: string; model_name: string }
 interface Reporte {
@@ -29,9 +29,13 @@ const RANGOS = [
 ] as const
 
 const ESTADO = {
-  confirmada: { label: 'Confirmada', color: '#22C55E', icon: CheckCircle2 },
-  pendiente: { label: 'Pendiente', color: '#EAB308', icon: Clock },
+  confirmada:    { label: 'Confirmada',    color: '#22C55E', icon: CheckCircle2 },
+  pendiente:     { label: 'Pendiente',     color: '#EAB308', icon: Clock },
   no_encontrada: { label: 'No encontrada', color: '#EF4444', icon: XCircle },
+  revision:      { label: 'En revisión',   color: '#3B82F6', icon: Clock },
+  rechazada:     { label: 'Rechazada',     color: '#EF4444', icon: XCircle },
+  duplicada:     { label: 'Duplicada',     color: '#9CA3AF', icon: Copy },
+  reembolsada:   { label: 'Reembolsada',   color: '#EF4444', icon: RotateCcw },
 } as const
 
 interface Meta { meta: number | null; vendido: number; quincena: string }
@@ -46,6 +50,7 @@ export default function MisVentas({
   const [fecha, setFecha] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
   const [rango, setRango] = useState<string>('mes')
+  const [orden, setOrden] = useState<'fecha' | 'registro'>('fecha')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState(false)
@@ -64,6 +69,12 @@ export default function MisVentas({
     const enRango = ventas.filter((v) => v.estado !== 'Reverso' && new Date(v.fecha) >= inicio)
     return { n: enRango.length, bruto: enRango.reduce((a, v) => a + v.monto_bruto, 0) }
   }, [ventas, inicio])
+
+  // Orden de los reportes: por fecha de venta (recientes primero) o como se registraron
+  const reportesOrdenados = useMemo(() => {
+    if (orden === 'registro') return reportes
+    return [...reportes].sort((a, b) => +new Date(b.fecha_venta) - +new Date(a.fecha_venta))
+  }, [reportes, orden])
 
   function limpiar() {
     setEditId(null); setModeloId(''); setFanName(''); setMonto(''); setTipo('tip'); setFecha('')
@@ -197,7 +208,7 @@ export default function MisVentas({
             className="w-full rounded-lg px-3 py-2 text-sm sm:w-1/2" style={inputStyle} />
           <p className="text-[10px] mt-1" style={{ color: 'var(--muted)' }}>
             {tipo === 'externa'
-              ? 'Venta por fuera: se registra ya confirmada y cuenta a tu total.'
+              ? 'Venta por fuera: se registra pendiente y la revisa tu team leader.'
               : 'Si es de un día anterior, elígelo aquí (así cuadra con Infloww).'}
           </p>
         </div>
@@ -214,10 +225,16 @@ export default function MisVentas({
 
       {/* Historial */}
       <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="px-4 py-2.5 text-xs font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
-          Mis reportes
+        <div className="px-4 py-2.5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
+          <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>Mis reportes</span>
+          <button onClick={() => setOrden((o) => (o === 'fecha' ? 'registro' : 'fecha'))}
+            className="flex items-center gap-1.5 text-[11px] rounded-lg px-2.5 py-1"
+            style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--muted)' }}>
+            <ArrowDownUp size={12} />
+            {orden === 'fecha' ? 'Por fecha (recientes primero)' : 'Por orden de registro'}
+          </button>
         </div>
-        {reportes.length === 0 ? (
+        {reportesOrdenados.length === 0 ? (
           <p className="text-sm px-4 py-6 text-center" style={{ color: 'var(--muted)' }}>Aún no has reportado ventas.</p>
         ) : (
           <table className="w-full text-sm">
@@ -232,7 +249,7 @@ export default function MisVentas({
               </tr>
             </thead>
             <tbody>
-              {reportes.map((r) => {
+              {reportesOrdenados.map((r) => {
                 const est = ESTADO[r.estado as keyof typeof ESTADO] ?? ESTADO.pendiente
                 const Icon = est.icon
                 return (

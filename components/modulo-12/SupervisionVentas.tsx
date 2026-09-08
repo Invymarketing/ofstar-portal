@@ -1,8 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { reportarVentaComoStaff, confirmarReporte } from '@/app/(dashboard)/modulo-12/actions'
-import { PlusCircle, Check } from 'lucide-react'
+import { reportarVentaComoStaff, confirmarReporte, cambiarEstadoReporte } from '@/app/(dashboard)/modulo-12/actions'
+import { PlusCircle } from 'lucide-react'
 
 interface Reporte {
   id: string; chatter: string; modelo: string | null
@@ -15,16 +15,22 @@ interface ModeloOpt { id: string; model_name: string }
 const money = (n: number) => '$' + Number(n || 0).toLocaleString('en-US')
 const TIPOS = ['tip', 'message', 'externa', 'custom', 'otro']
 
-function colorEstado(e: string | null): string {
-  const s = (e ?? '').toLowerCase()
-  if (s.includes('valid') || s.includes('confirm') || s.includes('cruz')) return 'var(--success)'
-  if (s.includes('pend') || s.includes('revis')) return 'var(--warning)'
-  if (s.includes('rechaz') || s.includes('no')) return 'var(--danger)'
-  return 'var(--muted)'
+// Estados que el staff puede asignar
+const ESTADOS_UI: Record<string, { label: string; color: string }> = {
+  pendiente:   { label: 'Pendiente',    color: 'var(--warning)' },
+  confirmada:  { label: 'Confirmada',   color: 'var(--success)' },
+  revision:    { label: 'En revisión',  color: 'var(--gold)' },
+  duplicada:   { label: 'Duplicada',    color: 'var(--muted)' },
+  rechazada:   { label: 'Rechazada',    color: 'var(--danger)' },
+  reembolsada: { label: 'Reembolsada',  color: 'var(--danger)' },
 }
-function esPendiente(e: string | null): boolean {
+
+function estadoUI(e: string | null): { label: string; color: string } {
   const s = (e ?? '').toLowerCase()
-  return s.includes('pend') || s.includes('revis')
+  if (ESTADOS_UI[s]) return ESTADOS_UI[s]
+  if (s.includes('confirm') || s.includes('valid') || s.includes('cruz')) return { label: e || 'Confirmada', color: 'var(--success)' }
+  if (s.includes('pend')) return { label: e || 'Pendiente', color: 'var(--warning)' }
+  return { label: e || '—', color: 'var(--muted)' }
 }
 
 export default function SupervisionVentas(
@@ -58,7 +64,7 @@ export default function SupervisionVentas(
     for (const r of lista) {
       const cur = m.get(r.chatter) ?? { n: 0, total: 0, validados: 0 }
       cur.n += 1; cur.total += r.monto
-      if (!esPendiente(r.estado) && colorEstado(r.estado) === 'var(--success)') cur.validados += 1
+      if ((r.estado ?? '').toLowerCase().includes('confirm')) cur.validados += 1
       m.set(r.chatter, cur)
     }
     return [...m.entries()].map(([nombre, x]) => ({ nombre, ...x })).sort((a, b) => b.total - a.total)
@@ -86,10 +92,16 @@ export default function SupervisionVentas(
     }
   }
 
-  async function confirmar(id: string) {
-    if (!confirm('¿Confirmar esta venta? Se contará como venta del chatter.')) return
-    await confirmarReporte(id)
-    window.location.reload()
+  async function cambiarEstado(id: string, nuevo: string) {
+    if (!nuevo) return
+    if (nuevo === 'confirmada' && !confirm('¿Confirmar esta venta? Se contará como venta del chatter.')) return
+    try {
+      if (nuevo === 'confirmada') await confirmarReporte(id)
+      else await cambiarEstadoReporte(id, nuevo)
+      window.location.reload()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error')
+    }
   }
 
   return (
@@ -168,7 +180,7 @@ export default function SupervisionVentas(
             <div key={c.nombre} className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
               <p className="text-xs mb-1 truncate" style={{ color: 'var(--muted)' }}>{c.nombre}</p>
               <p className="text-lg font-bold" style={{ color: 'var(--gold)' }}>{money(c.total)}</p>
-              <p className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>{c.n} reportes · {c.validados} validados</p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>{c.n} reportes · {c.validados} confirmados</p>
             </div>
           ))}
         </div>
@@ -201,33 +213,41 @@ export default function SupervisionVentas(
                   <th className="text-left font-normal px-4 py-2 text-xs">Tipo</th>
                   <th className="text-right font-normal px-4 py-2 text-xs">Monto</th>
                   <th className="text-center font-normal px-4 py-2 text-xs">Estado</th>
+                  <th className="text-center font-normal px-4 py-2 text-xs">Cambiar</th>
                 </tr>
               </thead>
               <tbody>
-                {lista.map((r) => (
-                  <tr key={r.id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
-                    <td className="px-4 py-2 whitespace-nowrap" style={{ color: 'var(--muted)' }}>
-                      {new Date(r.fecha_venta ?? r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
-                    </td>
-                    <td className="px-4 py-2" style={{ color: 'var(--gold)' }}>{r.chatter}</td>
-                    <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.modelo ?? '—'}</td>
-                    <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.fan_name ?? '—'}</td>
-                    <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.tipo ?? '—'}</td>
-                    <td className="px-4 py-2 text-right">{money(r.monto)}</td>
-                    <td className="px-4 py-2 text-center text-xs">
-                      <div className="flex items-center justify-center gap-2">
-                        <span style={{ color: colorEstado(r.estado) }}>{r.estado ?? '—'}</span>
-                        {esPendiente(r.estado) && (
-                          <button onClick={() => confirmar(r.id)} title="Confirmar venta"
-                            className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-medium"
-                            style={{ backgroundColor: 'var(--gold-15)', color: 'var(--success)', border: '1px solid var(--border)' }}>
-                            <Check size={11} /> Confirmar
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {lista.map((r) => {
+                  const ui = estadoUI(r.estado)
+                  return (
+                    <tr key={r.id} style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                      <td className="px-4 py-2 whitespace-nowrap" style={{ color: 'var(--muted)' }}>
+                        {new Date(r.fecha_venta ?? r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                      </td>
+                      <td className="px-4 py-2" style={{ color: 'var(--gold)' }}>{r.chatter}</td>
+                      <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.modelo ?? '—'}</td>
+                      <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.fan_name ?? '—'}</td>
+                      <td className="px-4 py-2" style={{ color: 'var(--muted)' }}>{r.tipo ?? '—'}</td>
+                      <td className="px-4 py-2 text-right">{money(r.monto)}</td>
+                      <td className="px-4 py-2 text-center text-xs">
+                        <span className="font-medium" style={{ color: ui.color }}>{ui.label}</span>
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        <select value="" onChange={(e) => cambiarEstado(r.id, e.target.value)}
+                          className="rounded-lg px-2 py-1 text-[11px]"
+                          style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--muted)' }}>
+                          <option value="">Cambiar…</option>
+                          <option value="confirmada">✓ Confirmar</option>
+                          <option value="revision">En revisión</option>
+                          <option value="duplicada">Duplicada</option>
+                          <option value="rechazada">Rechazada</option>
+                          <option value="reembolsada">Reembolsada</option>
+                          <option value="pendiente">Volver a pendiente</option>
+                        </select>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
