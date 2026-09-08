@@ -1,17 +1,20 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X, Upload, BookOpen, Link2, Clock } from 'lucide-react'
+import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X, Upload, BookOpen, Link2, Clock, RotateCcw, Gauge } from 'lucide-react'
 
 interface Tarea { id: string; dia_semana: number; titulo: string }
 interface Todo { id: string; texto: string; hecho: boolean; enlace_subir?: string | null; enlace_guia?: string | null }
+interface Compromiso { total: number; completadas: number; pct: number }
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const hrefOf = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`)
+const colorPct = (p: number) => (p >= 80 ? '#22C55E' : p >= 50 ? 'var(--gold)' : '#F87171')
 
 export default function HorarioModelo({ modeloId, editable = true, seccion = 'ambos' }: { modeloId: string; editable?: boolean; seccion?: 'horario' | 'todo' | 'ambos' }) {
   const [tareas, setTareas] = useState<Tarea[]>([])
   const [todos, setTodos] = useState<Todo[]>([])
+  const [compromiso, setCompromiso] = useState<Compromiso | null>(null)
   const [cargando, setCargando] = useState(true)
   const [drafts, setDrafts] = useState<Record<number, string>>({})
   const [sel, setSel] = useState<Tarea | null>(null)
@@ -30,6 +33,7 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
       const d = await r.json()
       setTareas(d.tareas ?? [])
       setTodos(d.todos ?? [])
+      setCompromiso(d.compromiso ?? null)
       setLimDia(d.limite?.dia ?? 0)
       setLimHora(d.limite?.hora ?? '16:00')
     } catch {
@@ -61,6 +65,11 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
     await post({ op: 'todoAdd', texto })
   }
 
+  async function nuevaSemana() {
+    if (!confirm('Se guardará la nota de compromiso de esta semana y se desmarcarán todas las tareas del TO-DO para empezar de cero. ¿Continuar?')) return
+    await post({ op: 'nuevaSemana' })
+  }
+
   function abrirEnlaces(t: Todo) {
     setSelTodo(t)
     setLinkSubir(t.enlace_subir ?? '')
@@ -80,6 +89,7 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
 
   return (
     <div className="space-y-4">
+      {/* ===== HORARIO SEMANAL ===== */}
       {verHorario && (
       <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid var(--gold-25)', backgroundColor: 'var(--surface)' }}>
         <div className="flex items-center gap-2.5 px-5 py-4" style={{ background: 'linear-gradient(90deg, var(--gold-15), transparent)', borderBottom: '1px solid var(--gold-25)' }}>
@@ -118,8 +128,21 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
                   {editable && (
                     <div className="p-2 pt-0">
                       <div className="flex items-center gap-1 rounded-lg px-1.5" style={{ border: '1px dashed var(--gold-25)' }}>
-                        <input value={drafts[dia] ?? ''} onChange={(e) => setDrafts((s) => ({ ...s, [dia]: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') addTarea(dia) }} placeholder="Añadir tarea" className="flex-1 bg-transparent py-1.5 text-xs outline-none" style={{ color: 'var(--foreground)' }} />
-                        <button onClick={() => addTarea(dia)} className="shrink-0 grid place-items-center h-6 w-6 rounded-md transition-transform active:scale-90" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }} title="Añadir tarea" aria-label="Añadir tarea">
+                        <input
+                          value={drafts[dia] ?? ''}
+                          onChange={(e) => setDrafts((s) => ({ ...s, [dia]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === 'Enter') addTarea(dia) }}
+                          placeholder="Añadir tarea"
+                          className="flex-1 bg-transparent py-1.5 text-xs outline-none"
+                          style={{ color: 'var(--foreground)' }}
+                        />
+                        <button
+                          onClick={() => addTarea(dia)}
+                          className="shrink-0 grid place-items-center h-6 w-6 rounded-md transition-transform active:scale-90"
+                          style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}
+                          title="Añadir tarea"
+                          aria-label="Añadir tarea"
+                        >
                           <Plus size={15} />
                         </button>
                       </div>
@@ -133,12 +156,20 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
       </div>
       )}
 
+      {/* ===== TO-DO LIST ===== */}
       {verTodo && (
       <div className="rounded-2xl border p-4" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}>
-        <div className="flex items-center gap-2 mb-1">
-          <ListTodo size={16} style={{ color: 'var(--gold)' }} />
-          <h3 className="text-sm font-bold" style={{ color: 'var(--gold)' }}>TO-DO List</h3>
-          {todos.length > 0 && <span className="text-xs" style={{ color: 'var(--muted)' }}>{hechos}/{todos.length}</span>}
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="flex items-center gap-2">
+            <ListTodo size={16} style={{ color: 'var(--gold)' }} />
+            <h3 className="text-sm font-bold" style={{ color: 'var(--gold)' }}>TO-DO List</h3>
+            {todos.length > 0 && <span className="text-xs" style={{ color: 'var(--muted)' }}>{hechos}/{todos.length}</span>}
+          </div>
+          {editable && (
+            <button onClick={nuevaSemana} className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid var(--gold-25)', color: 'var(--gold)' }} title="Cerrar la semana y empezar de cero">
+              <RotateCcw size={13} /> Nueva semana
+            </button>
+          )}
         </div>
         <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>{editable ? 'Objetivos de la semana. La modelo marca el check cuando los completa.' : 'Marca el check cuando completes cada objetivo.'}</p>
 
@@ -157,6 +188,22 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
             <span>Entrega antes de: <span style={{ color: 'var(--foreground)', fontWeight: 600 }}>{DIAS[limDia]} · {limHora}</span></span>
           )}
         </div>
+
+        {/* Barra de compromiso */}
+        {compromiso && compromiso.total > 0 && (
+          <div className="rounded-xl px-3.5 py-3 mb-3" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="flex items-center gap-1.5 text-xs font-medium" style={{ color: 'var(--muted)' }}>
+                <Gauge size={13} style={{ color: 'var(--gold)' }} /> Compromiso de la semana
+              </span>
+              <span className="text-sm font-bold" style={{ color: colorPct(compromiso.pct) }}>{compromiso.pct}%</span>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
+              <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(compromiso.pct, 100)}%`, backgroundColor: colorPct(compromiso.pct) }} />
+            </div>
+            <p className="text-[11px] mt-1.5" style={{ color: 'var(--muted)' }}>{compromiso.completadas}/{compromiso.total} objetivos completados · puntúa la cantidad y la puntualidad.</p>
+          </div>
+        )}
 
         <div className="flex flex-col gap-2 mb-3">
           {todos.map((t) => (
@@ -203,6 +250,7 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
       </div>
       )}
 
+      {/* ===== POP-UP: mover / eliminar tarea del horario ===== */}
       {sel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setSel(null)}>
           <div className="w-full max-w-sm rounded-2xl p-5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }} onClick={(e) => e.stopPropagation()}>
@@ -216,16 +264,28 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
               {DIAS.map((dn, di) => {
                 const aqui = di === sel!.dia_semana
                 return (
-                  <button key={di} disabled={aqui} onClick={() => { post({ op: 'move', tareaId: sel!.id, dia: di }); setSel(null) }}
+                  <button
+                    key={di}
+                    disabled={aqui}
+                    onClick={() => { post({ op: 'move', tareaId: sel!.id, dia: di }); setSel(null) }}
                     className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors disabled:cursor-default"
-                    style={{ border: `1px solid ${aqui ? 'var(--border)' : 'var(--gold-25)'}`, color: aqui ? 'var(--muted)' : 'var(--gold)', backgroundColor: aqui ? 'var(--background)' : 'transparent' }}>
+                    style={{
+                      border: `1px solid ${aqui ? 'var(--border)' : 'var(--gold-25)'}`,
+                      color: aqui ? 'var(--muted)' : 'var(--gold)',
+                      backgroundColor: aqui ? 'var(--background)' : 'transparent',
+                    }}
+                  >
                     {dn}{aqui ? ' · aquí' : ''}
                   </button>
                 )
               })}
             </div>
             {editable && (
-              <button onClick={() => { post({ op: 'del', tareaId: sel!.id }); setSel(null) }} className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444' }}>
+              <button
+                onClick={() => { post({ op: 'del', tareaId: sel!.id }); setSel(null) }}
+                className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-opacity hover:opacity-80"
+                style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444' }}
+              >
                 <Trash2 size={14} /> Eliminar tarea
               </button>
             )}
@@ -233,6 +293,7 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
         </div>
       )}
 
+      {/* ===== POP-UP: enlaces del objetivo ===== */}
       {selTodo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setSelTodo(null)}>
           <div className="w-full max-w-sm rounded-2xl p-5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }} onClick={(e) => e.stopPropagation()}>
@@ -241,11 +302,18 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
               <button onClick={() => setSelTodo(null)} style={{ color: 'var(--muted)' }} aria-label="Cerrar"><X size={16} /></button>
             </div>
             <p className="text-sm mb-4 font-medium" style={{ color: 'var(--gold)' }}>{selTodo.texto}</p>
+
             <label className="text-xs mb-1 flex items-center gap-1.5" style={{ color: 'var(--muted)' }}><Upload size={12} /> Enlace para subir contenido</label>
             <input value={linkSubir} onChange={(e) => setLinkSubir(e.target.value)} placeholder="https://…" className="w-full rounded-lg px-3 py-2 text-sm mb-3 outline-none" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+
             <label className="text-xs mb-1 flex items-center gap-1.5" style={{ color: 'var(--muted)' }}><BookOpen size={12} /> Enlace de la guía</label>
             <input value={linkGuia} onChange={(e) => setLinkGuia(e.target.value)} placeholder="https://…" className="w-full rounded-lg px-3 py-2 text-sm mb-4 outline-none" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
-            <button onClick={() => { post({ op: 'todoLinks', todoId: selTodo!.id, enlace_subir: linkSubir, enlace_guia: linkGuia }); setSelTodo(null) }} className="w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-transform active:scale-95" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
+
+            <button
+              onClick={() => { post({ op: 'todoLinks', todoId: selTodo!.id, enlace_subir: linkSubir, enlace_guia: linkGuia }); setSelTodo(null) }}
+              className="w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-transform active:scale-95"
+              style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}
+            >
               Guardar enlaces
             </button>
           </div>
