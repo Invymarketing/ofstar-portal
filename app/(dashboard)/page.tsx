@@ -11,6 +11,7 @@ import type { UserRole } from '@/types'
 import VentasChart from '@/components/dashboard/VentasChart'
 import SerieChart from '@/components/dashboard/SerieChart'
 import MetricasModelo from '@/components/modelos/MetricasModelo'
+import RankingAgencia from '@/components/dashboard/RankingAgencia'
 
 const money = (n: number) =>
   '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -542,6 +543,11 @@ export default async function DashboardPage() {
               </div>
             </div>
           </div>
+          {esAdminOManager && (
+            <div>
+              <RankingAgencia />
+            </div>
+          )}
         </div>
       )}
 
@@ -574,9 +580,8 @@ export default async function DashboardPage() {
           {modeloRosterId ? (
             <>
               <MetricasModelo modeloId={modeloRosterId} />
-              <div className="rounded-2xl border p-5 mt-6 text-center" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-                <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Ranking de la agencia</p>
-                <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>Disponible en cuanto activemos el sistema de cumplimiento.</p>
+              <div className="mt-6">
+                <RankingAgencia />
               </div>
             </>
           ) : (
