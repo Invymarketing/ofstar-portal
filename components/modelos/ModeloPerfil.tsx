@@ -8,7 +8,7 @@ import Portada from '@/components/modelos/Portada'
 
 type TabKey = 'portada' | 'horario' | 'todo' | 'metricas'
 const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
-  { key: 'portada', label: 'Portada', icon: UserCircle2 },
+  { key: 'portada', label: 'Identidad', icon: UserCircle2 },
   { key: 'horario', label: 'Horario semanal', icon: CalendarDays },
   { key: 'todo', label: 'TO-DO List', icon: ListTodo },
   { key: 'metricas', label: 'Métricas RRSS', icon: BarChart3 },

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Loader2, Pencil, Globe, Tag, Zap, Heart, Target, X } from 'lucide-react'
+import { Loader2, Pencil, Globe, Zap, Heart, Target, X } from 'lucide-react'
 
 interface Ficha {
   nicho: string | null
@@ -102,11 +102,6 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{nombre}</h2>
             <div className="flex flex-wrap gap-2 mt-2">
-              {f.nicho && (
-                <span className="flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1" style={{ backgroundColor: 'var(--gold-15)', color: 'var(--gold)' }}>
-                  <Tag size={12} /> {f.nicho}
-                </span>
-              )}
               {f.nacionalidad && (
                 <span className="flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
                   <Globe size={12} /> {f.nacionalidad}
