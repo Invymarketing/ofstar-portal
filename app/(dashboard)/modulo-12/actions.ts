@@ -62,7 +62,6 @@ export async function reportarVenta(data: {
   if (error) throw new Error(error.message)
 
   if (data.externa) {
-    // No se cruza con Infloww: queda pendiente y se avisa a la team leader
     await avisarTeamLeader(admin, ch?.nombre ?? 'Un chatter', ch?.equipo ?? null, data.monto)
   } else {
     try { await admin.rpc('reconciliar_ventas') } catch { /* llega luego */ }
@@ -113,7 +112,6 @@ export async function reportarVentaComoStaff(data: {
 }
 
 // El staff CONFIRMA manualmente un reporte (venta por fuera o una que no cruzó).
-// Al confirmar, crea la venta atribuida al chatter para que cuente en totales/meta.
 export async function confirmarReporte(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -140,6 +138,27 @@ export async function confirmarReporte(id: string) {
   if (vErr) throw new Error(vErr.message)
 
   await admin.from('ventas_reportadas').update({ estado: 'confirmada' }).eq('id', id)
+  revalidatePath('/modulo-12')
+  revalidatePath('/modulo-3')
+}
+
+// El staff cambia el estado de un reporte (revisión, rechazada, duplicada, reembolsada, pendiente).
+// 'confirmada' se delega a confirmarReporte (que crea la venta atribuida).
+const ESTADOS_VALIDOS = ['pendiente', 'confirmada', 'revision', 'rechazada', 'duplicada', 'reembolsada']
+
+export async function cambiarEstadoReporte(id: string, estado: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const admin = createAdminClient()
+  const { data: me } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  if (!me || !['admin', 'manager', 'team_leader'].includes(me.role)) throw new Error('Sin permiso')
+  if (!ESTADOS_VALIDOS.includes(estado)) throw new Error('Estado no válido')
+
+  if (estado === 'confirmada') { await confirmarReporte(id); return }
+
+  const { error } = await admin.from('ventas_reportadas').update({ estado }).eq('id', id)
+  if (error) throw new Error(error.message)
   revalidatePath('/modulo-12')
   revalidatePath('/modulo-3')
 }
