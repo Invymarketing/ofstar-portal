@@ -6,7 +6,7 @@ function Icono({ t, size }: { t: Tipo; size: number }) {
   const common = { width: size, height: size, viewBox: '0 0 24 24' as const }
   if (t === 0) {
     return (
-      <svg {...common} fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <svg {...common} fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="5" />
         <circle cx="12" cy="12" r="4" />
         <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
@@ -35,24 +35,24 @@ function Icono({ t, size }: { t: Tipo; size: number }) {
 }
 
 const ICONOS: { l: number; s: number; d: number; delay: number; o: number; t: Tipo }[] = [
-  { l: 4, s: 40, d: 22, delay: 0, o: 0.10, t: 0 },
-  { l: 12, s: 24, d: 28, delay: 6, o: 0.07, t: 1 },
-  { l: 19, s: 54, d: 26, delay: 2, o: 0.08, t: 2 },
-  { l: 27, s: 28, d: 20, delay: 9, o: 0.06, t: 3 },
-  { l: 34, s: 36, d: 30, delay: 4, o: 0.09, t: 0 },
-  { l: 42, s: 22, d: 24, delay: 12, o: 0.06, t: 1 },
-  { l: 49, s: 48, d: 27, delay: 1, o: 0.08, t: 3 },
-  { l: 57, s: 30, d: 21, delay: 7, o: 0.07, t: 2 },
-  { l: 64, s: 26, d: 29, delay: 3, o: 0.06, t: 0 },
-  { l: 71, s: 44, d: 25, delay: 10, o: 0.09, t: 1 },
-  { l: 78, s: 24, d: 23, delay: 5, o: 0.06, t: 2 },
-  { l: 85, s: 38, d: 31, delay: 8, o: 0.08, t: 3 },
-  { l: 91, s: 28, d: 22, delay: 2, o: 0.07, t: 0 },
-  { l: 9, s: 30, d: 33, delay: 14, o: 0.06, t: 3 },
-  { l: 38, s: 26, d: 34, delay: 16, o: 0.05, t: 2 },
-  { l: 68, s: 34, d: 32, delay: 13, o: 0.07, t: 1 },
-  { l: 96, s: 22, d: 28, delay: 6, o: 0.06, t: 2 },
-  { l: 23, s: 20, d: 26, delay: 18, o: 0.05, t: 1 },
+  { l: 4, s: 44, d: 22, delay: 0, o: 0.22, t: 0 },
+  { l: 12, s: 26, d: 28, delay: 6, o: 0.15, t: 1 },
+  { l: 19, s: 58, d: 26, delay: 2, o: 0.18, t: 2 },
+  { l: 27, s: 30, d: 20, delay: 9, o: 0.14, t: 3 },
+  { l: 34, s: 38, d: 30, delay: 4, o: 0.20, t: 0 },
+  { l: 42, s: 24, d: 24, delay: 12, o: 0.14, t: 1 },
+  { l: 49, s: 52, d: 27, delay: 1, o: 0.18, t: 3 },
+  { l: 57, s: 32, d: 21, delay: 7, o: 0.16, t: 2 },
+  { l: 64, s: 28, d: 29, delay: 3, o: 0.14, t: 0 },
+  { l: 71, s: 46, d: 25, delay: 10, o: 0.20, t: 1 },
+  { l: 78, s: 26, d: 23, delay: 5, o: 0.14, t: 2 },
+  { l: 85, s: 40, d: 31, delay: 8, o: 0.18, t: 3 },
+  { l: 91, s: 30, d: 22, delay: 2, o: 0.16, t: 0 },
+  { l: 9, s: 32, d: 33, delay: 14, o: 0.14, t: 3 },
+  { l: 38, s: 28, d: 34, delay: 16, o: 0.12, t: 2 },
+  { l: 68, s: 36, d: 32, delay: 13, o: 0.16, t: 1 },
+  { l: 96, s: 24, d: 28, delay: 6, o: 0.13, t: 2 },
+  { l: 23, s: 22, d: 26, delay: 18, o: 0.12, t: 1 },
 ]
 
 export default function FondoAnimado() {
