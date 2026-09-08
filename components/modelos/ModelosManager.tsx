@@ -72,34 +72,16 @@ export default function ModelosManager() {
       )}
 
       {!loading && modelos.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           {modelos.map(m => (
-            <div key={m.id} onClick={() => setPerfilModelo(m)} className="rounded-2xl p-4 cursor-pointer" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'var(--gold-15)', color: 'var(--gold)' }}>
-                  {m.foto_url ? (<img src={m.foto_url} alt={m.full_name} className="w-full h-full object-cover" />) : (m.full_name[0]?.toUpperCase())}
-                </div>
-                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => setEditModelo(m)} title="Editar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-foreground transition-colors"><Pencil size={14} /></button>
-                  <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
-                </div>
+            <div key={m.id} onClick={() => setPerfilModelo(m)} className="group rounded-xl p-2.5 cursor-pointer flex items-center gap-3 transition-colors" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+              <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: 'var(--gold-15)', color: 'var(--gold)' }}>
+                {m.foto_url ? (<img src={m.foto_url} alt={m.full_name} className="w-full h-full object-cover" />) : (m.full_name[0]?.toUpperCase())}
               </div>
-              <p className="text-sm font-semibold mb-0.5" style={{ color: 'var(--foreground)' }}>{m.model_name || m.full_name}</p>
-              {m.full_name && m.model_name && m.full_name !== m.model_name && (
-                <p className="text-[11px]" style={{ color: '#6B6B7E' }}>Real: {m.full_name}</p>
-              )}
-              {m.ig_username && <p className="text-xs" style={{ color: 'var(--muted)' }}>@{m.ig_username}</p>}
-              {m.created_at && (
-                <p className="text-[11px] mb-2" style={{ color: '#6B6B7E' }}>
-                  Ficha desde {new Date(m.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                </p>
-              )}
-              <BadgeContenido modeloId={m.id} />
-              <BadgeOnlyFans modeloId={m.id} />
-              <div className="flex gap-2 mt-2 items-center" onClick={(e) => e.stopPropagation()}>
-                {m.content_snare_url && <span title="Content Snare (vinculado)" className="p-1 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--border)' }}><img src="/content-snare.svg" alt="Content Snare" width={16} height={16} className="rounded" /></span>}
-                {m.notion_url && <a href={m.notion_url} target="_blank" rel="noopener noreferrer" title="Notion" className="p-1 rounded-lg hover:bg-[var(--hover)] flex items-center justify-center"><img src="/notion.svg" alt="Notion" width={16} height={16} /></a>}
-                {m.drive_url && <a href={m.drive_url} target="_blank" rel="noopener noreferrer" title="Google Drive" className="p-1 rounded-lg hover:bg-[var(--hover)] flex items-center justify-center"><img src="/drive.svg" alt="Google Drive" width={16} height={16} /></a>}
+              <p className="text-sm font-semibold truncate flex-1 min-w-0" style={{ color: 'var(--foreground)' }}>{m.model_name || m.full_name}</p>
+              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                <button onClick={() => setEditModelo(m)} title="Editar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] transition-colors"><Pencil size={13} /></button>
+                <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
               </div>
             </div>
           ))}
@@ -108,84 +90,6 @@ export default function ModelosManager() {
 
       {showModal && <AddModeloModal onClose={() => setShowModal(false)} onAdded={() => { setShowModal(false); cargar() }} />}
       {editModelo && <EditModeloModal modelo={editModelo} onClose={() => setEditModelo(null)} onSaved={() => { setEditModelo(null); cargar() }} />}
-    </div>
-  )
-}
-
-function BadgeContenido({ modeloId }: { modeloId: string }) {
-  const [estado, setEstado] = useState<'cargando' | 'ok' | 'error'>('cargando')
-  const [resumen, setResumen] = useState<{ total: number; completas: number; pct: number } | null>(null)
-
-  useEffect(() => {
-    let vivo = true
-    fetch(`/api/modelos/${modeloId}/contenido`)
-      .then(r => (r.ok ? r.json() : Promise.reject()))
-      .then(data => { if (vivo) { setResumen(data.resumen ?? null); setEstado('ok') } })
-      .catch(() => { if (vivo) setEstado('error') })
-    return () => { vivo = false }
-  }, [modeloId])
-
-  if (estado === 'cargando') {
-    return (
-      <div className="flex items-center gap-1.5 mb-3">
-        <Loader2 size={12} className="animate-spin" style={{ color: 'var(--muted)' }} />
-        <span className="text-[11px]" style={{ color: 'var(--muted)' }}>Contando…</span>
-      </div>
-    )
-  }
-  if (estado === 'error' || !resumen || resumen.total === 0) {
-    return <div className="mb-3"><span className="text-[11px]" style={{ color: '#6B6B7E' }}>Sin tareas esta semana</span></div>
-  }
-
-  const { completas, total, pct } = resumen
-  const color = pct >= 100 ? '#4ADE80' : pct >= 60 ? '#FBBF24' : '#F87171'
-  return (
-    <div className="mb-3">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-[11px] font-medium" style={{ color }}>{completas}/{total} tareas · {Math.round(pct)}%</span>
-      </div>
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
-        <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }} />
-      </div>
-    </div>
-  )
-}
-
-function BadgeOnlyFans({ modeloId }: { modeloId: string }) {
-  const [estado, setEstado] = useState<'cargando' | 'ok' | 'error'>('cargando')
-  const [datos, setDatos] = useState<{ total: number; entregado: number; porcentaje: number } | null>(null)
-
-  useEffect(() => {
-    let vivo = true
-    fetch(`/api/modelos/${modeloId}/onlyfans`)
-      .then(r => (r.ok ? r.json() : Promise.reject()))
-      .then(data => { if (vivo) { setDatos(data.encontrado ? data : null); setEstado('ok') } })
-      .catch(() => { if (vivo) setEstado('error') })
-    return () => { vivo = false }
-  }, [modeloId])
-
-  if (estado === 'cargando') {
-    return (
-      <div className="flex items-center gap-1.5 mb-3">
-        <Loader2 size={12} className="animate-spin" style={{ color: '#38BDF8' }} />
-        <span className="text-[11px]" style={{ color: 'var(--muted)' }}>OF · contando…</span>
-      </div>
-    )
-  }
-  if (estado === 'error' || !datos || datos.total === 0) {
-    return <div className="mb-3"><span className="text-[11px]" style={{ color: '#6B6B7E' }}>OF · sin solicitud</span></div>
-  }
-
-  const { entregado, total, porcentaje } = datos
-  const color = porcentaje >= 100 ? '#4ADE80' : porcentaje >= 60 ? '#FBBF24' : '#38BDF8'
-  return (
-    <div className="mb-3">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-[11px] font-medium" style={{ color }}>OF: {entregado}/{total} · {Math.round(porcentaje)}%</span>
-      </div>
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
-        <div className="h-full rounded-full" style={{ width: `${Math.min(porcentaje, 100)}%`, backgroundColor: color }} />
-      </div>
     </div>
   )
 }
