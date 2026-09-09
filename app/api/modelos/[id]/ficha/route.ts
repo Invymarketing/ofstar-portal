@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+const EDITORES = ['admin', 'manager', 'team_leader', 'creativo', 'marketing_manager', 'director_creativo']
+const VISORES = ['chatter', 'content_manager', 'va']
+
 async function ctx() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -14,8 +17,8 @@ async function ctx() {
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const c = await ctx(); if (!c) return NextResponse.json({ error: 'no' }, { status: 403 })
   const { id } = await params
-  const puedeEditar = ['admin', 'manager'].includes(c.role)
-  let ver = puedeEditar || ['creativo', 'chatter'].includes(c.role)
+  const puedeEditar = EDITORES.includes(c.role)
+  let ver = puedeEditar || VISORES.includes(c.role)
   if (!ver && c.role === 'modelo') {
     const { data: m } = await c.admin.from('modelos').select('id').eq('id', id).eq('user_id', c.uid).maybeSingle()
     ver = !!m
@@ -43,7 +46,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const c = await ctx(); if (!c) return NextResponse.json({ error: 'no' }, { status: 403 })
-  if (!['admin', 'manager'].includes(c.role)) return NextResponse.json({ error: 'no' }, { status: 403 })
+  if (!EDITORES.includes(c.role)) return NextResponse.json({ error: 'no' }, { status: 403 })
   const { id } = await params
   const b = await req.json()
   const s = (v: any) => (v == null ? null : (String(v).trim() || null))

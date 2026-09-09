@@ -8,6 +8,9 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   chatter: 'Chatter',
   va: 'Asistente Virtual',
   modelo: 'Modelo',
+  marketing_manager: 'Marketing Manager',
+  content_manager: 'Content Manager',
+  director_creativo: 'Director Creativo',
 }
 
 export const ROLE_COLORS: Record<UserRole, string> = {
@@ -18,6 +21,9 @@ export const ROLE_COLORS: Record<UserRole, string> = {
   chatter: 'text-green-400 border-green-400',
   va: 'text-yellow-400 border-yellow-400',
   modelo: 'text-pink-400 border-pink-400',
+  marketing_manager: 'text-cyan-400 border-cyan-400',
+  content_manager: 'text-orange-400 border-orange-400',
+  director_creativo: 'text-fuchsia-400 border-fuchsia-400',
 }
 
 // Routes each role can access (beyond the dashboard home)
@@ -29,10 +35,13 @@ export const ROLE_ACCESS: Record<UserRole, string[]> = {
     '/modulo-5', '/modulo-6', '/modulo-7', '/modulo-8',
     '/modulo-9', '/modulo-10', '/modulo-11', '/modulo-19',
   ],
-  team_leader: ['/modulo-4', '/modulo-7', '/modulo-8', '/modulo-11'],
-  chatter: ['/modulo-4'],
+  team_leader: ['/modulo-4', '/modulo-7', '/modulo-8', '/modulo-11', '/modelos'],
+  chatter: ['/modulo-4', '/modelos'],
   va: ['/modulo-5', '/modulo-19'],
   modelo: [],
+  marketing_manager: ['/modelos'],
+  content_manager: ['/modelos'],
+  director_creativo: ['/modelos'],
 }
 
 export function canAccessRoute(role: UserRole, pathname: string): boolean {

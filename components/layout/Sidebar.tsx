@@ -24,6 +24,16 @@ function InstagramIcon({ size = 16, className = '' }: { size?: number; className
   )
 }
 
+// Icono de tacón para el módulo de Modelos.
+function TaconIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M2 13.2c0-.5.3-.9.8-1.1L16.3 5c1-.5 2.2.1 2.4 1.2l.7 4.6c.2 1.1 1 2 2.1 2.3.8.2 1.3 1 1.1 1.8-.2.7-.8 1.1-1.5 1l-3.4-.5c-6-.9-11.4-1.8-14.6-2.6-.6-.2-1.1-.8-1.1-1.5z" />
+      <path d="M6 13.6l-1.6 5.1c-.2.6.2 1.2.9 1.2h1.5c.4 0 .8-.3.9-.7l1.2-4.8z" />
+    </svg>
+  )
+}
+
 const ICON_MAP: Record<string, React.ElementType> = {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, CheckSquare, Languages,
@@ -35,7 +45,7 @@ const AREAS: { key: string; label: string; icon: React.ElementType }[] = [
   { key: 'marketing', label: 'Marketing', icon: InstagramIcon },
   { key: 'chatting', label: 'Chatting', icon: MessageSquare },
   { key: 'herramientas', label: 'Herramientas', icon: Wrench },
-  { key: 'modelos', label: 'Modelos', icon: UserCircle2 },
+  { key: 'modelos', label: 'Modelos', icon: TaconIcon },
   { key: 'admin', label: 'Administración', icon: Bell },
   { key: 'finanzas', label: 'Finanzas', icon: Wallet },
 ]
@@ -90,6 +100,8 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
 
   const abierta = flyout ? areasConMods.find((a) => a.key === flyout.key) : null
 
+  const verModelos = ['admin', 'manager', 'team_leader', 'chatter', 'creativo', 'marketing_manager', 'content_manager', 'director_creativo'].includes(role)
+
   return (
     <>
       {/* Overlay móvil */}
@@ -135,9 +147,9 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
               </button>
             )
           })}
-          {(role === 'admin' || role === 'manager' || role === 'chatter') && (
+          {verModelos && (
             <Link href="/modelos" title="Modelos" onClick={onClose} className={railBtn(pathname.startsWith('/modelos'))}>
-              <UserCircle2 size={20} />
+              <TaconIcon size={20} />
             </Link>
           )}
 

@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// Cuentas de Instagram propias de una modelo (las enlazadas en Analytics).
+const PERMITIDOS = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'creativo', 'marketing_manager', 'content_manager', 'director_creativo']
+
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -11,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
   const role = profile?.role ?? ''
-  let ver = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'creativo'].includes(role)
+  let ver = PERMITIDOS.includes(role)
   if (!ver && role === 'modelo') {
     const { data: m } = await admin.from('modelos').select('id').eq('id', id).eq('user_id', user.id).maybeSingle()
     ver = !!m

@@ -9,6 +9,7 @@ export default async function ModelosPage() {
   const { data: { user } } = await supabase.auth.getUser()
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user!.id).single()
-  const soloLectura = (profile?.role ?? '') === 'chatter'
+  const role = profile?.role ?? ''
+  const soloLectura = !['admin', 'manager'].includes(role)
   return <ModelosManager soloLectura={soloLectura} />
 }

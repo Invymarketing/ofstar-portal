@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-const ROLES = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo'] as const
+const ROLES = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo', 'creativo', 'marketing_manager', 'content_manager', 'director_creativo'] as const
 type Rol = (typeof ROLES)[number]
 
 async function requireGestor() {

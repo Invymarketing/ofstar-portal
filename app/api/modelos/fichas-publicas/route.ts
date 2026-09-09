@@ -2,13 +2,15 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+const PERMITIDOS = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'creativo', 'marketing_manager', 'content_manager', 'director_creativo']
+
 export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'no_auth' }, { status: 401 })
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
-  if (!['admin', 'manager', 'team_leader', 'chatter', 'va'].includes(profile?.role ?? '')) {
+  if (!PERMITIDOS.includes(profile?.role ?? '')) {
     return NextResponse.json({ error: 'sin_permiso' }, { status: 403 })
   }
 
