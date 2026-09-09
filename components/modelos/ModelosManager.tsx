@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, X, Loader2, Trash2, Pencil, AtSign } from 'lucide-react'
+import { Plus, X, Loader2, Trash2, Pencil, AtSign, Check } from 'lucide-react'
 import ModeloPerfil from './ModeloPerfil'
 
 interface Modelo {
@@ -25,7 +25,7 @@ export default function ModelosManager({ soloLectura = false }: { soloLectura?: 
   const [showModal, setShowModal] = useState(false)
   const [editModelo, setEditModelo] = useState<Modelo | null>(null)
   const [perfilModelo, setPerfilModelo] = useState<Modelo | null>(null)
-  const [menu, setMenu] = useState<string | null>(null)
+  const [modoEdicion, setModoEdicion] = useState(false)
 
   async function cargar() {
     setLoading(true)
@@ -57,9 +57,17 @@ export default function ModelosManager({ soloLectura = false }: { soloLectura?: 
           <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{soloLectura ? 'Consulta la identidad de cada modelo para el chatting' : 'Fichas de las modelos de la agencia'}</p>
         </div>
         {!soloLectura && (
-          <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid rgba(201,168,76,0.3)', color: 'var(--gold)' }}>
-            <Plus size={15} /> Añadir modelo
-          </button>
+          <div className="flex items-center gap-2">
+            {modelos.length > 0 && (
+              <button onClick={() => setModoEdicion(v => !v)} title="Activar edición" className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                style={modoEdicion ? { backgroundColor: 'var(--gold)', color: '#0D0D14' } : { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)' }}>
+                {modoEdicion ? <><Check size={15} /> Listo</> : <><Pencil size={15} /> Editar</>}
+              </button>
+            )}
+            <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid rgba(201,168,76,0.3)', color: 'var(--gold)' }}>
+              <Plus size={15} /> Añadir modelo
+            </button>
+          </div>
         )}
       </div>
 
@@ -84,24 +92,10 @@ export default function ModelosManager({ soloLectura = false }: { soloLectura?: 
                 {m.foto_url ? (<img src={m.foto_url} alt={m.full_name} className="w-full h-full object-cover" />) : (m.full_name[0]?.toUpperCase())}
               </div>
               <p className="text-sm font-semibold truncate flex-1 min-w-0" style={{ color: 'var(--foreground)' }}>{m.model_name || m.full_name}</p>
-              {!soloLectura && (
-                <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => setMenu(menu === m.id ? null : m.id)} title="Acciones" className="p-1 rounded hover:bg-[var(--hover)] transition-colors" style={{ color: 'var(--muted)' }}>
-                    <Pencil size={14} />
-                  </button>
-                  {menu === m.id && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setMenu(null)} />
-                      <div className="absolute right-0 top-8 z-20 rounded-lg py-1 min-w-[132px] overflow-hidden" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 8px 24px rgba(0,0,0,0.45)' }}>
-                        <button onClick={() => { setMenu(null); setEditModelo(m) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--hover)] transition-colors" style={{ color: 'var(--foreground)' }}>
-                          <Pencil size={13} /> Editar
-                        </button>
-                        <button onClick={() => { setMenu(null); eliminar(m.id, m.full_name) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--hover)] transition-colors" style={{ color: '#F87171' }}>
-                          <Trash2 size={13} /> Eliminar
-                        </button>
-                      </div>
-                    </>
-                  )}
+              {!soloLectura && modoEdicion && (
+                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => setEditModelo(m)} title="Editar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] transition-colors"><Pencil size={14} /></button>
+                  <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                 </div>
               )}
             </div>
