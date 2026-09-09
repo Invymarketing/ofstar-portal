@@ -133,7 +133,14 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
           </Link>
 
 
-          {areasConMods.length > 0 && <div className="w-8 h-px bg-border my-1.5" />}
+          {(verModelos || areasConMods.length > 0) && <div className="w-8 h-px bg-border my-1.5" />}
+
+          {/* Modelos primero, por encima del resto */}
+          {verModelos && (
+            <Link href="/modelos" title="Modelos" onClick={onClose} className={railBtn(pathname.startsWith('/modelos'))}>
+              <TaconIcon size={20} />
+            </Link>
+          )}
 
           {/* Un ícono por categoría → abre el flyout con sus módulos */}
           {areasConMods.map((area) => {
@@ -146,11 +153,6 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
               </button>
             )
           })}
-          {verModelos && (
-            <Link href="/modelos" title="Modelos" onClick={onClose} className={railBtn(pathname.startsWith('/modelos'))}>
-              <TaconIcon size={20} />
-            </Link>
-          )}
 
           {(role === 'admin' || role === 'manager') && (
             <button title="Añadir usuarios" onClick={(e) => toggleFlyout('usuarios', e)}
