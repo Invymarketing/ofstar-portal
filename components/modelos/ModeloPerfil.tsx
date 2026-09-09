@@ -14,14 +14,13 @@ const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
   { key: 'metricas', label: 'Métricas RRSS', icon: BarChart3 },
 ]
 
-export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
-  modeloId: string; nombre: string; foto: string | null; onBack: () => void
+export default function ModeloPerfil({ modeloId, nombre, foto, onBack, soloIdentidad = false }: {
+  modeloId: string; nombre: string; foto: string | null; onBack: () => void; soloIdentidad?: boolean
 }) {
   const [tab, setTab] = useState<TabKey>('portada')
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Layout robusto con CSS directo (no depende de valores arbitrarios de Tailwind) */}
       <style>{`
         .mp-layout { display: flex; gap: 20px; align-items: flex-start; }
         .mp-nav { display: flex; flex-direction: column; gap: 6px; width: 210px; flex-shrink: 0; }
@@ -43,38 +42,42 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack }: {
         <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{nombre}</h1>
       </div>
 
-      <div className="mp-layout">
-        <nav className="mp-nav">
-          {TABS.map((tb) => {
-            const Icon = tb.icon
-            const activo = tab === tb.key
-            return (
-              <button key={tb.key} onClick={() => setTab(tb.key)}
-                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-colors shrink-0"
-                style={{ backgroundColor: activo ? 'var(--gold-15)' : 'transparent', color: activo ? 'var(--gold)' : 'var(--muted)', border: `1px solid ${activo ? 'var(--gold-25)' : 'var(--border)'}` }}>
-                <Icon size={16} /> {tb.label}
-              </button>
-            )
-          })}
-        </nav>
+      {soloIdentidad ? (
+        <Portada modeloId={modeloId} nombre={nombre} foto={foto} />
+      ) : (
+        <div className="mp-layout">
+          <nav className="mp-nav">
+            {TABS.map((tb) => {
+              const Icon = tb.icon
+              const activo = tab === tb.key
+              return (
+                <button key={tb.key} onClick={() => setTab(tb.key)}
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-colors shrink-0"
+                  style={{ backgroundColor: activo ? 'var(--gold-15)' : 'transparent', color: activo ? 'var(--gold)' : 'var(--muted)', border: `1px solid ${activo ? 'var(--gold-25)' : 'var(--border)'}` }}>
+                  <Icon size={16} /> {tb.label}
+                </button>
+              )
+            })}
+          </nav>
 
-        <div className="mp-content">
-          {tab === 'portada' && (
-            <div className="space-y-4">
-              <VincularCuenta modeloId={modeloId} />
-              <Portada modeloId={modeloId} nombre={nombre} foto={foto} />
-            </div>
-          )}
-          {tab === 'horario' && <HorarioModelo modeloId={modeloId} seccion="horario" />}
-          {tab === 'todo' && <HorarioModelo modeloId={modeloId} seccion="todo" />}
-          {tab === 'metricas' && (
-            <div className="space-y-4">
-              <MetricasModelo modeloId={modeloId} />
-              <ContenidoSemana modeloId={modeloId} />
-            </div>
-          )}
+          <div className="mp-content">
+            {tab === 'portada' && (
+              <div className="space-y-4">
+                <VincularCuenta modeloId={modeloId} />
+                <Portada modeloId={modeloId} nombre={nombre} foto={foto} />
+              </div>
+            )}
+            {tab === 'horario' && <HorarioModelo modeloId={modeloId} seccion="horario" />}
+            {tab === 'todo' && <HorarioModelo modeloId={modeloId} seccion="todo" />}
+            {tab === 'metricas' && (
+              <div className="space-y-4">
+                <MetricasModelo modeloId={modeloId} />
+                <ContenidoSemana modeloId={modeloId} />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

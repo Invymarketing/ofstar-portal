@@ -15,7 +15,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const c = await ctx(); if (!c) return NextResponse.json({ error: 'no' }, { status: 403 })
   const { id } = await params
   const puedeEditar = ['admin', 'manager'].includes(c.role)
-  let ver = puedeEditar || c.role === 'creativo'
+  let ver = puedeEditar || ['creativo', 'chatter'].includes(c.role)
   if (!ver && c.role === 'modelo') {
     const { data: m } = await c.admin.from('modelos').select('id').eq('id', id).eq('user_id', c.uid).maybeSingle()
     ver = !!m

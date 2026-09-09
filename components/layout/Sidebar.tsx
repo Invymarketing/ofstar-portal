@@ -135,7 +135,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
               </button>
             )
           })}
-          {(role === 'admin' || role === 'manager') && (
+          {(role === 'admin' || role === 'manager' || role === 'chatter') && (
             <Link href="/modelos" title="Modelos" onClick={onClose} className={railBtn(pathname.startsWith('/modelos'))}>
               <UserCircle2 size={20} />
             </Link>

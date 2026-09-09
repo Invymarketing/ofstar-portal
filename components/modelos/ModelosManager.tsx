@@ -19,7 +19,7 @@ interface Modelo {
   created_at?: string | null
 }
 
-export default function ModelosManager() {
+export default function ModelosManager({ soloLectura = false }: { soloLectura?: boolean }) {
   const [modelos, setModelos] = useState<Modelo[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -29,7 +29,7 @@ export default function ModelosManager() {
   async function cargar() {
     setLoading(true)
     try {
-      const res = await fetch('/api/modelos-admin')
+      const res = await fetch(soloLectura ? '/api/modelos/fichas-publicas' : '/api/modelos-admin')
       const data = await res.json()
       setModelos(data.modelos ?? [])
     } catch { setModelos([]) }
@@ -45,7 +45,7 @@ export default function ModelosManager() {
   }
 
   if (perfilModelo) {
-    return <ModeloPerfil modeloId={perfilModelo.id} nombre={perfilModelo.model_name || perfilModelo.full_name} foto={perfilModelo.foto_url} onBack={() => { setPerfilModelo(null); cargar() }} />
+    return <ModeloPerfil modeloId={perfilModelo.id} nombre={perfilModelo.model_name || perfilModelo.full_name} foto={perfilModelo.foto_url} soloIdentidad={soloLectura} onBack={() => { setPerfilModelo(null); cargar() }} />
   }
 
   return (
@@ -53,11 +53,13 @@ export default function ModelosManager() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Modelos</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>Fichas de las modelos de la agencia</p>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{soloLectura ? 'Consulta la identidad de cada modelo para el chatting' : 'Fichas de las modelos de la agencia'}</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid rgba(201,168,76,0.3)', color: 'var(--gold)' }}>
-          <Plus size={15} /> Añadir modelo
-        </button>
+        {!soloLectura && (
+          <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid rgba(201,168,76,0.3)', color: 'var(--gold)' }}>
+            <Plus size={15} /> Añadir modelo
+          </button>
+        )}
       </div>
 
       {loading && (
@@ -67,7 +69,9 @@ export default function ModelosManager() {
       {!loading && modelos.length === 0 && (
         <div className="text-center py-16 rounded-2xl" style={{ backgroundColor: 'var(--surface)', border: '1px dashed var(--border)' }}>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>No hay modelos registradas aún.</p>
-          <button onClick={() => setShowModal(true)} className="mt-3 text-xs font-medium px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-25)', color: 'var(--gold)' }}>Añadir la primera</button>
+          {!soloLectura && (
+            <button onClick={() => setShowModal(true)} className="mt-3 text-xs font-medium px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-25)', color: 'var(--gold)' }}>Añadir la primera</button>
+          )}
         </div>
       )}
 
@@ -79,10 +83,12 @@ export default function ModelosManager() {
                 {m.foto_url ? (<img src={m.foto_url} alt={m.full_name} className="w-full h-full object-cover" />) : (m.full_name[0]?.toUpperCase())}
               </div>
               <p className="text-sm font-semibold truncate flex-1 min-w-0" style={{ color: 'var(--foreground)' }}>{m.model_name || m.full_name}</p>
-              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => setEditModelo(m)} title="Editar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] transition-colors"><Pencil size={13} /></button>
-                <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
-              </div>
+              {!soloLectura && (
+                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => setEditModelo(m)} title="Editar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] transition-colors"><Pencil size={13} /></button>
+                  <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
+                </div>
+              )}
             </div>
           ))}
         </div>
