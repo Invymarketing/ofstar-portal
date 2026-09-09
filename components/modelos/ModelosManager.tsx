@@ -25,6 +25,7 @@ export default function ModelosManager({ soloLectura = false }: { soloLectura?: 
   const [showModal, setShowModal] = useState(false)
   const [editModelo, setEditModelo] = useState<Modelo | null>(null)
   const [perfilModelo, setPerfilModelo] = useState<Modelo | null>(null)
+  const [menu, setMenu] = useState<string | null>(null)
 
   async function cargar() {
     setLoading(true)
@@ -84,9 +85,23 @@ export default function ModelosManager({ soloLectura = false }: { soloLectura?: 
               </div>
               <p className="text-sm font-semibold truncate flex-1 min-w-0" style={{ color: 'var(--foreground)' }}>{m.model_name || m.full_name}</p>
               {!soloLectura && (
-                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => setEditModelo(m)} title="Editar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] transition-colors"><Pencil size={13} /></button>
-                  <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
+                <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => setMenu(menu === m.id ? null : m.id)} title="Acciones" className="p-1 rounded hover:bg-[var(--hover)] transition-colors" style={{ color: 'var(--muted)' }}>
+                    <Pencil size={14} />
+                  </button>
+                  {menu === m.id && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setMenu(null)} />
+                      <div className="absolute right-0 top-8 z-20 rounded-lg py-1 min-w-[132px] overflow-hidden" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 8px 24px rgba(0,0,0,0.45)' }}>
+                        <button onClick={() => { setMenu(null); setEditModelo(m) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--hover)] transition-colors" style={{ color: 'var(--foreground)' }}>
+                          <Pencil size={13} /> Editar
+                        </button>
+                        <button onClick={() => { setMenu(null); eliminar(m.id, m.full_name) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--hover)] transition-colors" style={{ color: '#F87171' }}>
+                          <Trash2 size={13} /> Eliminar
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
