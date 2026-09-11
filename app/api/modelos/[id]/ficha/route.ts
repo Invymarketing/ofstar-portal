@@ -5,6 +5,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 const EDITORES = ['admin', 'manager', 'team_leader', 'creativo', 'marketing_manager', 'director_creativo']
 const VISORES = ['chatter', 'content_manager', 'va']
 
+// Campos de texto compartidos entre Identidad y Fichas de Modelo (los precios NO están aquí)
+const CAMPOS_TEXTO = [
+  'nombre_artistico', 'nombre_real', 'nacionalidad', 'ubicacion_ficticia', 'idioma', 'zona_horaria',
+  'personalidad', 'energia', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion',
+  'instagram', 'telegram', 'twitter', 'otros_enlaces', 'notas',
+]
+
 async function ctx() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -25,23 +32,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   }
   if (!ver) return NextResponse.json({ error: 'no' }, { status: 403 })
 
-  const { data: m } = await c.admin.from('modelos').select('nicho_id, nacionalidad, energia, personalidad, enfoque, descripcion').eq('id', id).maybeSingle()
+  const { data: f } = await c.admin.from('fichas_modelo').select('*').eq('modelo_id', id).maybeSingle()
 
-  let nicho: string | null = null
-  if (m?.nicho_id) {
-    const { data: n } = await c.admin.from('nichos').select('nombre').eq('id', m.nicho_id).maybeSingle()
-    nicho = n?.nombre ?? null
-  }
-
-  return NextResponse.json({
-    nicho,
-    nacionalidad: m?.nacionalidad ?? '',
-    energia: m?.energia ?? '',
-    personalidad: m?.personalidad ?? '',
-    enfoque: m?.enfoque ?? '',
-    descripcion: m?.descripcion ?? '',
+  const out: Record<string, unknown> = {
     editable: puedeEditar,
-  })
+    edad_real: f?.edad_real ?? '',
+    edad_ficticia: f?.edad_ficticia ?? '',
+  }
+  for (const k of CAMPOS_TEXTO) out[k] = (f as any)?.[k] ?? ''
+  return NextResponse.json(out)
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -50,12 +49,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params
   const b = await req.json()
   const s = (v: any) => (v == null ? null : (String(v).trim() || null))
-  await c.admin.from('modelos').update({
-    nacionalidad: s(b.nacionalidad),
-    energia: s(b.energia),
-    personalidad: s(b.personalidad),
-    enfoque: s(b.enfoque),
-    descripcion: s(b.descripcion),
-  }).eq('id', id)
+
+  // Solo tocamos los campos que vengan en la petición (no pisamos el resto: precios, etc.)
+  const patch: Record<string, unknown> = { modelo_id: id, updated_by: c.uid, updated_at: new Date().toISOString() }
+  for (const k of CAMPOS_TEXTO) if (k in b) patch[k] = s(b[k])
+  if ('edad_real' in b) patch.edad_real = b.edad_real ? Number(b.edad_real) : null
+  if ('edad_ficticia' in b) patch.edad_ficticia = b.edad_ficticia ? Number(b.edad_ficticia) : null
+
+  const { error } = await c.admin.from('fichas_modelo').upsert(patch, { onConflict: 'modelo_id' })
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
