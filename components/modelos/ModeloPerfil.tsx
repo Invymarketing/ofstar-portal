@@ -5,7 +5,6 @@ import { ArrowLeft, UserCircle2, CalendarDays, ListTodo, BarChart3, Link2, Sword
 import HorarioModelo from '@/components/modelos/HorarioModelo'
 import MetricasModelo from '@/components/modelos/MetricasModelo'
 import Portada from '@/components/modelos/Portada'
-import RedesModelo from '@/components/modelos/RedesModelo'
 import CompetenciaModelo from '@/components/modelos/CompetenciaModelo'
 
 type TabKey = 'portada' | 'horario' | 'todo' | 'metricas' | 'competencia'
@@ -46,10 +45,7 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack, soloIdent
       </div>
 
       {soloIdentidad ? (
-        <div className="space-y-4">
-          <Portada modeloId={modeloId} nombre={nombre} foto={foto} />
-          <RedesModelo modeloId={modeloId} />
-        </div>
+        <Portada modeloId={modeloId} nombre={nombre} foto={foto} />
       ) : (
         <div className="mp-layout">
           <nav className="mp-nav">
@@ -71,7 +67,6 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack, soloIdent
               <div className="space-y-4">
                 <VincularCuenta modeloId={modeloId} />
                 <Portada modeloId={modeloId} nombre={nombre} foto={foto} />
-                <RedesModelo modeloId={modeloId} />
               </div>
             )}
             {tab === 'horario' && <HorarioModelo modeloId={modeloId} seccion="horario" />}

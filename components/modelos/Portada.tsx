@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Loader2, Pencil, Globe, X, User, Heart, Link2 } from 'lucide-react'
+import RedesModelo from '@/components/modelos/RedesModelo'
 
 const CAMPOS_TEXTO = [
   'nombre_artistico', 'nombre_real', 'nacionalidad', 'ubicacion_ficticia', 'idioma', 'zona_horaria',
@@ -23,7 +24,7 @@ const LABELS: Record<string, string> = {
 const SECCIONES: { titulo: string; icon: React.ElementType; campos: string[] }[] = [
   { titulo: 'Datos básicos', icon: User, campos: ['nombre_artistico', 'nombre_real', 'nacionalidad', 'edad_real', 'edad_ficticia', 'ubicacion_ficticia', 'idioma', 'zona_horaria'] },
   { titulo: 'Personalidad y marca', icon: Heart, campos: ['energia', 'personalidad', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion'] },
-  { titulo: 'Redes y enlaces', icon: Link2, campos: ['instagram', 'telegram', 'twitter', 'otros_enlaces', 'notas'] },
+  { titulo: 'Redes y enlaces', icon: Link2, campos: ['telegram', 'twitter', 'otros_enlaces', 'notas'] },
 ]
 
 const AREAS = new Set(['energia', 'personalidad', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion', 'otros_enlaces', 'notas'])
@@ -72,7 +73,6 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
     return <div className="flex items-center justify-center py-16"><Loader2 size={22} className="animate-spin" style={{ color: 'var(--muted)' }} /></div>
   }
 
-  // ── Modo edición ──
   if (editando) {
     return (
       <div className="space-y-4">
@@ -88,6 +88,12 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
                 <Icon size={15} style={{ color: 'var(--gold)' }} />
                 <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{sec.titulo}</p>
               </div>
+              {sec.titulo === 'Redes y enlaces' && (
+                <div className="mb-4">
+                  <p className="text-[11px] mb-1.5" style={{ color: 'var(--muted)' }}>Instagram (cuentas enlazadas · se gestionan en Analytics)</p>
+                  <RedesModelo modeloId={modeloId} plano />
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {sec.campos.map((k) => (
                   <div key={k} className={AREAS.has(k) ? 'sm:col-span-2' : ''}>
@@ -113,10 +119,8 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
     )
   }
 
-  // ── Vista ──
   return (
     <div className="space-y-4">
-      {/* Carátula */}
       <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid var(--gold-25)', backgroundColor: 'var(--surface)' }}>
         <div className="p-5 flex items-start gap-4" style={{ background: 'linear-gradient(120deg, var(--gold-15), transparent)' }}>
           <div className="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center text-3xl font-bold shrink-0" style={{ backgroundColor: 'var(--gold-15)', color: 'var(--gold)' }}>
@@ -141,15 +145,21 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
         </div>
       </div>
 
-      {/* Secciones */}
       {SECCIONES.map((sec) => {
         const Icon = sec.icon
+        const esRedes = sec.titulo === 'Redes y enlaces'
         return (
           <div key={sec.titulo} className="rounded-2xl p-5" style={card}>
             <div className="flex items-center gap-2 mb-4">
               <Icon size={15} style={{ color: 'var(--gold)' }} />
               <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{sec.titulo}</p>
             </div>
+            {esRedes && (
+              <div className="mb-4">
+                <p className="text-[11px] mb-1.5" style={{ color: 'var(--muted)' }}>Instagram (cuentas enlazadas)</p>
+                <RedesModelo modeloId={modeloId} plano />
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {sec.campos.map((k) => {
                 const val = form[k]
