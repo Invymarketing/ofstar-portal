@@ -6,10 +6,11 @@ import { Search, Pencil, Save, X, User, Heart, DollarSign, Link2 } from 'lucide-
 
 export interface Ficha {
   modelo_id: string
-  nombre_artistico?: string | null; nombre_real?: string | null; nicho?: string | null
+  nombre_artistico?: string | null; nombre_real?: string | null; nacionalidad?: string | null
   edad_real?: number | null; edad_ficticia?: number | null; ubicacion_ficticia?: string | null
   idioma?: string | null; zona_horaria?: string | null
-  personalidad?: string | null; tono?: string | null; temas_gusta?: string | null
+  personalidad?: string | null; energia?: string | null; enfoque?: string | null; descripcion?: string | null
+  tono?: string | null; temas_gusta?: string | null
   limites?: string | null; palabras_evitar?: string | null
   precio_custom?: string | null; precio_vc?: string | null; precio_ppv?: string | null
   precio_sexting?: string | null; packs?: string | null; pagos_por_fuera?: string | null
@@ -143,24 +144,30 @@ export default function FichasModelo(
               )}
             </div>
             {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
+            {esEditor && (
+              <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Los datos (menos los precios) también se editan desde Modelos → Identidad; se sincronizan solos.</p>
+            )}
 
             {!editando ? (
               <>
                 <Seccion icon={User} titulo="Datos básicos">
                   <Field label="Nombre artístico" value={ficha.nombre_artistico} />
                   <Field label="Nombre real" value={ficha.nombre_real} />
-                  <Field label="Nicho" value={ficha.nicho} />
+                  <Field label="Nacionalidad" value={ficha.nacionalidad} />
                   <Field label="Edad real / ficticia" value={[ficha.edad_real, ficha.edad_ficticia].filter(Boolean).join(' / ') || null} />
                   <Field label="Ubicación ficticia" value={ficha.ubicacion_ficticia} />
                   <Field label="Idioma" value={ficha.idioma} />
                   <Field label="Zona horaria" value={ficha.zona_horaria} />
                 </Seccion>
                 <Seccion icon={Heart} titulo="Personalidad y tono">
+                  <Field label="Energía" value={ficha.energia} />
                   <Field label="Personalidad" value={ficha.personalidad} />
+                  <Field label="Enfoque" value={ficha.enfoque} />
                   <Field label="Tono" value={ficha.tono} />
                   <Field label="Temas que le gustan" value={ficha.temas_gusta} />
                   <Field label="Límites / qué NO hacer" value={ficha.limites} />
                   <Field label="Palabras a evitar" value={ficha.palabras_evitar} />
+                  <Field label="Descripción general" value={ficha.descripcion} />
                 </Seccion>
                 <Seccion icon={DollarSign} titulo="Precios y servicios">
                   <Field label="Custom" value={money(ficha.precio_custom)} />
@@ -183,7 +190,7 @@ export default function FichasModelo(
                 <Seccion icon={User} titulo="Datos básicos">
                   <Input k="nombre_artistico" label="Nombre artístico" />
                   <Input k="nombre_real" label="Nombre real" />
-                  <Input k="nicho" label="Nicho" />
+                  <Input k="nacionalidad" label="Nacionalidad" ph="Ej. España" />
                   <Input k="ubicacion_ficticia" label="Ubicación ficticia" />
                   <div className="grid grid-cols-2 gap-3">
                     <Input k="edad_real" label="Edad real" ph="ej. 24" />
@@ -193,11 +200,14 @@ export default function FichasModelo(
                   <Input k="zona_horaria" label="Zona horaria" />
                 </Seccion>
                 <Seccion icon={Heart} titulo="Personalidad y tono">
+                  <Input k="energia" label="Energía" area />
                   <Input k="personalidad" label="Personalidad" area />
+                  <Input k="enfoque" label="Enfoque" area />
                   <Input k="tono" label="Tono" area />
                   <Input k="temas_gusta" label="Temas que le gustan" area />
                   <Input k="limites" label="Límites / qué NO hacer" area />
                   <Input k="palabras_evitar" label="Palabras a evitar" area />
+                  <Input k="descripcion" label="Descripción general" area />
                 </Seccion>
                 <Seccion icon={DollarSign} titulo="Precios y servicios">
                   <Input k="precio_custom" label="Custom" ph="ej. 50€ / min" />

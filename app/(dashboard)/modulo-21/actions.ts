@@ -5,8 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const CAMPOS = [
-  'nombre_artistico', 'nombre_real', 'nicho', 'ubicacion_ficticia', 'idioma', 'zona_horaria',
-  'personalidad', 'tono', 'temas_gusta', 'limites', 'palabras_evitar',
+  'nombre_artistico', 'nombre_real', 'nacionalidad', 'ubicacion_ficticia', 'idioma', 'zona_horaria',
+  'personalidad', 'energia', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion',
   'precio_custom', 'precio_vc', 'precio_ppv', 'precio_sexting', 'packs', 'pagos_por_fuera',
   'instagram', 'telegram', 'twitter', 'otros_enlaces', 'notas',
 ] as const
@@ -26,7 +26,6 @@ export async function guardarFicha(modeloId: string, data: Record<string, unknow
     const v = data[c]
     patch[c] = (typeof v === 'string' && v.trim() === '') ? null : (v ?? null)
   }
-  // Edades como número o null
   patch.edad_real = data.edad_real ? Number(data.edad_real) : null
   patch.edad_ficticia = data.edad_ficticia ? Number(data.edad_ficticia) : null
 
@@ -34,4 +33,5 @@ export async function guardarFicha(modeloId: string, data: Record<string, unknow
   if (error) throw new Error(error.message)
 
   revalidatePath('/modulo-21')
+  revalidatePath('/modelos')
 }
