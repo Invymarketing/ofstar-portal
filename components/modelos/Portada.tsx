@@ -1,32 +1,55 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Loader2, Pencil, Globe, Zap, Heart, Target, X } from 'lucide-react'
+import { Loader2, Pencil, Globe, X, User, Heart, Link2 } from 'lucide-react'
 
-interface Ficha {
-  nicho: string | null
-  nacionalidad: string
-  energia: string
-  personalidad: string
-  enfoque: string
-  descripcion: string
-  editable: boolean
+const CAMPOS_TEXTO = [
+  'nombre_artistico', 'nombre_real', 'nacionalidad', 'ubicacion_ficticia', 'idioma', 'zona_horaria',
+  'personalidad', 'energia', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion',
+  'instagram', 'telegram', 'twitter', 'otros_enlaces', 'notas',
+] as const
+
+type Form = Record<string, string>
+
+const LABELS: Record<string, string> = {
+  nombre_artistico: 'Nombre artístico', nombre_real: 'Nombre real', nacionalidad: 'Nacionalidad',
+  edad_real: 'Edad real', edad_ficticia: 'Edad ficticia', ubicacion_ficticia: 'Ubicación ficticia',
+  idioma: 'Idioma', zona_horaria: 'Zona horaria',
+  personalidad: 'Personalidad', energia: 'Energía', enfoque: 'Enfoque', tono: 'Tono',
+  temas_gusta: 'Temas que le gustan', limites: 'Límites / qué NO hacer', palabras_evitar: 'Palabras a evitar', descripcion: 'Descripción general',
+  instagram: 'Instagram', telegram: 'Telegram', twitter: 'Twitter / X', otros_enlaces: 'Otros enlaces', notas: 'Notas',
+}
+
+const SECCIONES: { titulo: string; icon: React.ElementType; campos: string[] }[] = [
+  { titulo: 'Datos básicos', icon: User, campos: ['nombre_artistico', 'nombre_real', 'nacionalidad', 'edad_real', 'edad_ficticia', 'ubicacion_ficticia', 'idioma', 'zona_horaria'] },
+  { titulo: 'Personalidad y marca', icon: Heart, campos: ['energia', 'personalidad', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion'] },
+  { titulo: 'Redes y enlaces', icon: Link2, campos: ['instagram', 'telegram', 'twitter', 'otros_enlaces', 'notas'] },
+]
+
+const AREAS = new Set(['energia', 'personalidad', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion', 'otros_enlaces', 'notas'])
+
+function vacio(f: Form) {
+  return CAMPOS_TEXTO.every((k) => !f[k]) && !f.edad_real && !f.edad_ficticia
 }
 
 export default function Portada({ modeloId, nombre, foto }: { modeloId: string; nombre: string; foto: string | null }) {
-  const [f, setF] = useState<Ficha | null>(null)
+  const [editable, setEditable] = useState(false)
+  const [form, setForm] = useState<Form>({})
   const [cargando, setCargando] = useState(true)
   const [editando, setEditando] = useState(false)
   const [guardando, setGuardando] = useState(false)
-  const [form, setForm] = useState({ nacionalidad: '', energia: '', personalidad: '', enfoque: '', descripcion: '' })
 
   const cargar = useCallback(async () => {
     setCargando(true)
     try {
       const r = await fetch(`/api/modelos/${modeloId}/ficha`)
       const d = await r.json()
-      setF(d)
-      setForm({ nacionalidad: d.nacionalidad || '', energia: d.energia || '', personalidad: d.personalidad || '', enfoque: d.enfoque || '', descripcion: d.descripcion || '' })
+      setEditable(!!d.editable)
+      const nf: Form = {}
+      for (const k of CAMPOS_TEXTO) nf[k] = d[k] ?? ''
+      nf.edad_real = d.edad_real != null && d.edad_real !== '' ? String(d.edad_real) : ''
+      nf.edad_ficticia = d.edad_ficticia != null && d.edad_ficticia !== '' ? String(d.edad_ficticia) : ''
+      setForm(nf)
     } catch { /* noop */ }
     setCargando(false)
   }, [modeloId])
@@ -41,59 +64,59 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
     cargar()
   }
 
+  const set = (k: string, v: string) => setForm((s) => ({ ...s, [k]: v }))
   const card = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)' } as const
   const inputStyle = { backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
-  if (cargando || !f) {
+  if (cargando) {
     return <div className="flex items-center justify-center py-16"><Loader2 size={22} className="animate-spin" style={{ color: 'var(--muted)' }} /></div>
   }
 
+  // ── Modo edición ──
   if (editando) {
-    const campos: { k: keyof typeof form; label: string; ph: string; area?: boolean }[] = [
-      { k: 'nacionalidad', label: 'Nacionalidad', ph: 'Ej. España' },
-      { k: 'descripcion', label: 'Descripción general', ph: 'Una línea que la resuma…', area: true },
-      { k: 'energia', label: 'Energía', ph: '¿Qué energía transmite? (cercana, dominante, dulce…)', area: true },
-      { k: 'personalidad', label: 'Personalidad', ph: '¿Cómo es? (divertida, misteriosa, natural…)', area: true },
-      { k: 'enfoque', label: 'Enfoque', ph: '¿En qué se centra su contenido/marca?', area: true },
-    ]
     return (
-      <div className="rounded-2xl p-5" style={card}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>Editar branding</h3>
-          <button onClick={() => setEditando(false)} style={{ color: 'var(--muted)' }} aria-label="Cerrar"><X size={16} /></button>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-bold" style={{ color: 'var(--foreground)' }}>Editar identidad</h3>
+          <button onClick={() => setEditando(false)} style={{ color: 'var(--muted)' }} aria-label="Cerrar"><X size={18} /></button>
         </div>
-        <div className="space-y-3">
-          {campos.map((c) => (
-            <div key={c.k}>
-              <label className="text-xs font-medium block mb-1" style={{ color: 'var(--muted)' }}>{c.label}</label>
-              {c.area ? (
-                <textarea value={form[c.k]} onChange={(e) => setForm((s) => ({ ...s, [c.k]: e.target.value }))} placeholder={c.ph} rows={2}
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none resize-y" style={inputStyle} />
-              ) : (
-                <input value={form[c.k]} onChange={(e) => setForm((s) => ({ ...s, [c.k]: e.target.value }))} placeholder={c.ph}
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none" style={inputStyle} />
-              )}
+        {SECCIONES.map((sec) => {
+          const Icon = sec.icon
+          return (
+            <div key={sec.titulo} className="rounded-2xl p-5" style={card}>
+              <div className="flex items-center gap-2 mb-4">
+                <Icon size={15} style={{ color: 'var(--gold)' }} />
+                <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{sec.titulo}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {sec.campos.map((k) => (
+                  <div key={k} className={AREAS.has(k) ? 'sm:col-span-2' : ''}>
+                    <label className="text-xs font-medium block mb-1" style={{ color: 'var(--muted)' }}>{LABELS[k]}</label>
+                    {AREAS.has(k) ? (
+                      <textarea value={form[k] ?? ''} onChange={(e) => set(k, e.target.value)} rows={2} className="w-full rounded-lg px-3 py-2 text-sm outline-none resize-y" style={inputStyle} />
+                    ) : (
+                      <input value={form[k] ?? ''} onChange={(e) => set(k, e.target.value)} className="w-full rounded-lg px-3 py-2 text-sm outline-none" style={inputStyle} />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 mt-4">
-          <button onClick={guardar} disabled={guardando} className="rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
-            {guardando ? 'Guardando…' : 'Guardar'}
+          )
+        })}
+        <div className="flex items-center gap-2">
+          <button onClick={guardar} disabled={guardando} className="rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
+            {guardando ? 'Guardando…' : 'Guardar identidad'}
           </button>
-          <button onClick={() => setEditando(false)} className="rounded-lg px-4 py-2 text-sm" style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}>Cancelar</button>
+          <button onClick={() => { setEditando(false); cargar() }} className="rounded-lg px-4 py-2.5 text-sm" style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}>Cancelar</button>
         </div>
       </div>
     )
   }
 
-  const bloques = [
-    { icon: Zap, label: 'Energía', val: f.energia },
-    { icon: Heart, label: 'Personalidad', val: f.personalidad },
-    { icon: Target, label: 'Enfoque', val: f.enfoque },
-  ]
-
+  // ── Vista ──
   return (
     <div className="space-y-4">
+      {/* Carátula */}
       <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid var(--gold-25)', backgroundColor: 'var(--surface)' }}>
         <div className="p-5 flex items-start gap-4" style={{ background: 'linear-gradient(120deg, var(--gold-15), transparent)' }}>
           <div className="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center text-3xl font-bold shrink-0" style={{ backgroundColor: 'var(--gold-15)', color: 'var(--gold)' }}>
@@ -102,41 +125,48 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{nombre}</h2>
             <div className="flex flex-wrap gap-2 mt-2">
-              {f.nacionalidad && (
+              {form.nacionalidad && (
                 <span className="flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
-                  <Globe size={12} /> {f.nacionalidad}
+                  <Globe size={12} /> {form.nacionalidad}
                 </span>
               )}
             </div>
-            {f.descripcion && <p className="text-sm mt-3 leading-relaxed" style={{ color: 'var(--foreground)' }}>{f.descripcion}</p>}
+            {form.descripcion && <p className="text-sm mt-3 leading-relaxed" style={{ color: 'var(--foreground)' }}>{form.descripcion}</p>}
           </div>
-          {f.editable && (
-            <button onClick={() => setEditando(true)} className="flex items-center gap-1.5 text-xs rounded-lg px-3 py-1.5 shrink-0" style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}>
-              <Pencil size={13} /> Editar
+          {editable && (
+            <button onClick={() => setEditando(true)} className="flex items-center gap-2 text-sm font-semibold rounded-xl px-4 py-2.5 shrink-0 transition-transform active:scale-95" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
+              <Pencil size={15} /> Editar identidad
             </button>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {bloques.map((b) => {
-          const Icon = b.icon
-          return (
-            <div key={b.label} className="rounded-2xl p-4" style={card}>
-              <div className="flex items-center gap-2 mb-2">
-                <Icon size={15} style={{ color: 'var(--gold)' }} />
-                <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{b.label}</span>
-              </div>
-              <p className="text-sm leading-relaxed" style={{ color: b.val ? 'var(--foreground)' : 'var(--muted)' }}>
-                {b.val || 'Sin definir todavía.'}
-              </p>
+      {/* Secciones */}
+      {SECCIONES.map((sec) => {
+        const Icon = sec.icon
+        return (
+          <div key={sec.titulo} className="rounded-2xl p-5" style={card}>
+            <div className="flex items-center gap-2 mb-4">
+              <Icon size={15} style={{ color: 'var(--gold)' }} />
+              <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{sec.titulo}</p>
             </div>
-          )
-        })}
-      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {sec.campos.map((k) => {
+                const val = form[k]
+                return (
+                  <div key={k} className={AREAS.has(k) ? 'sm:col-span-2' : ''}>
+                    <p className="text-[11px] mb-0.5" style={{ color: 'var(--muted)' }}>{LABELS[k]}</p>
+                    <p className="text-sm whitespace-pre-wrap" style={{ color: val ? 'var(--foreground)' : 'var(--muted)' }}>{val || 'Sin definir'}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
 
-      {!f.nicho && !f.nacionalidad && !f.descripcion && !f.energia && !f.personalidad && !f.enfoque && f.editable && (
-        <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>Aún no has rellenado el branding. Pulsa "Editar" para empezar.</p>
+      {editable && vacio(form) && (
+        <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>Aún no has rellenado la identidad. Pulsa &quot;Editar identidad&quot; para empezar.</p>
       )}
     </div>
   )
