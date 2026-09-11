@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X, Upload, BookOpen, Link2, Clock, RotateCcw, Gauge } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X, Upload, BookOpen, Link2, Clock, RotateCcw, Gauge, ChevronDown, ChevronUp, ImagePlus, Loader2 } from 'lucide-react'
 
 interface Tarea { id: string; dia_semana: number; titulo: string }
-interface Todo { id: string; texto: string; hecho: boolean; enlace_subir?: string | null; enlace_guia?: string | null }
+interface Todo { id: string; texto: string; hecho: boolean; enlace_subir?: string | null; enlace_guia?: string | null; descripcion?: string | null; imagenes?: string[] }
 interface Compromiso { total: number; completadas: number; pct: number }
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
@@ -25,6 +25,7 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
   const [limDia, setLimDia] = useState(0)
   const [limHora, setLimHora] = useState('16:00')
   const [limGuardado, setLimGuardado] = useState(false)
+  const [abierto, setAbierto] = useState<string | null>(null)
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -206,36 +207,50 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
         )}
 
         <div className="flex flex-col gap-2 mb-3">
-          {todos.map((t) => (
-            <div key={t.id} className="group flex items-center gap-3 rounded-xl px-3.5 py-3" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
-              <button onClick={() => post({ op: 'todoToggle', todoId: t.id, hecho: !t.hecho })} className="shrink-0 h-5 w-5 rounded grid place-items-center transition-colors" style={{ border: '1px solid var(--border)', backgroundColor: t.hecho ? 'var(--gold)' : 'transparent' }} aria-label="Completar">
-                {t.hecho && <Check size={13} style={{ color: '#000' }} />}
-              </button>
-              <span className="flex-1 text-[15px]" style={{ color: t.hecho ? 'var(--muted)' : 'var(--gold)', textDecoration: t.hecho ? 'line-through' : 'none' }}>{t.texto}</span>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {t.enlace_subir && (
-                  <a href={hrefOf(t.enlace_subir)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid var(--gold-25)', color: 'var(--gold)' }}>
-                    <Upload size={13} /> Subir
-                  </a>
-                )}
-                {t.enlace_guia && (
-                  <a href={hrefOf(t.enlace_guia)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid var(--border)', color: 'var(--foreground)' }}>
-                    <BookOpen size={13} /> Guía
-                  </a>
-                )}
-                {editable && (
-                  <button onClick={() => abrirEnlaces(t)} className="shrink-0 p-1 transition-opacity hover:opacity-100 opacity-60" style={{ color: 'var(--muted)' }} title="Enlaces (subir / guía)" aria-label="Enlaces">
-                    <Link2 size={15} />
+          {todos.map((t) => {
+            const tieneExtra = !!(t.descripcion || (t.imagenes && t.imagenes.length))
+            const open = abierto === t.id
+            return (
+            <div key={t.id} className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
+              <div className="group flex items-center gap-3 px-3.5 py-3">
+                <button onClick={() => post({ op: 'todoToggle', todoId: t.id, hecho: !t.hecho })} className="shrink-0 h-5 w-5 rounded grid place-items-center transition-colors" style={{ border: '1px solid var(--border)', backgroundColor: t.hecho ? 'var(--gold)' : 'transparent' }} aria-label="Completar">
+                  {t.hecho && <Check size={13} style={{ color: '#000' }} />}
+                </button>
+                <span className="flex-1 text-[15px]" style={{ color: t.hecho ? 'var(--muted)' : 'var(--gold)', textDecoration: t.hecho ? 'line-through' : 'none' }}>{t.texto}</span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {t.enlace_subir && (
+                    <a href={hrefOf(t.enlace_subir)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid var(--gold-25)', color: 'var(--gold)' }}>
+                      <Upload size={13} /> Subir
+                    </a>
+                  )}
+                  {t.enlace_guia && (
+                    <a href={hrefOf(t.enlace_guia)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                      <BookOpen size={13} /> Guía
+                    </a>
+                  )}
+                  <button onClick={() => setAbierto(open ? null : t.id)} className="shrink-0 p-1 transition-opacity" style={{ color: tieneExtra ? 'var(--gold)' : 'var(--muted)', opacity: tieneExtra ? 1 : 0.6 }} title="Descripción e imágenes" aria-label="Descripción">
+                    {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                   </button>
-                )}
-                {editable && (
-                  <button onClick={() => post({ op: 'todoDel', todoId: t.id })} className="shrink-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#ef4444' }} aria-label="Eliminar">
-                    <Trash2 size={15} />
-                  </button>
-                )}
+                  {editable && (
+                    <button onClick={() => abrirEnlaces(t)} className="shrink-0 p-1 transition-opacity hover:opacity-100 opacity-60" style={{ color: 'var(--muted)' }} title="Enlaces (subir / guía)" aria-label="Enlaces">
+                      <Link2 size={15} />
+                    </button>
+                  )}
+                  {editable && (
+                    <button onClick={() => post({ op: 'todoDel', todoId: t.id })} className="shrink-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#ef4444' }} aria-label="Eliminar">
+                      <Trash2 size={15} />
+                    </button>
+                  )}
+                </div>
               </div>
+              {open && (
+                <div className="px-3.5 pb-3 border-t" style={{ borderColor: 'var(--border)' }}>
+                  <PanelTarea modeloId={modeloId} todo={t} editable={editable} recargar={cargar} />
+                </div>
+              )}
             </div>
-          ))}
+            )
+          })}
           {!cargando && todos.length === 0 && <p className="text-xs py-1" style={{ color: 'var(--muted)' }}>Aún no hay objetivos esta semana.</p>}
         </div>
 
@@ -319,6 +334,76 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function PanelTarea({ modeloId, todo, editable, recargar }: { modeloId: string; todo: Todo; editable: boolean; recargar: () => void }) {
+  const [desc, setDesc] = useState(todo.descripcion ?? '')
+  const [guardando, setGuardando] = useState(false)
+  const [subiendo, setSubiendo] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const imgs = todo.imagenes ?? []
+
+  async function guardarDesc() {
+    setGuardando(true)
+    await fetch(`/api/modelos/${modeloId}/horario`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'todoDesc', todoId: todo.id, descripcion: desc }) })
+    setGuardando(false); recargar()
+  }
+  async function subir(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f) return
+    setSubiendo(true)
+    const fd = new FormData(); fd.append('file', f); fd.append('todoId', todo.id)
+    try { await fetch(`/api/modelos/${modeloId}/todo-imagen`, { method: 'POST', body: fd }) } catch { /* noop */ }
+    setSubiendo(false); if (fileRef.current) fileRef.current.value = ''; recargar()
+  }
+  async function borrarImg(url: string) {
+    await fetch(`/api/modelos/${modeloId}/horario`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'todoImgDel', todoId: todo.id, url }) })
+    recargar()
+  }
+
+  return (
+    <div className="pt-3 space-y-3">
+      <div>
+        <label className="text-[11px] font-medium block mb-1" style={{ color: 'var(--muted)' }}>Descripción</label>
+        {editable ? (
+          <div className="flex flex-col gap-1.5">
+            <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} placeholder="Instrucciones o contexto para esta tarea…" className="w-full rounded-lg px-3 py-2 text-sm outline-none resize-y" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            {desc !== (todo.descripcion ?? '') && (
+              <button onClick={guardarDesc} disabled={guardando} className="self-start rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-60" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>{guardando ? 'Guardando…' : 'Guardar descripción'}</button>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm whitespace-pre-wrap" style={{ color: todo.descripcion ? 'var(--foreground)' : 'var(--muted)' }}>{todo.descripcion || 'Sin descripción.'}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="text-[11px] font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Imágenes</label>
+        {imgs.length === 0 && !editable && <p className="text-xs" style={{ color: 'var(--muted)' }}>Sin imágenes.</p>}
+        <div className="flex flex-wrap gap-2">
+          {imgs.map((url, i) => (
+            <div key={i} className="relative">
+              <a href={url} target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="w-20 h-20 rounded-lg object-cover" style={{ border: '1px solid var(--border)' }} />
+              </a>
+              {editable && (
+                <button onClick={() => borrarImg(url)} title="Quitar" className="absolute -top-1.5 -right-1.5 grid place-items-center h-5 w-5 rounded-full" style={{ backgroundColor: '#ef4444', color: '#fff' }}>
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+          ))}
+          {editable && (
+            <button onClick={() => fileRef.current?.click()} disabled={subiendo} className="w-20 h-20 rounded-lg flex flex-col items-center justify-center gap-1 text-[10px]" style={{ border: '1px dashed var(--gold-25)', color: 'var(--gold)' }}>
+              {subiendo ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={18} />}
+              {subiendo ? 'Subiendo' : 'Añadir'}
+            </button>
+          )}
+        </div>
+        <input ref={fileRef} type="file" accept="image/*" onChange={subir} className="hidden" />
+      </div>
     </div>
   )
 }
