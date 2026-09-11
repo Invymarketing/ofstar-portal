@@ -3,8 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 // ── Utilidades de fecha (hora de España) ──
-
-// Convierte una hora "de pared" de Madrid al instante UTC correcto (maneja verano/invierno)
 function madridToUtc(y: number, mo: number, d: number, hh: number, mm: number): Date {
   const dtf = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
   let t = Date.UTC(y, mo, d, hh, mm, 0)
@@ -19,7 +17,6 @@ function madridToUtc(y: number, mo: number, d: number, hh: number, mm: number): 
 
 const WD: Record<string, number> = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 }
 
-// Fecha límite del ciclo actual: primera vez que toca (limite_dia a limite_hora, Madrid) en o después de semana_inicio
 function calcularDeadline(semanaInicio: Date, limiteDia: number, limiteHora: string): Date {
   const [hh, mm] = String(limiteHora || '16:00').split(':').map(Number)
   const fecha = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(semanaInicio)
@@ -32,10 +29,9 @@ function calcularDeadline(semanaInicio: Date, limiteDia: number, limiteHora: str
   return new Date(semanaInicio.getTime() + 7 * 86400000)
 }
 
-// Nota de una tarea según cuándo se marcó respecto a la fecha límite (escala graduada)
 function nota(hecho: boolean, hechoAt: string | null, deadline: Date): number {
   if (!hecho || !hechoAt) return 0
-  const h = (new Date(hechoAt).getTime() - deadline.getTime()) / 3600000 // horas de retraso
+  const h = (new Date(hechoAt).getTime() - deadline.getTime()) / 3600000
   if (h <= 0) return 100
   if (h < 24) return 85
   if (h < 48) return 65
@@ -51,7 +47,6 @@ function resumenCompromiso(todos: { hecho: boolean; hecho_at: string | null }[],
 }
 
 // ── Auth ──
-
 async function ctx() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -76,7 +71,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const perm = await puede(c, id); if (!perm) return NextResponse.json({ error: 'no' }, { status: 403 })
   const [{ data: tareas }, { data: todos }, { data: ficha }] = await Promise.all([
     c.admin.from('modelo_tareas').select('id, dia_semana, titulo').eq('modelo_id', id).not('dia_semana', 'is', null).order('dia_semana').order('created_at'),
-    c.admin.from('modelo_todos').select('id, texto, hecho, hecho_at, enlace_subir, enlace_guia').eq('modelo_id', id).order('created_at'),
+    c.admin.from('modelo_todos').select('id, texto, hecho, hecho_at, enlace_subir, enlace_guia, descripcion, imagenes').eq('modelo_id', id).order('created_at'),
     c.admin.from('modelos').select('limite_dia, limite_hora, semana_inicio').eq('id', id).maybeSingle(),
   ])
   const limiteDia = ficha?.limite_dia ?? 0
@@ -113,13 +108,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   else if (b.op === 'todoToggle') await t.from('modelo_todos').update({ hecho: !!b.hecho, hecho_at: b.hecho ? new Date().toISOString() : null }).eq('id', b.todoId).eq('modelo_id', id)
   else if (b.op === 'todoDel') await t.from('modelo_todos').delete().eq('id', b.todoId).eq('modelo_id', id)
   else if (b.op === 'todoLinks') await t.from('modelo_todos').update({ enlace_subir: b.enlace_subir ? String(b.enlace_subir).trim() : null, enlace_guia: b.enlace_guia ? String(b.enlace_guia).trim() : null }).eq('id', b.todoId).eq('modelo_id', id)
+  else if (b.op === 'todoDesc') await t.from('modelo_todos').update({ descripcion: b.descripcion ? String(b.descripcion) : null }).eq('id', b.todoId).eq('modelo_id', id)
+  else if (b.op === 'todoImgDel') {
+    const { data: td } = await t.from('modelo_todos').select('imagenes').eq('id', b.todoId).eq('modelo_id', id).maybeSingle()
+    const actuales: string[] = Array.isArray(td?.imagenes) ? (td.imagenes as string[]) : []
+    const url = String(b.url || '')
+    const nuevas = actuales.filter((u) => u !== url)
+    await t.from('modelo_todos').update({ imagenes: nuevas }).eq('id', b.todoId).eq('modelo_id', id)
+    const marker = '/todo-imagenes/'
+    const idx = url.indexOf(marker)
+    if (idx >= 0) { try { await t.storage.from('todo-imagenes').remove([url.slice(idx + marker.length)]) } catch { /* noop */ } }
+  }
   else if (b.op === 'limite') {
     const d = dia >= 0 && dia <= 6 ? dia : 0
     const hora = /^\d{1,2}:\d{2}$/.test(String(b.hora || '')) ? String(b.hora) : '16:00'
     await t.from('modelos').update({ limite_dia: d, limite_hora: hora }).eq('id', id)
   }
   else if (b.op === 'nuevaSemana') {
-    // Cierra la semana actual: guarda la nota en el histórico y desmarca todas las tareas
     const { data: ficha } = await t.from('modelos').select('limite_dia, limite_hora, semana_inicio').eq('id', id).maybeSingle()
     const { data: todosActuales } = await t.from('modelo_todos').select('hecho, hecho_at').eq('modelo_id', id)
     const lista = (todosActuales ?? []) as { hecho: boolean; hecho_at: string | null }[]
