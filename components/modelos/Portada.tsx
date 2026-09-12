@@ -8,7 +8,7 @@ const CAMPOS_TEXTO = [
   'nombre_artistico', 'nombre_real', 'nacionalidad', 'ubicacion_ficticia', 'idioma', 'zona_horaria',
   'personalidad', 'energia', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion',
   'instagram', 'telegram', 'twitter', 'otros_enlaces', 'notas',
-  'telegram_chat_id', 'drive_carpeta',
+  'telegram_chat_id', 'drive_carpeta', 'of_link',
 ] as const
 
 type Form = Record<string, string>
@@ -21,13 +21,14 @@ const LABELS: Record<string, string> = {
   temas_gusta: 'Temas que le gustan', limites: 'Límites / qué NO hacer', palabras_evitar: 'Palabras a evitar', descripcion: 'Descripción general',
   instagram: 'Instagram', telegram: 'Telegram', twitter: 'Twitter / X', otros_enlaces: 'Otros enlaces', notas: 'Notas',
   telegram_chat_id: 'Telegram ID (grupo / chat)', drive_carpeta: 'Carpeta de Drive (enlace)',
+  of_link: 'Enlace OnlyFans',
 }
 
 const SECCIONES: { titulo: string; icon: React.ElementType; campos: string[] }[] = [
   { titulo: 'Datos básicos', icon: User, campos: ['nombre_artistico', 'nombre_real', 'nacionalidad', 'edad_real', 'edad_ficticia', 'ubicacion_ficticia', 'idioma', 'zona_horaria'] },
   { titulo: 'Personalidad y marca', icon: Heart, campos: ['energia', 'personalidad', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion'] },
   { titulo: 'Redes y enlaces', icon: Link2, campos: ['telegram', 'twitter', 'otros_enlaces', 'notas'] },
-  { titulo: 'Automatización (bot)', icon: Send, campos: ['telegram_chat_id', 'drive_carpeta'] },
+  { titulo: 'Automatización (bot)', icon: Send, campos: ['telegram_chat_id', 'drive_carpeta', 'of_link'] },
 ]
 
 const AREAS = new Set(['energia', 'personalidad', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion', 'otros_enlaces', 'notas'])
@@ -93,7 +94,7 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
               </div>
               {sec.titulo === 'Automatización (bot)' && (
                 <p className="text-[11px] mb-3" style={{ color: 'var(--muted)' }}>
-                  El bot usa estos dos datos para enviar el contenido de este modelo: el ID del grupo/chat de Telegram y el enlace de su carpeta de Drive.
+                  El bot usa estos datos para este modelo: el ID del grupo/chat de Telegram, el enlace de su carpeta de Drive y el enlace de OnlyFans (se añade al final de cada mensaje programado).
                 </p>
               )}
               {sec.titulo === 'Redes y enlaces' && (
