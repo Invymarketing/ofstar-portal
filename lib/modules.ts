@@ -90,7 +90,7 @@ export const MODULES: ModuleDefinition[] = [
     id: 15, slug: 'modulo-15', name: 'Turnos',
     description: 'Fichaje de turnos y breaks, con panel de tiempo en vivo.',
     icon: 'Calendar', phase: 8, area: 'chatting',
-    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va', 'creativo', 'content_manager', 'marketing_manager', 'director_creativo'], isBuilt: true,
   },
   {
     id: 16, slug: 'modulo-16', name: 'Rendimiento',

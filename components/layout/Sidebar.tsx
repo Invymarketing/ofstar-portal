@@ -155,7 +155,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
           })}
 
           {(role === 'admin' || role === 'manager') && (
-            <button title="Añadir usuarios" onClick={(e) => toggleFlyout('usuarios', e)}
+            <button title="Usuarios y accesos" onClick={(e) => toggleFlyout('usuarios', e)}
               className={railBtn(pathname.startsWith('/usuarios') || flyout?.key === 'usuarios')}>
               <UserPlus size={20} />
             </button>
@@ -207,11 +207,11 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         </div>
       )}
 
-      {/* FLYOUT: Añadir usuarios */}
+      {/* FLYOUT: Usuarios y accesos */}
       {flyout?.key === 'usuarios' && (role === 'admin' || role === 'manager') && (
         <div ref={flyoutRef} className="fixed z-40 w-56 rounded-2xl border shadow-2xl p-2"
           style={{ left: 80, top: Math.min(flyout!.top, (typeof window !== 'undefined' ? window.innerHeight : 800) - 140), backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>Añadir usuarios</p>
+          <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>Usuarios y accesos</p>
           <Link href="/usuarios" onClick={() => { setFlyout(null); onClose() }}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:text-foreground hover:bg-[var(--hover)]">
             <UserPlus size={16} className="flex-shrink-0" /> <span>Añadir empleado</span>
