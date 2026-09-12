@@ -78,7 +78,7 @@ export const MODULES: ModuleDefinition[] = [
     id: 13, slug: 'modulo-13', name: 'Telegram',
     description: 'Programa mensajes (texto, foto o video) al grupo de cada modelo.',
     icon: 'Megaphone', phase: 12, area: 'herramientas',
-    allowedRoles: ['admin', 'manager'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'content_manager'], isBuilt: true,
   },
   {
     id: 14, slug: 'modulo-14', name: 'Tareas',
@@ -108,7 +108,7 @@ export const MODULES: ModuleDefinition[] = [
     id: 18, slug: 'modulo-18', name: 'Metadata',
     description: 'Cambia la metadata de una imagen o video y genera varias versiones únicas.',
     icon: 'Sparkles', phase: 8, area: 'herramientas',
-    allowedRoles: ['admin', 'manager', 'creativo'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'creativo', 'content_manager'], isBuilt: true,
   },
   {
     id: 19, slug: 'modulo-19', name: 'Métricas',
