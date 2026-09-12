@@ -1,13 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Loader2, Pencil, Globe, X, User, Heart, Link2 } from 'lucide-react'
+import { Loader2, Pencil, Globe, X, User, Heart, Link2, Send } from 'lucide-react'
 import RedesModelo from '@/components/modelos/RedesModelo'
 
 const CAMPOS_TEXTO = [
   'nombre_artistico', 'nombre_real', 'nacionalidad', 'ubicacion_ficticia', 'idioma', 'zona_horaria',
   'personalidad', 'energia', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion',
   'instagram', 'telegram', 'twitter', 'otros_enlaces', 'notas',
+  'telegram_chat_id', 'drive_carpeta',
 ] as const
 
 type Form = Record<string, string>
@@ -19,12 +20,14 @@ const LABELS: Record<string, string> = {
   personalidad: 'Personalidad', energia: 'Energía', enfoque: 'Enfoque', tono: 'Tono',
   temas_gusta: 'Temas que le gustan', limites: 'Límites / qué NO hacer', palabras_evitar: 'Palabras a evitar', descripcion: 'Descripción general',
   instagram: 'Instagram', telegram: 'Telegram', twitter: 'Twitter / X', otros_enlaces: 'Otros enlaces', notas: 'Notas',
+  telegram_chat_id: 'Telegram ID (grupo / chat)', drive_carpeta: 'Carpeta de Drive (enlace)',
 }
 
 const SECCIONES: { titulo: string; icon: React.ElementType; campos: string[] }[] = [
   { titulo: 'Datos básicos', icon: User, campos: ['nombre_artistico', 'nombre_real', 'nacionalidad', 'edad_real', 'edad_ficticia', 'ubicacion_ficticia', 'idioma', 'zona_horaria'] },
   { titulo: 'Personalidad y marca', icon: Heart, campos: ['energia', 'personalidad', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion'] },
   { titulo: 'Redes y enlaces', icon: Link2, campos: ['telegram', 'twitter', 'otros_enlaces', 'notas'] },
+  { titulo: 'Automatización (bot)', icon: Send, campos: ['telegram_chat_id', 'drive_carpeta'] },
 ]
 
 const AREAS = new Set(['energia', 'personalidad', 'enfoque', 'tono', 'temas_gusta', 'limites', 'palabras_evitar', 'descripcion', 'otros_enlaces', 'notas'])
@@ -88,6 +91,11 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
                 <Icon size={15} style={{ color: 'var(--gold)' }} />
                 <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{sec.titulo}</p>
               </div>
+              {sec.titulo === 'Automatización (bot)' && (
+                <p className="text-[11px] mb-3" style={{ color: 'var(--muted)' }}>
+                  El bot usa estos dos datos para enviar el contenido de este modelo: el ID del grupo/chat de Telegram y el enlace de su carpeta de Drive.
+                </p>
+              )}
               {sec.titulo === 'Redes y enlaces' && (
                 <div className="mb-4">
                   <p className="text-[11px] mb-1.5" style={{ color: 'var(--muted)' }}>Instagram (cuentas enlazadas · se gestionan en Analytics)</p>
@@ -166,7 +174,7 @@ export default function Portada({ modeloId, nombre, foto }: { modeloId: string; 
                 return (
                   <div key={k} className={AREAS.has(k) ? 'sm:col-span-2' : ''}>
                     <p className="text-[11px] mb-0.5" style={{ color: 'var(--muted)' }}>{LABELS[k]}</p>
-                    <p className="text-sm whitespace-pre-wrap" style={{ color: val ? 'var(--foreground)' : 'var(--muted)' }}>{val || 'Sin definir'}</p>
+                    <p className="text-sm whitespace-pre-wrap break-words" style={{ color: val ? 'var(--foreground)' : 'var(--muted)' }}>{val || 'Sin definir'}</p>
                   </div>
                 )
               })}
