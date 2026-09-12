@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { TAREAS } from '@/lib/control-va'
 
 export async function GET() {
   const supabase = await createClient()
@@ -11,8 +12,11 @@ export async function GET() {
   const role = profile?.role ?? ''
   if (!['admin', 'manager'].includes(role)) return NextResponse.json({ error: 'no' }, { status: 403 })
 
-  const { data: aj } = await admin.from('ajustes_va').select('precio_por_cuenta').eq('id', 1).maybeSingle()
-  const precioGlobal = Number(aj?.precio_por_cuenta ?? 0.375)
+  const { data: ajRow } = await admin.from('ajustes_va').select('*').eq('id', 1).maybeSingle()
+  const ajd = (ajRow ?? {}) as Record<string, unknown>
+  const tarifaHora = ajd.tarifa_hora != null ? Number(ajd.tarifa_hora) : 1.5
+  const minutos: Record<string, number> = {}
+  for (const t of TAREAS) minutos[t.key] = ajd[t.min] != null ? Number(ajd[t.min]) : t.defMin
 
   const { data: vasRaw } = await admin.from('profiles').select('id, full_name').eq('role', 'va').order('full_name')
   const { data: cfgs } = await admin.from('va_config').select('*')
@@ -24,12 +28,12 @@ export async function GET() {
     return {
       id: v.id as string,
       nombre: (v.full_name as string) ?? 'VA',
-      precio_override: c && c.precio_por_cuenta != null ? Number(c.precio_por_cuenta) : null,
+      tarifa_override: c && c.tarifa_hora != null ? Number(c.tarifa_hora) : null,
       activa: c ? !!c.activa : true,
     }
   })
 
-  return NextResponse.json({ precioGlobal, vas })
+  return NextResponse.json({ tarifaHora, minutos, vas })
 }
 
 export async function POST(req: Request) {
@@ -43,13 +47,21 @@ export async function POST(req: Request) {
 
   const body = await req.json()
 
-  if (body.precioGlobal != null && body.precioGlobal !== '') {
-    await admin.from('ajustes_va').upsert({ id: 1, precio_por_cuenta: Number(body.precioGlobal) }, { onConflict: 'id' })
+  if (body.tarifaHora != null || body.minutos != null) {
+    const patch: Record<string, unknown> = { id: 1 }
+    if (body.tarifaHora != null && body.tarifaHora !== '') patch.tarifa_hora = Number(body.tarifaHora)
+    if (body.minutos && typeof body.minutos === 'object') {
+      for (const t of TAREAS) {
+        const v = (body.minutos as Record<string, unknown>)[t.key]
+        if (v != null && v !== '') patch[t.min] = Math.round(Number(v))
+      }
+    }
+    await admin.from('ajustes_va').upsert(patch, { onConflict: 'id' })
   }
 
   if (body.va_id) {
     const patch: Record<string, unknown> = { va_id: body.va_id }
-    if ('precio_override' in body) patch.precio_por_cuenta = (body.precio_override === '' || body.precio_override == null) ? null : Number(body.precio_override)
+    if ('tarifa_override' in body) patch.tarifa_hora = (body.tarifa_override === '' || body.tarifa_override == null) ? null : Number(body.tarifa_override)
     if ('activa' in body) patch.activa = !!body.activa
     await admin.from('va_config').upsert(patch, { onConflict: 'va_id' })
   }
