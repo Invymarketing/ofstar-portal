@@ -93,15 +93,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     patch.progress = 5
     patch.current_step = STATUS_LABEL.QUEUED
     patch.edit_plan = null
+    patch.error_message = null
     logs.push({ t: ahora, msg: 'Regenerar: vuelta a la cola' })
   } else if (action === 'generate') {
     patch.status = 'QUEUED'
     patch.progress = 5
     patch.current_step = STATUS_LABEL.QUEUED
     patch.started_at = job.started_at ?? ahora
+    patch.error_message = null
     logs.push({ t: ahora, msg: 'Generación iniciada' })
   } else {
-    // advance: un paso en el flujo, sin pasar de REVIEW
     const curIdx = flow.indexOf(job.status as JobStatus)
     if (curIdx < 0 || curIdx >= reviewIdx) {
       return NextResponse.json({ ok: true, status: job.status })
@@ -113,18 +114,40 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     patch.current_step = STATUS_LABEL[newStatus]
     logs.push({ t: ahora, msg: STATUS_LABEL[newStatus] })
 
-    // Al llegar a PLANNING generamos un EditPlan (stub en FASE 1)
     if (newStatus === 'PLANNING' && job.editing_profile_id) {
-      const { data: pf } = await admin.from('editing_profiles').select('settings').eq('id', job.editing_profile_id).maybeSingle()
-      const settings = (pf?.settings && typeof pf.settings === 'object') ? pf.settings as Record<string, unknown> : {}
-      const plan = await getAIProvider().generateEditPlan({
-        sourceVideoId: String(job.video_asset_id ?? ''),
-        output: outputFromSettings(settings),
-        settings,
-        customInstructions: (job.custom_instructions as string) ?? '',
-      })
-      patch.edit_plan = plan
-      patch.ai_provider = getAIProvider().name
+      try {
+        const { data: pf } = await admin.from('editing_profiles').select('settings').eq('id', job.editing_profile_id).maybeSingle()
+        const settings = (pf?.settings && typeof pf.settings === 'object') ? pf.settings as Record<string, unknown> : {}
+
+        let videoInfo: { duration?: number; width?: number; height?: number } | undefined
+        if (job.video_asset_id) {
+          const { data: va } = await admin.from('video_assets').select('duration, width, height').eq('id', job.video_asset_id).maybeSingle()
+          if (va) videoInfo = { duration: (va.duration as number) ?? undefined, width: (va.width as number) ?? undefined, height: (va.height as number) ?? undefined }
+        }
+
+        const provider = getAIProvider()
+        const plan = await provider.generateEditPlan({
+          sourceVideoId: String(job.video_asset_id ?? ''),
+          output: outputFromSettings(settings),
+          settings,
+          customInstructions: (job.custom_instructions as string) ?? '',
+          videoInfo,
+        })
+        patch.edit_plan = plan
+        patch.ai_provider = provider.name
+        patch.ai_model = process.env.OPENAI_PLANNING_MODEL ?? (provider.name === 'openai' ? 'gpt-5.6-luna' : provider.name)
+        if (provider.lastUsage) {
+          patch.input_tokens = provider.lastUsage.inputTokens
+          patch.output_tokens = provider.lastUsage.outputTokens
+          patch.estimated_ai_cost = +((provider.lastUsage.inputTokens / 1e6) * 0.20 + (provider.lastUsage.outputTokens / 1e6) * 1.20).toFixed(6)
+        }
+        logs.push({ t: new Date().toISOString(), msg: 'EditPlan generado (' + provider.name + ')' })
+      } catch (e) {
+        patch.status = 'FAILED'
+        patch.current_step = 'Error'
+        patch.error_message = (e as Error).message
+        logs.push({ t: new Date().toISOString(), msg: 'Error IA: ' + (e as Error).message })
+      }
     }
   }
 

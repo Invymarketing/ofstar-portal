@@ -11,6 +11,11 @@ function sanitize(name: string) {
   const base = name.split('/').pop()?.split('\\').pop() ?? 'video'
   return base.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120)
 }
+function num(v: FormDataEntryValue | null): number | null {
+  if (v == null || v === '') return null
+  const n = Number(v)
+  return Number.isFinite(n) ? n : null
+}
 
 export async function POST(req: Request) {
   const supabase = await createClient()
@@ -30,6 +35,11 @@ export async function POST(req: Request) {
   if (!okType) return NextResponse.json({ error: 'Formato no permitido (solo MP4 o MOV).' }, { status: 400 })
   if (file.size > MAX_BYTES) return NextResponse.json({ error: 'El archivo supera el máximo de 200 MB (FASE 1).' }, { status: 400 })
 
+  const duration = num(form.get('duration'))
+  const width = num(form.get('width'))
+  const height = num(form.get('height'))
+  const orientation = (width && height) ? (height > width ? 'portrait' : width > height ? 'landscape' : 'square') : null
+
   const path = `${modeloId ?? 'sin-modelo'}/${crypto.randomUUID()}-${nombre}`
   const buffer = await file.arrayBuffer()
   try {
@@ -45,6 +55,10 @@ export async function POST(req: Request) {
     bucket: STORAGE_BUCKET,
     mime: file.type || 'video/mp4',
     size_bytes: file.size,
+    duration,
+    width,
+    height,
+    orientation,
     source: 'manual_upload',
   }).select('id').single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })

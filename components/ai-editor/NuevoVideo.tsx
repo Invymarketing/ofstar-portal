@@ -6,6 +6,7 @@ import { Loader2, X, UploadCloud } from 'lucide-react'
 
 type Modelo = { id: string; nombre: string }
 type Profile = { id: string; name: string }
+type Meta = { duration?: number; width?: number; height?: number }
 
 export default function NuevoVideo({ modelos, onClose }: { modelos: Modelo[]; onClose: () => void }) {
   const router = useRouter()
@@ -14,6 +15,7 @@ export default function NuevoVideo({ modelos, onClose }: { modelos: Modelo[]; on
   const [profileId, setProfileId] = useState('')
   const [instr, setInstr] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [meta, setMeta] = useState<Meta>({})
   const [subiendo, setSubiendo] = useState(false)
   const [error, setError] = useState('')
 
@@ -25,6 +27,22 @@ export default function NuevoVideo({ modelos, onClose }: { modelos: Modelo[]; on
     }).catch(() => setProfiles([]))
   }, [modeloId])
 
+  function elegirArchivo(f: File | null) {
+    setFile(f); setMeta({})
+    if (!f) return
+    try {
+      const url = URL.createObjectURL(f)
+      const v = document.createElement('video')
+      v.preload = 'metadata'
+      v.onloadedmetadata = () => {
+        setMeta({ duration: Number.isFinite(v.duration) ? v.duration : undefined, width: v.videoWidth || undefined, height: v.videoHeight || undefined })
+        URL.revokeObjectURL(url)
+      }
+      v.onerror = () => URL.revokeObjectURL(url)
+      v.src = url
+    } catch { /* noop */ }
+  }
+
   async function subir() {
     setError('')
     if (!file) { setError('Elige un vídeo (MP4 o MOV).'); return }
@@ -33,6 +51,9 @@ export default function NuevoVideo({ modelos, onClose }: { modelos: Modelo[]; on
       const fd = new FormData()
       fd.append('file', file)
       if (modeloId) fd.append('modelo_id', modeloId)
+      if (meta.duration) fd.append('duration', String(meta.duration))
+      if (meta.width) fd.append('width', String(meta.width))
+      if (meta.height) fd.append('height', String(meta.height))
       const up = await fetch('/api/ai-editor/upload', { method: 'POST', body: fd })
       const upd = await up.json()
       if (!up.ok) { setError(upd.error || 'Error al subir el vídeo.'); setSubiendo(false); return }
@@ -74,7 +95,8 @@ export default function NuevoVideo({ modelos, onClose }: { modelos: Modelo[]; on
           </div>
           <div>
             <label className="text-xs font-medium block mb-1" style={{ color: 'var(--muted)' }}>Vídeo (MP4 o MOV, máx. 200 MB)</label>
-            <input type="file" accept="video/mp4,video/quicktime,.mp4,.mov" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="w-full text-sm" style={{ color: 'var(--foreground)' }} />
+            <input type="file" accept="video/mp4,video/quicktime,.mp4,.mov" onChange={(e) => elegirArchivo(e.target.files?.[0] ?? null)} className="w-full text-sm" style={{ color: 'var(--foreground)' }} />
+            {meta.duration ? <p className="text-[11px] mt-1" style={{ color: 'var(--muted)' }}>Duración detectada: {Math.round(meta.duration)}s{meta.width ? ` · ${meta.width}×${meta.height}` : ''}</p> : null}
           </div>
 
           {error && <p className="text-xs" style={{ color: '#F87171' }}>{error}</p>}
