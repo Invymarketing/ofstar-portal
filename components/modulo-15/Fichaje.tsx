@@ -27,13 +27,13 @@ export default function Fichaje({
   esStaff: boolean; jornadas: Fila[]; descansos: Fila[]; personas: Persona[]; handoffs: Handoff[]
   miEquipo: number | null
 }) {
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(0)
   const [busy, setBusy] = useState(false)
   const [cerrando, setCerrando] = useState(false)
   const [nota, setNota] = useState('')
   const [filtroEquipo, setFiltroEquipo] = useState<number | 'todos'>(esStaff ? 'todos' : (miEquipo ?? 'todos'))
   const router = useRouter()
-  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t) }, [])
+  useEffect(() => { setNow(Date.now()); const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t) }, [])
   // Auto-refresco de datos del servidor (novedades, en línea, registro) sin recargar la página
   useEffect(() => { const t = setInterval(() => router.refresh(), 20000); return () => clearInterval(t) }, [router])
 
