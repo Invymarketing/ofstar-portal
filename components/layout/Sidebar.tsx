@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, LayoutDashboard, UserCircle2,
-  X, CheckSquare, Languages, Wrench, Search, BookUser, Wallet, Settings,
+  X, CheckSquare, Languages, Wrench, Search, BookUser, Wallet, Settings, Clapperboard,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 import { getAccessibleModules } from '@/lib/modules'
@@ -36,7 +36,7 @@ function TaconIcon({ size = 16 }: { size?: number }) {
 const ICON_MAP: Record<string, React.ElementType> = {
   Bot, Sparkles, DollarSign, MessageSquare, BarChart3, Users, Calendar,
   Bell, FolderOpen, UserPlus, Megaphone, PhoneCall, CheckSquare, Languages,
-  Wrench, Search, BookUser, Wallet, Instagram: InstagramIcon,
+  Wrench, Search, BookUser, Wallet, Clapperboard, Instagram: InstagramIcon,
 }
 
 // Cada categoría tiene su propio ícono para el rail colapsado.

@@ -140,6 +140,12 @@ export const MODULES: ModuleDefinition[] = [
     icon: 'CheckSquare', phase: 8, area: 'herramientas',
     allowedRoles: ['admin', 'manager', 'va'], isBuilt: true,
   },
+  {
+    id: 24, slug: 'ai-editor', name: 'AI Video Editor',
+    description: 'Editor de vídeo con IA: sube un vídeo, elige el perfil de la modelo y genera el montaje.',
+    icon: 'Clapperboard', phase: 8, area: 'herramientas',
+    allowedRoles: ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager'], isBuilt: true,
+  },
 ]
 
 export function getAccessibleModules(role: UserRole): ModuleDefinition[] {
