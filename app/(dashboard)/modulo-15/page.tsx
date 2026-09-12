@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Fichaje from '@/components/modulo-15/Fichaje'
+import ReporteHoras from '@/components/modulo-15/ReporteHoras'
 import { Timer } from 'lucide-react'
 import type { UserRole } from '@/types'
 
@@ -16,6 +17,7 @@ export default async function Modulo15Page() {
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
   const role = profile?.role as UserRole
   const esStaff = ['admin', 'manager', 'team_leader'].includes(role)
+  const esAdmin = ['admin', 'manager'].includes(role)
 
   const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
 
@@ -80,6 +82,12 @@ export default async function Modulo15Page() {
         handoffs={handoffsView}
         miEquipo={miEquipo}
       />
+
+      {esAdmin && (
+        <div className="mt-8">
+          <ReporteHoras />
+        </div>
+      )}
     </div>
   )
 }
