@@ -17,6 +17,7 @@ const CAMPOS_TEXTO = [
 const CAMPOS_MODELO: Record<string, string> = {
   telegram_chat_id: 'telegram_group_id',
   drive_carpeta: 'drive_content_folder_id',
+  of_link: 'of_trial_link',
 }
 
 async function ctx() {
@@ -41,7 +42,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const { data: f } = await c.admin.from('fichas_modelo').select('*').eq('modelo_id', id).maybeSingle()
   const { data: mrow } = await c.admin.from('modelos')
-    .select('telegram_group_id, drive_content_folder_id').eq('id', id).maybeSingle()
+    .select('telegram_group_id, drive_content_folder_id, of_trial_link').eq('id', id).maybeSingle()
 
   const out: Record<string, unknown> = {
     editable: puedeEditar,
@@ -49,6 +50,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     edad_ficticia: f?.edad_ficticia ?? '',
     telegram_chat_id: mrow?.telegram_group_id ?? '',
     drive_carpeta: mrow?.drive_content_folder_id ?? '',
+    of_link: mrow?.of_trial_link ?? '',
   }
   for (const k of CAMPOS_TEXTO) out[k] = (f as any)?.[k] ?? ''
   return NextResponse.json(out)
