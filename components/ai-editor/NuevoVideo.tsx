@@ -3,10 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, X, UploadCloud } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 type Modelo = { id: string; nombre: string }
 type Profile = { id: string; name: string }
 type Meta = { duration?: number; width?: number; height?: number }
+
+const BUCKET = 'ai-editor'
 
 export default function NuevoVideo({ modelos, onClose }: { modelos: Modelo[]; onClose: () => void }) {
   const router = useRouter()
@@ -48,16 +51,23 @@ export default function NuevoVideo({ modelos, onClose }: { modelos: Modelo[]; on
     if (!file) { setError('Elige un vídeo (MP4 o MOV).'); return }
     setSubiendo(true)
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      if (modeloId) fd.append('modelo_id', modeloId)
-      if (meta.duration) fd.append('duration', String(meta.duration))
-      if (meta.width) fd.append('width', String(meta.width))
-      if (meta.height) fd.append('height', String(meta.height))
-      const up = await fetch('/api/ai-editor/upload', { method: 'POST', body: fd })
-      const upd = await up.json()
-      if (!up.ok) { setError(upd.error || 'Error al subir el vídeo.'); setSubiendo(false); return }
-      const jb = await fetch('/api/ai-editor/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ video_asset_id: upd.asset_id, modelo_id: modeloId || null, editing_profile_id: profileId || null, custom_instructions: instr }) })
+      // 1) Pedir permiso de subida (URL firmada) al servidor
+      const r1 = await fetch('/api/ai-editor/upload-url', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filename: file.name, modelo_id: modeloId || null }) })
+      const d1 = await r1.json()
+      if (!r1.ok) { setError(d1.error || 'No se pudo iniciar la subida.'); setSubiendo(false); return }
+
+      // 2) Subir el archivo DIRECTO a Supabase (no pasa por el servidor)
+      const supabase = createClient()
+      const { error: upErr } = await supabase.storage.from(BUCKET).uploadToSignedUrl(d1.path, d1.token, file, { contentType: file.type || 'video/mp4' })
+      if (upErr) { setError('Error al subir el vídeo: ' + upErr.message); setSubiendo(false); return }
+
+      // 3) Registrar el vídeo en la base de datos
+      const r2 = await fetch('/api/ai-editor/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: d1.path, filename: file.name, modelo_id: modeloId || null, mime: file.type || 'video/mp4', size_bytes: file.size, duration: meta.duration ?? null, width: meta.width ?? null, height: meta.height ?? null }) })
+      const d2 = await r2.json()
+      if (!r2.ok) { setError(d2.error || 'Error al registrar el vídeo.'); setSubiendo(false); return }
+
+      // 4) Crear el trabajo (job)
+      const jb = await fetch('/api/ai-editor/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ video_asset_id: d2.asset_id, modelo_id: modeloId || null, editing_profile_id: profileId || null, custom_instructions: instr }) })
       const jbd = await jb.json()
       if (!jb.ok) { setError(jbd.error || 'Error al crear el trabajo.'); setSubiendo(false); return }
       router.push('/ai-editor/' + jbd.job_id)
@@ -94,7 +104,7 @@ export default function NuevoVideo({ modelos, onClose }: { modelos: Modelo[]; on
             <textarea value={instr} onChange={(e) => setInstr(e.target.value)} rows={2} placeholder="Ej: empieza con gancho fuerte, sin intro." className="w-full text-sm rounded-lg px-3 py-2 outline-none resize-y" style={selStyle} />
           </div>
           <div>
-            <label className="text-xs font-medium block mb-1" style={{ color: 'var(--muted)' }}>Vídeo (MP4 o MOV, máx. 200 MB)</label>
+            <label className="text-xs font-medium block mb-1" style={{ color: 'var(--muted)' }}>Vídeo (MP4 o MOV)</label>
             <input type="file" accept="video/mp4,video/quicktime,.mp4,.mov" onChange={(e) => elegirArchivo(e.target.files?.[0] ?? null)} className="w-full text-sm" style={{ color: 'var(--foreground)' }} />
             {meta.duration ? <p className="text-[11px] mt-1" style={{ color: 'var(--muted)' }}>Duración detectada: {Math.round(meta.duration)}s{meta.width ? ` · ${meta.width}×${meta.height}` : ''}</p> : null}
           </div>
