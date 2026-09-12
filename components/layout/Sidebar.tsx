@@ -210,7 +210,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
       {/* FLYOUT: Usuarios y accesos */}
       {flyout?.key === 'usuarios' && (role === 'admin' || role === 'manager') && (
         <div ref={flyoutRef} className="fixed z-40 w-56 rounded-2xl border shadow-2xl p-2"
-          style={{ left: 80, top: Math.min(flyout!.top, (typeof window !== 'undefined' ? window.innerHeight : 800) - 200), backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+          style={{ left: 80, top: Math.min(flyout!.top, (typeof window !== 'undefined' ? window.innerHeight : 800) - 140), backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
           <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>Usuarios y accesos</p>
           <Link href="/usuarios" onClick={() => { setFlyout(null); onClose() }}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:text-foreground hover:bg-[var(--hover)]">
@@ -219,10 +219,6 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
           <Link href="/usuarios?nuevo=modelo" onClick={() => { setFlyout(null); onClose() }}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:text-foreground hover:bg-[var(--hover)]">
             <UserCircle2 size={16} className="flex-shrink-0" /> <span>Añadir modelo</span>
-          </Link>
-          <Link href="/fichajes" onClick={() => { setFlyout(null); onClose() }}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:text-foreground hover:bg-[var(--hover)]">
-            <Calendar size={16} className="flex-shrink-0" /> <span>Fichajes y horas</span>
           </Link>
         </div>
       )}
