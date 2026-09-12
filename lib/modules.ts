@@ -6,13 +6,13 @@ export const MODULES: ModuleDefinition[] = [
     id: 1, slug: 'modulo-1', name: 'Buscador de Reels',
     description: 'Panel del bot: búsqueda de reels, modelos, ejecución y logs.',
     icon: 'Search', phase: 2, area: 'herramientas',
-    allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'creativo'], isBuilt: true,
   },
   {
     id: 2, slug: 'modulo-2', name: 'Instagram',
     description: 'Métricas de cuentas propias e inteligencia de competencia por nicho.',
     icon: 'Instagram', phase: 3, area: 'marketing',
-    allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'creativo'], isBuilt: true,
   },
   {
     id: 3, slug: 'modulo-3', name: 'Ventas',
@@ -30,7 +30,7 @@ export const MODULES: ModuleDefinition[] = [
     id: 5, slug: 'modulo-5', name: 'Analytics de Cuentas',
     description: 'Registro semanal de seguidores y audiencia.',
     icon: 'BarChart3', phase: 5, area: 'modelos',
-    allowedRoles: ['admin', 'manager', 'team_leader', 'va', 'modelo'], isBuilt: false,
+    allowedRoles: ['admin', 'manager', 'team_leader', 'modelo'], isBuilt: false,
   },
   {
     id: 6, slug: 'modulo-6', name: 'Reclutamiento',
@@ -66,7 +66,7 @@ export const MODULES: ModuleDefinition[] = [
     id: 11, slug: 'modulo-11', name: 'Comunicación',
     description: 'Tablón de briefings con confirmación de lectura.',
     icon: 'Megaphone', phase: 12, area: 'admin',
-    allowedRoles: ['admin', 'manager', 'team_leader', 'va', 'modelo'], isBuilt: false,
+    allowedRoles: ['admin', 'manager', 'team_leader', 'modelo'], isBuilt: false,
   },
   {
     id: 12, slug: 'modulo-12', name: 'Mis Ventas',
@@ -78,19 +78,19 @@ export const MODULES: ModuleDefinition[] = [
     id: 13, slug: 'modulo-13', name: 'Telegram',
     description: 'Programa mensajes (texto, foto o video) al grupo de cada modelo.',
     icon: 'Megaphone', phase: 12, area: 'herramientas',
-    allowedRoles: ['admin', 'manager', 'va'], isBuilt: true,
+    allowedRoles: ['admin', 'manager'], isBuilt: true,
   },
   {
     id: 14, slug: 'modulo-14', name: 'Tareas',
     description: 'Asigna tareas a tu equipo, con notificaciones y seguimiento.',
     icon: 'CheckSquare', phase: 7, area: 'admin',
-    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'modelo'], isBuilt: true,
   },
   {
     id: 15, slug: 'modulo-15', name: 'Turnos',
     description: 'Fichaje de turnos y breaks, con panel de tiempo en vivo.',
     icon: 'Calendar', phase: 8, area: 'chatting',
-    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter'], isBuilt: true,
   },
   {
     id: 16, slug: 'modulo-16', name: 'Rendimiento',
@@ -108,13 +108,13 @@ export const MODULES: ModuleDefinition[] = [
     id: 18, slug: 'modulo-18', name: 'Metadata',
     description: 'Cambia la metadata de una imagen o video y genera varias versiones únicas.',
     icon: 'Sparkles', phase: 8, area: 'herramientas',
-    allowedRoles: ['admin', 'manager', 'creativo', 'va'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'creativo'], isBuilt: true,
   },
   {
     id: 19, slug: 'modulo-19', name: 'Métricas',
-    description: 'Horas fichadas por cada VA por quincena, con aprobación para pago.',
+    description: 'Registro semanal de audiencia de todas las cuentas.',
     icon: 'BarChart3', phase: 8, area: 'marketing',
-    allowedRoles: ['admin', 'manager'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'va'], isBuilt: true,
   },
   {
     id: 20, slug: 'modulo-20', name: 'Españolizador',
@@ -133,6 +133,12 @@ export const MODULES: ModuleDefinition[] = [
     description: 'Panel financiero: comisiones por modelo, gastos y beneficio neto. Solo admin.',
     icon: 'Wallet', phase: 9, area: 'finanzas',
     allowedRoles: ['admin'], isBuilt: true,
+  },
+  {
+    id: 23, slug: 'control-va', name: 'Control VA',
+    description: 'Registro diario de cuentas gestionadas por cada VA (Actividad, Historia, Reel) y pago por cuenta completada.',
+    icon: 'CheckSquare', phase: 8, area: 'herramientas',
+    allowedRoles: ['admin', 'manager', 'va'], isBuilt: true,
   },
 ]
 
