@@ -1,6 +1,7 @@
 // app/api/cron/send-telegram/route.ts
 // Envía los mensajes programados cuya fecha ya llegó. Protegido con CRON_SECRET
 // o sesión admin/manager (para poder dispararlo desde un botón).
+// Añade el enlace de OnlyFans del modelo al final de cada mensaje.
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -24,6 +25,15 @@ async function autorizado(request: NextRequest): Promise<boolean> {
   }
 }
 
+// Añade el enlace de OF al final del texto (sin duplicar si ya está incluido).
+function conEnlaceOF(texto: string | null, ofLink: string | null): string | null {
+  const t = (texto ?? '').trim()
+  const link = (ofLink ?? '').trim()
+  if (!link) return texto
+  if (t.includes(link)) return texto
+  return t ? `${t}\n\n${link}` : link
+}
+
 export async function GET(request: NextRequest) {
   if (!(await autorizado(request))) {
     return NextResponse.json({ error: 'no_autorizado' }, { status: 401 })
@@ -41,13 +51,17 @@ export async function GET(request: NextRequest) {
     .limit(25)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Grupos de Telegram por modelo
+  // Grupo de Telegram + enlace de OnlyFans por modelo
   const modeloIds = [...new Set((pendientes ?? []).map((m) => m.modelo_id).filter(Boolean))] as string[]
   const grupos = new Map<string, string>()
+  const ofLinks = new Map<string, string>()
   if (modeloIds.length > 0) {
     const { data: modelos } = await admin
-      .from('modelos').select('id, telegram_group_id').in('id', modeloIds)
-    for (const m of modelos ?? []) if (m.telegram_group_id) grupos.set(m.id, m.telegram_group_id)
+      .from('modelos').select('id, telegram_group_id, of_trial_link').in('id', modeloIds)
+    for (const m of modelos ?? []) {
+      if (m.telegram_group_id) grupos.set(m.id, m.telegram_group_id)
+      if (m.of_trial_link) ofLinks.set(m.id, m.of_trial_link)
+    }
   }
 
   let enviados = 0
@@ -55,9 +69,11 @@ export async function GET(request: NextRequest) {
 
   for (const m of pendientes ?? []) {
     const chatId = m.chat_id || (m.modelo_id ? grupos.get(m.modelo_id) : null)
+    const ofLink = m.modelo_id ? (ofLinks.get(m.modelo_id) ?? null) : null
+    const texto = conEnlaceOF(m.texto, ofLink)
     try {
       if (!chatId) throw new Error('El modelo no tiene grupo de Telegram configurado')
-      await enviarMensaje(chatId, m.tipo, m.texto, m.archivo_url)
+      await enviarMensaje(chatId, m.tipo, texto, m.archivo_url)
       await admin.from('mensajes_telegram')
         .update({ enviado: true, enviado_at: new Date().toISOString(), error: null })
         .eq('id', m.id)
