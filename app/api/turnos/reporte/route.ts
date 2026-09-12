@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// Roles que NO se pagan por hora (no salen en el reporte)
+const EXCLUIDOS = ['modelo', 'chatter']
+
 export async function GET(req: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -37,17 +40,20 @@ export async function GET(req: Request) {
     trabajadoMs.set(d.user_id as string, (trabajadoMs.get(d.user_id as string) ?? 0) - ms)
   }
 
-  const { data: profs } = await admin.from('profiles').select('id, full_name, role').neq('role', 'modelo').order('full_name')
+  const { data: profs } = await admin.from('profiles').select('id, full_name, role').order('full_name')
   const { data: tarifas } = await admin.from('tarifa_empleado').select('user_id, tarifa_hora')
   const tMap = new Map<string, number>()
   for (const t of (tarifas ?? []) as Record<string, unknown>[]) tMap.set(t.user_id as string, Number(t.tarifa_hora))
 
-  const filas = (profs ?? []).map((p: Record<string, unknown>) => {
-    const ms = Math.max(0, trabajadoMs.get(p.id as string) ?? 0)
-    const horas = ms / 3600000
-    const tarifa = tMap.get(p.id as string) ?? 0
-    return { user_id: p.id as string, nombre: (p.full_name as string) ?? '—', role: p.role as string, horas: +horas.toFixed(2), tarifa, pago: +(horas * tarifa).toFixed(2) }
-  }).sort((a, b) => b.horas - a.horas)
+  const filas = (profs ?? [])
+    .filter((p: Record<string, unknown>) => !EXCLUIDOS.includes(p.role as string))
+    .map((p: Record<string, unknown>) => {
+      const ms = Math.max(0, trabajadoMs.get(p.id as string) ?? 0)
+      const horas = ms / 3600000
+      const tarifa = tMap.get(p.id as string) ?? 0
+      return { user_id: p.id as string, nombre: (p.full_name as string) ?? '—', role: p.role as string, horas: +horas.toFixed(2), tarifa, pago: +(horas * tarifa).toFixed(2) }
+    })
+    .sort((a, b) => b.horas - a.horas)
 
   const totalPago = +filas.reduce((s, f) => s + f.pago, 0).toFixed(2)
   const totalHoras = +filas.reduce((s, f) => s + f.horas, 0).toFixed(2)

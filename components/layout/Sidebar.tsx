@@ -220,7 +220,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:text-foreground hover:bg-[var(--hover)]">
             <UserCircle2 size={16} className="flex-shrink-0" /> <span>Añadir modelo</span>
           </Link>
-          <Link href="/modulo-15" onClick={() => { setFlyout(null); onClose() }}
+          <Link href="/fichajes" onClick={() => { setFlyout(null); onClose() }}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:text-foreground hover:bg-[var(--hover)]">
             <Calendar size={16} className="flex-shrink-0" /> <span>Fichajes y horas</span>
           </Link>

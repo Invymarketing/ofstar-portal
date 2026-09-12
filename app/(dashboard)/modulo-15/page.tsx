@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Fichaje from '@/components/modulo-15/Fichaje'
-import ReporteHoras from '@/components/modulo-15/ReporteHoras'
 import { Timer } from 'lucide-react'
 import type { UserRole } from '@/types'
 
@@ -17,7 +16,6 @@ export default async function Modulo15Page() {
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
   const role = profile?.role as UserRole
   const esStaff = ['admin', 'manager', 'team_leader'].includes(role)
-  const esAdmin = ['admin', 'manager'].includes(role)
 
   const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
 
@@ -30,6 +28,9 @@ export default async function Modulo15Page() {
     esStaff ? admin.from('profiles').select('id, full_name, role') : Promise.resolve({ data: [] as { id: string; full_name: string; role: string }[] }),
     admin.from('handoffs').select('id, user_id, texto, equipo, created_at').order('created_at', { ascending: false }).limit(40),
   ])
+
+  // El registro/en linea de Turnos es SOLO de chatters (los demas roles se ven en Fichajes y horas)
+  const chatterIds = new Set((personasRes.data ?? []).filter((p) => p.role === 'chatter').map((p) => p.id))
 
   // Equipo del usuario actual (para filtrar sus novedades)
   const { data: miChatter } = await admin.from('chatters').select('equipo').eq('profile_id', user.id).maybeSingle()
@@ -76,18 +77,12 @@ export default async function Modulo15Page() {
         misJornadas={misJornadas.map((j) => ({ inicio: j.inicio, fin: j.fin }))}
         misDescansos={misDescansos.map((d) => ({ inicio: d.inicio, fin: d.fin }))}
         esStaff={esStaff}
-        jornadas={(jornadas ?? []).map((j) => ({ user_id: j.user_id, inicio: j.inicio, fin: j.fin }))}
-        descansos={(descansos ?? []).map((d) => ({ user_id: d.user_id, inicio: d.inicio, fin: d.fin }))}
-        personas={(personasRes.data ?? []).map((p) => ({ id: p.id, full_name: p.full_name, role: p.role }))}
+        jornadas={(jornadas ?? []).filter((j) => chatterIds.has(j.user_id)).map((j) => ({ user_id: j.user_id, inicio: j.inicio, fin: j.fin }))}
+        descansos={(descansos ?? []).filter((d) => chatterIds.has(d.user_id)).map((d) => ({ user_id: d.user_id, inicio: d.inicio, fin: d.fin }))}
+        personas={(personasRes.data ?? []).filter((p) => p.role === 'chatter').map((p) => ({ id: p.id, full_name: p.full_name, role: p.role }))}
         handoffs={handoffsView}
         miEquipo={miEquipo}
       />
-
-      {esAdmin && (
-        <div className="mt-8">
-          <ReporteHoras />
-        </div>
-      )}
     </div>
   )
 }
