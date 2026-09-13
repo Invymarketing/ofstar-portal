@@ -4,7 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getStorage } from '@/lib/ai-editor/storage'
 import { getAIProvider } from '@/lib/ai-editor/ai-provider'
 import { JOB_STATUS_FLOW, STATUS_LABEL, type JobStatus } from '@/lib/ai-editor/types'
-import type { EditPlanOutput } from '@/lib/ai-editor/edit-plan'
+import type { EditPlan, EditPlanOutput } from '@/lib/ai-editor/edit-plan'
+import { startLambdaRender, pollLambdaRender, lambdaConfigured } from '@/lib/ai-editor/lambda-render'
 
 const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager']
 
@@ -27,6 +28,22 @@ function outputFromSettings(s: Record<string, unknown>): EditPlanOutput {
     height: Number.isFinite(h) && h > 0 ? h : 1920,
     fps: typeof s.fps === 'number' ? s.fps : 30,
   }
+}
+
+type AdminClient = ReturnType<typeof createAdminClient>
+
+async function sourceSignedUrl(admin: AdminClient, videoAssetId: string | null): Promise<string | null> {
+  if (!videoAssetId) return null
+  const { data: a } = await admin.from('video_assets').select('storage_path').eq('id', videoAssetId).maybeSingle()
+  if (!a?.storage_path) return null
+  return await getStorage().getSignedUrl(a.storage_path as string, 3600)
+}
+
+async function assetDuration(admin: AdminClient, videoAssetId: string | null): Promise<number | null> {
+  if (!videoAssetId) return null
+  const { data: a } = await admin.from('video_assets').select('duration').eq('id', videoAssetId).maybeSingle()
+  const d = a?.duration
+  return typeof d === 'number' && d > 0 ? d : null
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -94,6 +111,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     patch.current_step = STATUS_LABEL.QUEUED
     patch.edit_plan = null
     patch.error_message = null
+    patch.render_id = null
+    patch.render_bucket = null
+    patch.output_url = null
     logs.push({ t: ahora, msg: 'Regenerar: vuelta a la cola' })
   } else if (action === 'generate') {
     patch.status = 'QUEUED'
@@ -101,52 +121,122 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     patch.current_step = STATUS_LABEL.QUEUED
     patch.started_at = job.started_at ?? ahora
     patch.error_message = null
+    patch.render_id = null
+    patch.render_bucket = null
+    patch.output_url = null
     logs.push({ t: ahora, msg: 'Generación iniciada' })
+  } else if (action === 'pollRender') {
+    if (job.status !== 'RENDERING' || !job.render_id || !job.render_bucket) {
+      return NextResponse.json({ ok: true, status: job.status })
+    }
+    try {
+      const r = await pollLambdaRender(job.render_id as string, job.render_bucket as string)
+      if (r.error) {
+        patch.status = 'FAILED'
+        patch.current_step = 'Error'
+        patch.error_message = r.error
+        logs.push({ t: new Date().toISOString(), msg: 'Error render: ' + r.error })
+      } else if (r.done) {
+        patch.status = 'REVIEW'
+        patch.progress = 95
+        patch.current_step = STATUS_LABEL.REVIEW
+        patch.output_url = r.outputUrl
+        logs.push({ t: new Date().toISOString(), msg: 'Render completado' })
+      } else {
+        patch.progress = Math.max(60, Math.min(94, Math.round(60 + r.progress * 34)))
+      }
+    } catch (e) {
+      patch.status = 'FAILED'
+      patch.current_step = 'Error'
+      patch.error_message = (e as Error).message
+      logs.push({ t: new Date().toISOString(), msg: 'Error render: ' + (e as Error).message })
+    }
   } else {
+    // advance
     const curIdx = flow.indexOf(job.status as JobStatus)
     if (curIdx < 0 || curIdx >= reviewIdx) {
       return NextResponse.json({ ok: true, status: job.status })
     }
     const nextIdx = Math.min(curIdx + 1, reviewIdx)
     const newStatus = flow[nextIdx]
-    patch.status = newStatus
-    patch.progress = Math.round((nextIdx / (flow.length - 1)) * 100)
-    patch.current_step = STATUS_LABEL[newStatus]
-    logs.push({ t: ahora, msg: STATUS_LABEL[newStatus] })
 
-    if (newStatus === 'PLANNING' && job.editing_profile_id) {
-      try {
-        const { data: pf } = await admin.from('editing_profiles').select('settings').eq('id', job.editing_profile_id).maybeSingle()
-        const settings = (pf?.settings && typeof pf.settings === 'object') ? pf.settings as Record<string, unknown> : {}
-
-        let videoInfo: { duration?: number; width?: number; height?: number } | undefined
-        if (job.video_asset_id) {
-          const { data: va } = await admin.from('video_assets').select('duration, width, height').eq('id', job.video_asset_id).maybeSingle()
-          if (va) videoInfo = { duration: (va.duration as number) ?? undefined, width: (va.width as number) ?? undefined, height: (va.height as number) ?? undefined }
-        }
-
-        const provider = getAIProvider()
-        const plan = await provider.generateEditPlan({
-          sourceVideoId: String(job.video_asset_id ?? ''),
-          output: outputFromSettings(settings),
-          settings,
-          customInstructions: (job.custom_instructions as string) ?? '',
-          videoInfo,
-        })
-        patch.edit_plan = plan
-        patch.ai_provider = provider.name
-        patch.ai_model = process.env.OPENAI_PLANNING_MODEL ?? (provider.name === 'openai' ? 'gpt-5.6-luna' : provider.name)
-        if (provider.lastUsage) {
-          patch.input_tokens = provider.lastUsage.inputTokens
-          patch.output_tokens = provider.lastUsage.outputTokens
-          patch.estimated_ai_cost = +((provider.lastUsage.inputTokens / 1e6) * 0.20 + (provider.lastUsage.outputTokens / 1e6) * 1.20).toFixed(6)
-        }
-        logs.push({ t: new Date().toISOString(), msg: 'EditPlan generado (' + provider.name + ')' })
-      } catch (e) {
+    if (newStatus === 'RENDERING') {
+      // Arrancar el render REAL en Lambda (no avanzamos hasta que termine via pollRender)
+      const plan = (job.edit_plan && typeof job.edit_plan === 'object') ? (job.edit_plan as EditPlan) : null
+      if (!plan) {
         patch.status = 'FAILED'
         patch.current_step = 'Error'
-        patch.error_message = (e as Error).message
-        logs.push({ t: new Date().toISOString(), msg: 'Error IA: ' + (e as Error).message })
+        patch.error_message = 'No hay plan de edición para renderizar.'
+        logs.push({ t: ahora, msg: patch.error_message as string })
+      } else if (!lambdaConfigured()) {
+        patch.status = 'FAILED'
+        patch.current_step = 'Error'
+        patch.error_message = 'Falta configurar Remotion Lambda (variables REMOTION_* en el servidor).'
+        logs.push({ t: ahora, msg: patch.error_message as string })
+      } else {
+        try {
+          const src = await sourceSignedUrl(admin, job.video_asset_id as string | null)
+          if (!src) throw new Error('No se pudo firmar la URL del vídeo original.')
+          if (!Array.isArray(plan.segments) || plan.segments.length === 0) {
+            const dur = await assetDuration(admin, job.video_asset_id as string | null)
+            plan.segments = [{ sourceStart: 0, sourceEnd: dur ?? 10, outputStart: 0 }]
+          }
+          const { renderId, bucketName } = await startLambdaRender(src, plan)
+          patch.status = 'RENDERING'
+          patch.current_step = STATUS_LABEL.RENDERING
+          patch.progress = 60
+          patch.render_id = renderId
+          patch.render_bucket = bucketName
+          patch.output_url = null
+          patch.error_message = null
+          logs.push({ t: ahora, msg: 'Render iniciado en Lambda' })
+        } catch (e) {
+          patch.status = 'FAILED'
+          patch.current_step = 'Error'
+          patch.error_message = (e as Error).message
+          logs.push({ t: ahora, msg: 'Error al iniciar render: ' + (e as Error).message })
+        }
+      }
+    } else {
+      patch.status = newStatus
+      patch.progress = Math.round((nextIdx / (flow.length - 1)) * 100)
+      patch.current_step = STATUS_LABEL[newStatus]
+      logs.push({ t: ahora, msg: STATUS_LABEL[newStatus] })
+
+      if (newStatus === 'PLANNING' && job.editing_profile_id) {
+        try {
+          const { data: pf } = await admin.from('editing_profiles').select('settings').eq('id', job.editing_profile_id).maybeSingle()
+          const settings = (pf?.settings && typeof pf.settings === 'object') ? pf.settings as Record<string, unknown> : {}
+
+          let videoInfo: { duration?: number; width?: number; height?: number } | undefined
+          if (job.video_asset_id) {
+            const { data: va } = await admin.from('video_assets').select('duration, width, height').eq('id', job.video_asset_id).maybeSingle()
+            if (va) videoInfo = { duration: (va.duration as number) ?? undefined, width: (va.width as number) ?? undefined, height: (va.height as number) ?? undefined }
+          }
+
+          const provider = getAIProvider()
+          const plan = await provider.generateEditPlan({
+            sourceVideoId: String(job.video_asset_id ?? ''),
+            output: outputFromSettings(settings),
+            settings,
+            customInstructions: (job.custom_instructions as string) ?? '',
+            videoInfo,
+          })
+          patch.edit_plan = plan
+          patch.ai_provider = provider.name
+          patch.ai_model = process.env.OPENAI_PLANNING_MODEL ?? (provider.name === 'openai' ? 'gpt-5.6-luna' : provider.name)
+          if (provider.lastUsage) {
+            patch.input_tokens = provider.lastUsage.inputTokens
+            patch.output_tokens = provider.lastUsage.outputTokens
+            patch.estimated_ai_cost = +((provider.lastUsage.inputTokens / 1e6) * 0.20 + (provider.lastUsage.outputTokens / 1e6) * 1.20).toFixed(6)
+          }
+          logs.push({ t: new Date().toISOString(), msg: 'EditPlan generado (' + provider.name + ')' })
+        } catch (e) {
+          patch.status = 'FAILED'
+          patch.current_step = 'Error'
+          patch.error_message = (e as Error).message
+          logs.push({ t: new Date().toISOString(), msg: 'Error IA: ' + (e as Error).message })
+        }
       }
     }
   }

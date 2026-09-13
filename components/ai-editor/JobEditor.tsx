@@ -7,12 +7,13 @@ import { STATUS_LABEL } from '@/lib/ai-editor/types'
 
 type LogLine = { t: string; msg: string }
 type JobDetail = {
-  job: { id: string; status: string; progress: number; current_step: string; custom_instructions: string; logs: LogLine[]; edit_plan: unknown }
+  job: { id: string; status: string; progress: number; current_step: string; custom_instructions: string; logs: LogLine[]; edit_plan: unknown; output_url: string | null; error_message: string | null }
   asset: { filename: string; signedUrl: string | null } | null
   modelo: string
   profile: { id: string; name: string; custom_instructions: string } | null
 }
 
+const ADVANCE = ['QUEUED', 'PREPROCESSING', 'ANALYZING', 'PLANNING']
 const PROCESANDO = ['QUEUED', 'PREPROCESSING', 'ANALYZING', 'PLANNING', 'RENDERING', 'QUALITY_CHECK']
 
 const statusColor = (s: string) => {
@@ -26,22 +27,31 @@ const QUICK = ['Cambiar gancho', 'Más rápido', 'Más lento', 'Menos zoom', 'M�
 
 export default function JobEditor({ jobId }: { jobId: string }) {
   const [data, setData] = useState<JobDetail | null>(null)
-  const [vista, setVista] = useState<'original' | 'ai'>('original')
+  const [vista, setVista] = useState<'original' | 'ai'>('ai')
 
   const cargar = useCallback(async () => {
     try { const r = await fetch(`/api/ai-editor/jobs/${jobId}`); const d = await r.json(); setData(d) } catch { /* noop */ }
   }, [jobId])
   useEffect(() => { cargar() }, [cargar])
 
-  // Avance simulado del pipeline (FASE 1): un paso cada ~1.4s hasta REVIEW
+  // Motor del pipeline: avanzar los pasos rápidos, y sondear el render de Lambda.
   useEffect(() => {
     if (!data) return
-    if (!PROCESANDO.includes(data.job.status)) return
-    const t = setTimeout(async () => {
-      await fetch(`/api/ai-editor/jobs/${jobId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'advance' }) })
-      cargar()
-    }, 1400)
-    return () => clearTimeout(t)
+    const s = data.job.status
+    if (s === 'RENDERING') {
+      const t = setTimeout(async () => {
+        await fetch(`/api/ai-editor/jobs/${jobId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'pollRender' }) })
+        cargar()
+      }, 3500)
+      return () => clearTimeout(t)
+    }
+    if (ADVANCE.includes(s)) {
+      const t = setTimeout(async () => {
+        await fetch(`/api/ai-editor/jobs/${jobId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'advance' }) })
+        cargar()
+      }, 1400)
+      return () => clearTimeout(t)
+    }
   }, [data, jobId, cargar])
 
   async function accion(action: string) {
@@ -55,6 +65,7 @@ export default function JobEditor({ jobId }: { jobId: string }) {
   const enProceso = PROCESANDO.includes(job.status)
   const enReview = job.status === 'REVIEW'
   const completado = job.status === 'COMPLETED'
+  const hayEditado = Boolean(job.output_url) && (enReview || completado)
   const card = { backgroundColor: 'var(--surface)', border: '1px solid var(--border)' } as const
 
   return (
@@ -91,27 +102,18 @@ export default function JobEditor({ jobId }: { jobId: string }) {
           )}
 
           <div className="rounded-2xl overflow-hidden flex items-center justify-center" style={{ ...card, aspectRatio: '9 / 16', maxHeight: 480, margin: '0 auto', width: '100%' }}>
-            {vista === 'ai' && (enReview || completado) ? (
+            {vista === 'ai' && hayEditado && job.output_url ? (
+              <video src={job.output_url} controls playsInline style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#000' }} />
+            ) : vista === 'ai' && (enReview || completado) ? (
               <div className="text-center px-6">
-                <Sparkles size={26} style={{ color: 'var(--gold)', margin: '0 auto 8px' }} />
-                <p className="text-xs" style={{ color: 'var(--muted)' }}>El vídeo editado aparecerá aquí cuando conectemos el motor de render (FASE 2).</p>
+                <Loader2 size={22} className="animate-spin" style={{ color: 'var(--gold)', margin: '0 auto 8px' }} />
+                <p className="text-xs" style={{ color: 'var(--muted)' }}>Preparando el vídeo editado…</p>
               </div>
             ) : asset?.signedUrl ? (
               <video src={asset.signedUrl} controls playsInline style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#000' }} />
             ) : (
               <p className="text-xs px-6 text-center" style={{ color: 'var(--muted)' }}>No se pudo cargar el vídeo.</p>
             )}
-          </div>
-
-          {/* Timeline simple */}
-          <div className="rounded-2xl p-3" style={card}>
-            <p className="text-[11px] mb-2" style={{ color: 'var(--muted)' }}>Timeline</p>
-            <div className="h-8 rounded-lg relative overflow-hidden" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
-              <div className="absolute inset-y-0 left-0" style={{ width: `${job.progress}%`, backgroundColor: 'var(--gold-15)' }} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[11px]" style={{ color: 'var(--muted)' }}>Los cortes se mostrarán aquí al conectar el motor (FASE 2)</span>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -134,10 +136,9 @@ export default function JobEditor({ jobId }: { jobId: string }) {
             )}
           </div>
 
-          {/* Acciones según estado */}
           {job.status === 'UPLOADED' && (
             <button onClick={() => accion('generate')} className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
-              <Sparkles size={16} /> Generate AI Edit
+              <Sparkles size={16} /> Generar edición con IA
             </button>
           )}
 
@@ -150,6 +151,9 @@ export default function JobEditor({ jobId }: { jobId: string }) {
               <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
                 <div className="h-full rounded-full transition-all" style={{ width: `${job.progress}%`, backgroundColor: 'var(--gold)' }} />
               </div>
+              {job.status === 'RENDERING' && (
+                <p className="text-[11px] mt-2" style={{ color: 'var(--muted)' }}>Editando en la nube (AWS Lambda)…</p>
+              )}
             </div>
           )}
 
@@ -167,7 +171,7 @@ export default function JobEditor({ jobId }: { jobId: string }) {
                 <RotateCcw size={14} /> Regenerar
               </button>
               <div className="rounded-2xl p-3" style={card}>
-                <p className="text-[11px] mb-2" style={{ color: 'var(--muted)' }}>Ajustes rápidos (FASE 2)</p>
+                <p className="text-[11px] mb-2" style={{ color: 'var(--muted)' }}>Ajustes rápidos (próximamente)</p>
                 <div className="flex flex-wrap gap-1.5">
                   {QUICK.map((q) => (
                     <span key={q} className="text-[11px] rounded-lg px-2.5 py-1" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', color: 'var(--muted)' }}>{q}</span>
@@ -184,12 +188,18 @@ export default function JobEditor({ jobId }: { jobId: string }) {
           )}
 
           {(job.status === 'CANCELLED' || job.status === 'FAILED') && (
-            <button onClick={() => accion('regenerate')} className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
-              <RotateCcw size={14} /> Reintentar
-            </button>
+            <div className="space-y-2">
+              {job.error_message && (
+                <div className="rounded-2xl p-3 text-[11px]" style={{ backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)', color: '#F87171' }}>
+                  {job.error_message}
+                </div>
+              )}
+              <button onClick={() => accion('regenerate')} className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
+                <RotateCcw size={14} /> Reintentar
+              </button>
+            </div>
           )}
 
-          {/* Log */}
           {Array.isArray(job.logs) && job.logs.length > 0 && (
             <div className="rounded-2xl p-3" style={card}>
               <p className="text-[11px] mb-2" style={{ color: 'var(--muted)' }}>Registro</p>
