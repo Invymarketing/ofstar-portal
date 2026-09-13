@@ -80,7 +80,6 @@ class OpenAIProvider implements AIProvider {
         model,
         messages: [{ role: 'system', content: sistema }, { role: 'user', content: usuario }],
         response_format: { type: 'json_object' },
-        temperature: 0.4,
       }),
     })
     if (!res.ok) {
