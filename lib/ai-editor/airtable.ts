@@ -5,11 +5,10 @@ const TABLE_ID = process.env.AIRTABLE_TABLE_ID || 'tblNjIPEnCR1pqgZL'
 
 const F = {
   editarHoy: 'fldHmc7OURDj74Pzj',
-  modeloName: 'fldvfzP9KXc5f0L3w', // formula: nombre de la modelo como texto
+  modeloName: 'fldvfzP9KXc5f0L3w',
   fecha: 'fldM9zR9pIrwLtbme',
 }
 
-// Columna del vídeo EN BRUTO para cada D#
 const BRUTO: Record<string, string> = {
   Principal: 'fldyPR0GvrzZkpppN',
   D2: 'flduDVRUFDlpbEisv',
@@ -112,4 +111,22 @@ export async function getQueue(): Promise<QueueTask[]> {
   }
   tasks.sort((a, b) => a.urgenciaRank - b.urgenciaRank || (a.fecha ?? '').localeCompare(b.fecha ?? ''))
   return tasks
+}
+
+// URL fresca del bruto de un registro concreto (para el momento de renderizar).
+export async function getRecordSource(recordId: string, dNum: string): Promise<{ url: string | null; filename: string | null; modelo: string }> {
+  if (!TOKEN) throw new Error('Falta AIRTABLE_TOKEN en el servidor.')
+  const brutoField = BRUTO[dNum]
+  const params = new URLSearchParams()
+  params.set('returnFieldsByFieldId', 'true')
+  const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recordId}?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error(`Airtable ${res.status}: ${(await res.text()).slice(0, 200)}`)
+  const data = (await res.json()) as AtRecord
+  const f = data.fields || {}
+  const { url, filename } = brutoField ? attachmentUrl(f[brutoField]) : { url: null, filename: null }
+  const modelo = typeof f[F.modeloName] === 'string' && f[F.modeloName] ? (f[F.modeloName] as string) : ''
+  return { url, filename, modelo }
 }

@@ -32,14 +32,16 @@ function outputFromSettings(s: Record<string, unknown>): EditPlanOutput {
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
-async function sourceSignedUrl(admin: AdminClient, videoAssetId: string | null): Promise<string | null> {
+async function resolveSourceUrl(admin: AdminClient, sourceUrl: string | null, videoAssetId: string | null): Promise<string | null> {
+  if (sourceUrl) return sourceUrl
   if (!videoAssetId) return null
   const { data: a } = await admin.from('video_assets').select('storage_path').eq('id', videoAssetId).maybeSingle()
   if (!a?.storage_path) return null
   return await getStorage().getSignedUrl(a.storage_path as string, 3600)
 }
 
-async function assetDuration(admin: AdminClient, videoAssetId: string | null): Promise<number | null> {
+async function resolveDuration(admin: AdminClient, sourceDuration: number | null, videoAssetId: string | null): Promise<number | null> {
+  if (sourceDuration && sourceDuration > 0) return sourceDuration
   if (!videoAssetId) return null
   const { data: a } = await admin.from('video_assets').select('duration').eq('id', videoAssetId).maybeSingle()
   const d = a?.duration
@@ -56,7 +58,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!job) return NextResponse.json({ error: 'no existe' }, { status: 404 })
 
   let asset: { filename: string; signedUrl: string | null } | null = null
-  if (job.video_asset_id) {
+  if (job.source_url) {
+    asset = { filename: (job.source_filename as string) || 'Vídeo', signedUrl: job.source_url as string }
+  } else if (job.video_asset_id) {
     const { data: a } = await admin.from('video_assets').select('filename, storage_path').eq('id', job.video_asset_id).maybeSingle()
     if (a) {
       const signedUrl = await getStorage().getSignedUrl(a.storage_path as string, 3600)
@@ -152,7 +156,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       logs.push({ t: new Date().toISOString(), msg: 'Error render: ' + (e as Error).message })
     }
   } else {
-    // advance
     const curIdx = flow.indexOf(job.status as JobStatus)
     if (curIdx < 0 || curIdx >= reviewIdx) {
       return NextResponse.json({ ok: true, status: job.status })
@@ -161,7 +164,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const newStatus = flow[nextIdx]
 
     if (newStatus === 'RENDERING') {
-      // Arrancar el render REAL en Lambda (no avanzamos hasta que termine via pollRender)
       const plan = (job.edit_plan && typeof job.edit_plan === 'object') ? (job.edit_plan as EditPlan) : null
       if (!plan) {
         patch.status = 'FAILED'
@@ -175,10 +177,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         logs.push({ t: ahora, msg: patch.error_message as string })
       } else {
         try {
-          const src = await sourceSignedUrl(admin, job.video_asset_id as string | null)
-          if (!src) throw new Error('No se pudo firmar la URL del vídeo original.')
+          const src = await resolveSourceUrl(admin, (job.source_url as string) ?? null, (job.video_asset_id as string) ?? null)
+          if (!src) throw new Error('No se pudo obtener la URL del vídeo original.')
           if (!Array.isArray(plan.segments) || plan.segments.length === 0) {
-            const dur = await assetDuration(admin, job.video_asset_id as string | null)
+            const dur = await resolveDuration(admin, (job.source_duration as number) ?? null, (job.video_asset_id as string) ?? null)
             plan.segments = [{ sourceStart: 0, sourceEnd: dur ?? 10, outputStart: 0 }]
           }
           const { renderId, bucketName } = await startLambdaRender(src, plan)
@@ -209,14 +211,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           const settings = (pf?.settings && typeof pf.settings === 'object') ? pf.settings as Record<string, unknown> : {}
 
           let videoInfo: { duration?: number; width?: number; height?: number } | undefined
-          if (job.video_asset_id) {
+          if (job.source_url) {
+            videoInfo = {
+              duration: typeof job.source_duration === 'number' ? job.source_duration : undefined,
+              width: typeof job.source_width === 'number' ? job.source_width : undefined,
+              height: typeof job.source_height === 'number' ? job.source_height : undefined,
+            }
+          } else if (job.video_asset_id) {
             const { data: va } = await admin.from('video_assets').select('duration, width, height').eq('id', job.video_asset_id).maybeSingle()
             if (va) videoInfo = { duration: (va.duration as number) ?? undefined, width: (va.width as number) ?? undefined, height: (va.height as number) ?? undefined }
           }
 
           const provider = getAIProvider()
           const plan = await provider.generateEditPlan({
-            sourceVideoId: String(job.video_asset_id ?? ''),
+            sourceVideoId: String(job.video_asset_id ?? job.id ?? ''),
             output: outputFromSettings(settings),
             settings,
             customInstructions: (job.custom_instructions as string) ?? '',
