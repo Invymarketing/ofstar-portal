@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { guardarFicha } from '@/app/(dashboard)/modulo-21/actions'
 import { Search, Pencil, Save, X, User, Heart, DollarSign, Link2 } from 'lucide-react'
+import RedesModelo from '@/components/modelos/RedesModelo'
 
 export interface Ficha {
   modelo_id: string
@@ -62,7 +63,7 @@ export default function FichasModelo(
   const Field = ({ label, value }: { label: string; value?: string | number | null }) => (
     <div>
       <p className="text-[11px] mb-0.5" style={{ color: 'var(--muted)' }}>{label}</p>
-      <p className="text-sm whitespace-pre-wrap" style={{ color: value != null && value !== '' ? 'var(--foreground)' : 'var(--muted)' }}>
+      <p className="text-sm whitespace-pre-wrap break-words" style={{ color: value != null && value !== '' ? 'var(--foreground)' : 'var(--muted)' }}>
         {value != null && value !== '' ? value : '—'}
       </p>
     </div>
@@ -178,7 +179,10 @@ export default function FichasModelo(
                   <Field label="Pagos por fuera" value={ficha.pagos_por_fuera} />
                 </Seccion>
                 <Seccion icon={Link2} titulo="Redes y enlaces">
-                  <Field label="Instagram" value={ficha.instagram} />
+                  <div className="sm:col-span-2">
+                    <p className="text-[11px] mb-1.5" style={{ color: 'var(--muted)' }}>Instagram (cuentas enlazadas)</p>
+                    <RedesModelo modeloId={sel} plano />
+                  </div>
                   <Field label="Telegram" value={ficha.telegram} />
                   <Field label="Twitter / X" value={ficha.twitter} />
                   <Field label="Otros enlaces" value={ficha.otros_enlaces} />
@@ -218,7 +222,10 @@ export default function FichasModelo(
                   <Input k="pagos_por_fuera" label="Pagos por fuera" area />
                 </Seccion>
                 <Seccion icon={Link2} titulo="Redes y enlaces">
-                  <Input k="instagram" label="Instagram" ph="@usuario" />
+                  <div className="sm:col-span-2">
+                    <p className="text-[11px] mb-1.5" style={{ color: 'var(--muted)' }}>Instagram (cuentas enlazadas · se gestionan en Analytics)</p>
+                    <RedesModelo modeloId={sel} plano />
+                  </div>
                   <Input k="telegram" label="Telegram" />
                   <Input k="twitter" label="Twitter / X" />
                   <Input k="otros_enlaces" label="Otros enlaces" area />
