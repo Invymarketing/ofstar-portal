@@ -103,18 +103,18 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
           </div>
         </div>
 
-        <div className="p-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="p-4 overflow-x-auto">
+          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(7, minmax(170px, 1fr))' }}>
             {DIAS.map((nombre, dia) => {
               const tDia = tareas.filter((t) => t.dia_semana === dia)
               return (
                 <div key={dia} className="rounded-xl flex flex-col" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--background)' }}>
-                  <div className="px-2.5 pt-2.5 pb-2 flex items-center justify-between gap-1">
+                  <div className="px-3 pt-3 pb-2 flex items-center justify-between gap-1">
                     <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>{nombre}</span>
                     {tDia.length > 0 && <span className="text-[11px] font-semibold" style={{ color: 'var(--gold)' }}>{tDia.length}</span>}
                   </div>
 
-                  <div className="px-2 flex flex-col gap-1.5 min-h-[16px] pb-2">
+                  <div className="px-2.5 flex flex-col gap-1.5 min-h-[48px] pb-2">
                     {tDia.map((t) => (
                       <div key={t.id} className="group rounded-lg px-2 py-1.5 text-xs flex items-start gap-1.5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--gold-25)' }}>
                         <span className="flex-1 leading-snug break-words font-medium" style={{ color: 'var(--gold)' }}>{t.titulo}</span>
@@ -128,18 +128,20 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
 
                   {editable && (
                     <div className="p-2 pt-0">
-                      <div className="flex items-center gap-1 rounded-lg px-1.5" style={{ border: '1px dashed var(--gold-25)' }}>
-                        <input
+                      <div className="flex items-start gap-1 rounded-lg px-1.5 py-1" style={{ border: '1px dashed var(--gold-25)' }}>
+                        <textarea
                           value={drafts[dia] ?? ''}
                           onChange={(e) => setDrafts((s) => ({ ...s, [dia]: e.target.value }))}
-                          onKeyDown={(e) => { if (e.key === 'Enter') addTarea(dia) }}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addTarea(dia) } }}
+                          onInput={(e) => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }}
+                          rows={1}
                           placeholder="Añadir tarea"
-                          className="flex-1 bg-transparent py-1.5 text-xs outline-none"
-                          style={{ color: 'var(--foreground)' }}
+                          className="flex-1 bg-transparent py-1 text-xs outline-none resize-none leading-snug break-words"
+                          style={{ color: 'var(--foreground)', minHeight: '1.6rem', maxHeight: '8rem', overflowY: 'auto' }}
                         />
                         <button
                           onClick={() => addTarea(dia)}
-                          className="shrink-0 grid place-items-center h-6 w-6 rounded-md transition-transform active:scale-90"
+                          className="shrink-0 grid place-items-center h-6 w-6 rounded-md transition-transform active:scale-90 mt-0.5"
                           style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}
                           title="Añadir tarea"
                           aria-label="Añadir tarea"
