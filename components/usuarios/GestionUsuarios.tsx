@@ -13,12 +13,12 @@ function generarPassword(): string {
   return pick(may, 1) + pick(min, 5) + pick(num, 3) + '!'
 }
 
-type Rol = 'admin' | 'manager' | 'team_leader' | 'chatter' | 'va' | 'modelo' | 'creativo' | 'marketing_manager' | 'content_manager' | 'director_creativo'
-const ROLES: Rol[] = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo', 'creativo', 'marketing_manager', 'content_manager', 'director_creativo']
+type Rol = 'admin' | 'manager' | 'team_leader' | 'chatter' | 'va' | 'modelo' | 'creativo' | 'marketing_manager' | 'content_manager'
+const ROLES: Rol[] = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo', 'creativo', 'marketing_manager', 'content_manager']
 const ROL_LABEL: Record<Rol, string> = {
   admin: 'Admin', manager: 'Manager', team_leader: 'Team Leader',
-  chatter: 'Chatter', va: 'VA', modelo: 'Modelo', creativo: 'Directora Creativa',
-  marketing_manager: 'Marketing Manager', content_manager: 'Content Manager', director_creativo: 'Director Creativo',
+  chatter: 'Chatter', va: 'VA', modelo: 'Modelo', creativo: 'Director Creativo',
+  marketing_manager: 'Marketing Manager', content_manager: 'Content Manager',
 }
 
 interface Usuario { id: string; full_name: string; role: string; email: string; activo: boolean }
