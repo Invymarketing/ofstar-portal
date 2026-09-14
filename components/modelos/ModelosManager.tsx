@@ -26,6 +26,7 @@ export default function ModelosManager({ soloLectura = false }: { soloLectura?: 
   const [editModelo, setEditModelo] = useState<Modelo | null>(null)
   const [perfilModelo, setPerfilModelo] = useState<Modelo | null>(null)
   const [modoEdicion, setModoEdicion] = useState(false)
+  const [borrandoId, setBorrandoId] = useState<string | null>(null)
 
   async function cargar() {
     setLoading(true)
@@ -40,9 +41,22 @@ export default function ModelosManager({ soloLectura = false }: { soloLectura?: 
   useEffect(() => { cargar() }, [])
 
   async function eliminar(id: string, nombre: string) {
-    if (!confirm(`¿Eliminar la ficha de ${nombre}?`)) return
-    await fetch(`/api/modelos-admin?id=${id}`, { method: 'DELETE' })
-    await cargar()
+    if (borrandoId) return
+    if (!confirm(`¿Eliminar la ficha de ${nombre}? Se borrarán también sus datos (horario, tareas, cuentas, competencia…).`)) return
+    setBorrandoId(id)
+    try {
+      const res = await fetch(`/api/modelos-admin?id=${id}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        alert('No se pudo eliminar: ' + (data.error ?? 'error desconocido'))
+        return
+      }
+      await cargar()
+    } catch (e) {
+      alert('No se pudo eliminar: ' + (e instanceof Error ? e.message : 'error de conexión'))
+    } finally {
+      setBorrandoId(null)
+    }
   }
 
   if (perfilModelo) {
@@ -95,7 +109,7 @@ export default function ModelosManager({ soloLectura = false }: { soloLectura?: 
               {!soloLectura && modoEdicion && (
                 <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button onClick={() => setEditModelo(m)} title="Editar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] transition-colors"><Pencil size={14} /></button>
-                  <button onClick={() => eliminar(m.id, m.full_name)} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                  <button onClick={() => eliminar(m.id, m.full_name)} disabled={borrandoId === m.id} title="Eliminar" style={{ color: 'var(--muted)' }} className="p-1 rounded hover:bg-[var(--hover)] hover:text-red-400 transition-colors disabled:opacity-50">{borrandoId === m.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}</button>
                 </div>
               )}
             </div>

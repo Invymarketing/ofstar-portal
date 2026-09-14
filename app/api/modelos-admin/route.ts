@@ -123,6 +123,26 @@ export async function DELETE(request: NextRequest) {
   const id = request.nextUrl.searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'falta_id' }, { status: 400 })
 
+  // Limpiamos primero los datos de la modelo en tablas hijas (por si la BD no borra en cascada).
+  // Primero los reels/métricas (cuelgan de sus cuentas de Instagram), luego el resto.
+  const { data: cuentas } = await auth.admin.from('cuentas_analytics').select('id').eq('modelo_id', id)
+  const cuentaIds = (cuentas ?? []).map((c: { id: string }) => c.id)
+  if (cuentaIds.length > 0) {
+    await auth.admin.from('reels_analytics').delete().in('cuenta_id', cuentaIds)
+    await auth.admin.from('metricas_analytics').delete().in('cuenta_id', cuentaIds)
+    await auth.admin.from('competencia_modelos').delete().in('cuenta_id', cuentaIds)
+  }
+  // Tablas que cuelgan directamente de modelo_id. Best-effort: si alguna no existe, se ignora.
+  const hijas = [
+    'competencia_modelos', 'cuentas_analytics',
+    'modelo_tareas', 'modelo_todos', 'modelo_boveda', 'cumplimiento_semanal',
+    'editing_profiles', 'contenido_ingerido', 'video_jobs', 'video_assets',
+    'finanzas_modelo', 'custom_vc', 'audiencia_semanal', 'fichas_modelo',
+  ]
+  for (const t of hijas) {
+    await auth.admin.from(t).delete().eq('modelo_id', id).then(undefined, () => {})
+  }
+
   const { error } = await auth.admin.from('modelos').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
