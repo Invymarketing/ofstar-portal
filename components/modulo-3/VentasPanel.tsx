@@ -284,7 +284,7 @@ export default function VentasPanel({ ventas }: { ventas: Venta[] }) {
               <YAxis tick={{ fill: 'var(--muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={44}
                 tickFormatter={(v) => `$${v}`} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
+                contentStyle={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
                 labelStyle={{ color: 'var(--foreground)' }}
                 formatter={(value) => [money(Number(value) || 0), 'Ventas'] as [string, string]} />
               <Area type="monotone" dataKey="total" stroke="var(--gold)" strokeWidth={2} fill="url(#gVentas)" />

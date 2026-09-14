@@ -139,7 +139,7 @@ export default function ReferenciasPorModelo() {
             {grupo.reels.slice(0, 12).map((reel, i) => {
               const recomendado = score(reel) > grupo.media
               return (
-                <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group rounded-xl overflow-hidden transition-all" style={{ border: recomendado ? `1.5px solid ${COLOR}` : '1px solid var(--border)', backgroundColor: '#0D0D14' }}>
+                <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group rounded-xl overflow-hidden transition-all" style={{ border: recomendado ? `1.5px solid ${COLOR}` : '1px solid var(--border)', backgroundColor: 'var(--field)' }}>
                   <div className="relative w-full" style={{ aspectRatio: '9/16', backgroundColor: 'var(--border)' }}>
                     {reel.thumbnail_url ? (
                       // eslint-disable-next-line @next/next/no-img-element

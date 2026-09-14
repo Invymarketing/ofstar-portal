@@ -7,13 +7,17 @@ import GrupoCard from './GrupoCard'
 import GrupoDetalle from './GrupoDetalle'
 import AddCuentaModal from './AddCuentaModal'
 
-interface Props { tipo: 'propia' | 'competencia' }
+interface Props { tipo: 'propia' | 'competencia'; onDetalleChange?: (abierto: boolean) => void }
 
-export default function GaleriaModelos({ tipo }: Props) {
+export default function GaleriaModelos({ tipo, onDetalleChange }: Props) {
   const [cuentas, setCuentas] = useState<Cuenta[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [grupoAbierto, setGrupoAbierto] = useState<string | null>(null)
+
+  // Avisamos al padre para que oculte la cabecera global mientras hay un detalle abierto
+  useEffect(() => { onDetalleChange?.(!!grupoAbierto) }, [grupoAbierto, onDetalleChange])
+  useEffect(() => () => onDetalleChange?.(false), [onDetalleChange])
 
   const cargar = useCallback(async () => {
     setLoading(true)

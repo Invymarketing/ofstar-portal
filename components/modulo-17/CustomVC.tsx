@@ -39,7 +39,7 @@ export default function CustomVC(
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState(false)
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
+  const inputStyle = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault()
@@ -199,7 +199,7 @@ export default function CustomVC(
                         <select defaultValue={c.estado}
                           onChange={async (e) => { await actualizarCustom(c.id, { estado: e.target.value }); window.location.reload() }}
                           className="rounded-lg px-2 py-1 text-xs"
-                          style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: ESTADO_COLOR[c.estado] ?? 'var(--foreground)' }}>
+                          style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: ESTADO_COLOR[c.estado] ?? 'var(--foreground)' }}>
                           {ESTADOS.map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
                       ) : (
@@ -210,7 +210,7 @@ export default function CustomVC(
                       <td className="px-4 py-2">
                         <input defaultValue={c.seguimiento ?? ''} placeholder="Nota…"
                           onBlur={async (e) => { if (e.target.value !== (c.seguimiento ?? '')) { await actualizarCustom(c.id, { seguimiento: e.target.value }) } }}
-                          className="rounded-lg px-2 py-1 text-xs w-36" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+                          className="rounded-lg px-2 py-1 text-xs w-36" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
                       </td>
                     )}
                   </tr>

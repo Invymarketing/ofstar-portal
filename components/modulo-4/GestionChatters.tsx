@@ -12,7 +12,7 @@ const EQUIPOS = [1, 2, 3, 4]
 export default function GestionChatters({ chatters }: { chatters: Chatter[] }) {
   const [busy, setBusy] = useState<string | null>(null)
 
-  const miniSelect = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)', fontSize: 12 } as const
+  const miniSelect = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)', fontSize: 12 } as const
 
   async function cambiarActivo(id: string, activo: boolean) {
     setBusy(id)
@@ -48,7 +48,7 @@ export default function GestionChatters({ chatters }: { chatters: Chatter[] }) {
           {chatters.map((c) => (
             <div key={c.id}
               className="flex items-center gap-3 rounded-xl border px-4 py-2.5 flex-wrap"
-              style={{ backgroundColor: '#0D0D14', borderColor: 'var(--border)', opacity: busy === c.id ? 0.5 : 1 }}>
+              style={{ backgroundColor: 'var(--field)', borderColor: 'var(--border)', opacity: busy === c.id ? 0.5 : 1 }}>
               <span className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ backgroundColor: c.activo ? '#22C55E' : 'var(--muted)' }} />
               <span className="flex-1 min-w-[120px] text-sm" style={{ color: 'var(--foreground)' }}>{c.nombre}</span>

@@ -128,11 +128,11 @@ export default function Fichaje({
 
         {/* Resumen propio */}
         <div className="grid grid-cols-2 gap-3 mt-5">
-          <div className="rounded-xl p-3" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+          <div className="rounded-xl p-3" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
             <p className="text-xs" style={{ color: 'var(--muted)' }}>Trabajado hoy</p>
             <p className="text-lg font-bold" style={{ color: '#22C55E' }}>{fmt(miTrabajo.trabajado)}</p>
           </div>
-          <div className="rounded-xl p-3" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+          <div className="rounded-xl p-3" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
             <p className="text-xs" style={{ color: 'var(--muted)' }}>En break hoy</p>
             <p className="text-lg font-bold" style={{ color: '#EAB308' }}>{fmt(miTrabajo.brk)}</p>
           </div>
@@ -140,7 +140,7 @@ export default function Fichaje({
 
         {/* Nota de fin de turno */}
         {cerrando && (
-          <div className="mt-5 rounded-xl p-4" style={{ backgroundColor: '#0D0D14', border: '1px solid rgba(239,68,68,0.3)' }}>
+          <div className="mt-5 rounded-xl p-4" style={{ backgroundColor: 'var(--field)', border: '1px solid rgba(239,68,68,0.3)' }}>
             <p className="text-xs mb-2" style={{ color: 'var(--foreground)' }}>Novedad para el siguiente turno (opcional)</p>
             <textarea value={nota} onChange={(e) => setNota(e.target.value)} rows={3}
               placeholder="Fans calientes, pendientes, incidencias…"

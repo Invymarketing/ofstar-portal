@@ -11,7 +11,7 @@ export default function CompetenciaTab() {
   return (
     <div>
       {/* Sub-toggle */}
-      <div className="flex gap-1 p-1 rounded-lg mb-5 w-fit" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+      <div className="flex gap-1 p-1 rounded-lg mb-5 w-fit" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
         <button onClick={() => setVista('competidores')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all" style={{ backgroundColor: vista === 'competidores' ? 'rgba(201,168,76,0.12)' : 'transparent', color: vista === 'competidores' ? 'var(--gold)' : 'var(--muted)' }}>
           <Users size={13} /> Competidores
         </button>

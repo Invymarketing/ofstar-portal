@@ -61,7 +61,7 @@ export default function ReelsGrid({ reels, dias, orden = 'ganador' }: Props) {
 
   if (filtrados.length === 0) {
     return (
-      <div className="text-center py-8 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px dashed var(--border)' }}>
+      <div className="text-center py-8 rounded-xl" style={{ backgroundColor: 'var(--field)', border: '1px dashed var(--border)' }}>
         <Film size={20} className="mx-auto mb-2" style={{ color: 'var(--muted)' }} />
         <p className="text-xs" style={{ color: 'var(--muted)' }}>No hay reels en los últimos {dias} días.</p>
       </div>
@@ -80,7 +80,7 @@ export default function ReelsGrid({ reels, dias, orden = 'ganador' }: Props) {
         {filtrados.map((reel, i) => {
           const esGanador = ganadores.has(reel.url)
           return (
-            <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group relative rounded-xl overflow-hidden transition-all" style={{ border: esGanador ? '1.5px solid var(--gold)' : '1px solid var(--border)', backgroundColor: '#0D0D14' }}>
+            <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group relative rounded-xl overflow-hidden transition-all" style={{ border: esGanador ? '1.5px solid var(--gold)' : '1px solid var(--border)', backgroundColor: 'var(--field)' }}>
               {esGanador && (
                 <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(201,168,76,0.9)' }}>
                   <Trophy size={9} style={{ color: '#0D0D14' }} />

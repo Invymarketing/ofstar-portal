@@ -66,7 +66,7 @@ export default function RegistrarErrorForm({
     }
   }
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
+  const inputStyle = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   return (
     <form onSubmit={submit}
@@ -114,7 +114,7 @@ export default function RegistrarErrorForm({
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); elegirArchivo(e.dataTransfer.files?.[0] ?? null) }}
             className="flex flex-col items-center justify-center gap-1 rounded-lg py-4 cursor-pointer text-center"
-            style={{ backgroundColor: '#0D0D14', border: `1px dashed ${dragOver ? 'var(--gold)' : 'var(--border)'}`, color: 'var(--muted)' }}>
+            style={{ backgroundColor: 'var(--field)', border: `1px dashed ${dragOver ? 'var(--gold)' : 'var(--border)'}`, color: 'var(--muted)' }}>
             <ImagePlus size={18} />
             <span className="text-xs">Arrastra una imagen aquí o haz clic</span>
           </div>

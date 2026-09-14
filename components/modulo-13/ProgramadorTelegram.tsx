@@ -57,7 +57,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
   const [msg, setMsg] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
+  const inputStyle = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
   const modeloSel = modelos.find((m) => m.id === sel)
 
   const pendientesPorModelo = useMemo(() => {
@@ -233,7 +233,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
       {/* Formulario */}
       {showForm && (
         <form ref={formRef} onSubmit={crear} className="rounded-2xl border p-5 space-y-4 mb-6" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', outline: editingId ? '1px solid rgba(201,168,76,0.5)' : 'none' }}>
-          <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+          <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
             {TIPOS.map((t) => {
               const Icon = t.icon
               return (
@@ -255,7 +255,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
                   onDragLeave={() => setDragOver(false)}
                   onDrop={(e) => { e.preventDefault(); setDragOver(false); subirArchivo(e.dataTransfer.files?.[0] ?? null) }}
                   className="flex flex-col items-center justify-center gap-1 rounded-lg py-6 cursor-pointer text-center"
-                  style={{ backgroundColor: '#0D0D14', border: `1px dashed ${dragOver ? 'var(--gold)' : 'var(--border)'}`, color: 'var(--muted)' }}>
+                  style={{ backgroundColor: 'var(--field)', border: `1px dashed ${dragOver ? 'var(--gold)' : 'var(--border)'}`, color: 'var(--muted)' }}>
                   <ImagePlus size={20} />
                   <span className="text-xs">{uploading ? 'Subiendo…' : `Arrastra ${tipo === 'video' ? 'un video' : 'una imagen'} o haz clic`}</span>
                 </div>
@@ -302,8 +302,8 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
       {/* Buscador + filtros */}
       <div className="flex items-center gap-2 mb-4 flex-wrap text-xs" style={{ color: 'var(--muted)' }}>
         <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar en el texto…"
-          className="rounded-lg px-3 py-1.5 text-xs w-48" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
-        <div className="flex gap-1 p-0.5 rounded-lg" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+          className="rounded-lg px-3 py-1.5 text-xs w-48" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+        <div className="flex gap-1 p-0.5 rounded-lg" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
           {(['todos', 'pasados', 'futuros'] as const).map((c) => (
             <button key={c} onClick={() => setCuando(c)}
               className="px-2.5 py-1 rounded-md text-xs capitalize"
@@ -314,10 +314,10 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
         </div>
         <span className="ml-1">Fechas:</span>
         <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)}
-          className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+          className="rounded-lg px-2 py-1" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
         <span>→</span>
         <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)}
-          className="rounded-lg px-2 py-1" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+          className="rounded-lg px-2 py-1" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
         {(desde || hasta || busqueda || cuando !== 'todos') && (
           <button onClick={() => { setDesde(''); setHasta(''); setBusqueda(''); setCuando('todos') }} className="underline" style={{ color: 'var(--gold)' }}>limpiar</button>
         )}
@@ -347,7 +347,7 @@ export default function ProgramadorTelegram({ modelos, mensajes }: { modelos: Mo
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={x.archivo_url} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" style={{ border: '1px solid var(--border)' }} />
                       ) : (
-                        <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--muted)' }}>
+                        <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--muted)' }}>
                           <Icon size={15} />
                         </span>
                       )}

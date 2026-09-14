@@ -69,7 +69,7 @@ export default function HistorialErrores({ errores }: { errores: ErrorRow[] }) {
             <select value={e.estado} disabled={busy === e.id}
               onChange={(ev) => cambiarEstado(e.id, ev.target.value as ErrorRow['estado'])}
               className="rounded-lg px-2 py-1 text-xs"
-              style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+              style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
               {ESTADOS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
             <button onClick={() => borrar(e.id)} disabled={busy === e.id}

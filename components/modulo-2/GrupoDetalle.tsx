@@ -94,19 +94,19 @@ export default function GrupoDetalle({ grupo, tipo, onBack, onRefresh }: Props) 
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs" style={{ color: 'var(--muted)' }}>Últimos:</span>
                     {PERIODOS.map(d => (
-                      <button key={d} onClick={() => setPeriodo(d)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: periodo === d ? 'var(--gold-15)' : '#0D0D14', color: periodo === d ? 'var(--gold)' : 'var(--muted)', border: periodo === d ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{d} días</button>
+                      <button key={d} onClick={() => setPeriodo(d)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: periodo === d ? 'var(--gold-15)' : 'var(--field)', color: periodo === d ? 'var(--gold)' : 'var(--muted)', border: periodo === d ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{d} días</button>
                     ))}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs" style={{ color: 'var(--muted)' }}>Ordenar:</span>
                     {ORDENES.map(([val, label]) => (
-                      <button key={val} onClick={() => setOrden(val)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: orden === val ? 'var(--gold-15)' : '#0D0D14', color: orden === val ? 'var(--gold)' : 'var(--muted)', border: orden === val ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{label}</button>
+                      <button key={val} onClick={() => setOrden(val)} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: orden === val ? 'var(--gold-15)' : 'var(--field)', color: orden === val ? 'var(--gold)' : 'var(--muted)', border: orden === val ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{label}</button>
                     ))}
                   </div>
                   {(cuenta.reels_analytics ?? []).length > 0 ? (
                     <ReelsGrid reels={cuenta.reels_analytics} dias={periodo} orden={orden} />
                   ) : (
-                    <div className="text-center py-6 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px dashed var(--border)' }}>
+                    <div className="text-center py-6 rounded-xl" style={{ backgroundColor: 'var(--field)', border: '1px dashed var(--border)' }}>
                       <Film size={18} className="mx-auto mb-2" style={{ color: 'var(--muted)' }} />
                       <p className="text-xs" style={{ color: 'var(--muted)' }}>Sin reels aún. Pulsa actualizar arriba.</p>
                     </div>
@@ -168,7 +168,7 @@ export default function GrupoDetalle({ grupo, tipo, onBack, onRefresh }: Props) 
           </div>
           {/* Contenido */}
           <div className="flex-1 min-w-0 w-full">
-            {vista === 'propias' ? listaCuentas : <CompetenciaModelo modeloId={grupo.key} />}
+            {vista === 'propias' ? listaCuentas : <CompetenciaModelo modeloId={grupo.key} nombreModelo={grupo.nombre} />}
           </div>
         </div>
       ) : (

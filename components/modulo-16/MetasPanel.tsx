@@ -21,7 +21,7 @@ export default function MetasPanel({ filas }: { filas: Fila[] }) {
     try { await actualizarMeta(id, val ? Number(val) : null); window.location.reload() } finally { setBusy(null) }
   }
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
+  const inputStyle = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
   const barColor = (p: number | null) => p == null ? 'var(--muted)' : p >= 100 ? '#22C55E' : p >= 60 ? '#EAB308' : '#EF4444'
 
   return (

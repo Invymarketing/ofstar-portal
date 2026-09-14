@@ -56,7 +56,7 @@ export default function MisVentas({
   const [ok, setOk] = useState(false)
 
   const bruto = Number(monto) || 0
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
+  const inputStyle = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   const dias = RANGOS.find((r) => r.id === rango)?.dias ?? 30
   const inicio = useMemo(() => {

@@ -15,7 +15,7 @@ export default function MetadataTool() {
   const [variantes, setVariantes] = useState<Variante[]>([])
   const [fallos, setFallos] = useState<string[]>([])
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
+  const inputStyle = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   async function generar() {
     if (!archivo) { setError('Elige un archivo primero'); return }
@@ -61,7 +61,7 @@ export default function MetadataTool() {
           </div>
         ) : (
           <label className="flex items-center justify-center gap-2 rounded-lg px-3 py-6 text-sm cursor-pointer mb-4 border border-dashed"
-            style={{ backgroundColor: '#0D0D14', borderColor: 'var(--border)', color: 'var(--muted)' }}>
+            style={{ backgroundColor: 'var(--field)', borderColor: 'var(--border)', color: 'var(--muted)' }}>
             <Upload size={16} /> Elegir imagen o video
             <input type="file" accept="image/*,video/*" className="hidden"
               onChange={(e) => { setArchivo(e.target.files?.[0] ?? null); setVariantes([]); setError(null) }} />

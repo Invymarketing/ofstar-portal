@@ -37,7 +37,7 @@ export default function RegistrarVentaForm({ modelos }: { modelos: Modelo[] }) {
     }
   }
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
+  const inputStyle = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   return (
     <form onSubmit={submit}

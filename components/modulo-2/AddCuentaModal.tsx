@@ -8,12 +8,15 @@ interface Props {
   tipo: 'propia' | 'competencia'
   onClose: () => void
   onAdded: () => void
+  modeloPreseleccionado?: string   // al añadir desde la ficha de una modelo, se vincula sola
 }
 
-export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
+export default function AddCuentaModal({ tipo, onClose, onAdded, modeloPreseleccionado }: Props) {
   const [username, setUsername] = useState('')
-  const [modeloId, setModeloId] = useState('')                 // propia: 1 modelo
-  const [modelosRef, setModelosRef] = useState<Set<string>>(new Set()) // competencia: varias
+  const [modeloId, setModeloId] = useState(tipo === 'propia' ? (modeloPreseleccionado ?? '') : '') // propia: 1 modelo
+  const [modelosRef, setModelosRef] = useState<Set<string>>(
+    tipo === 'competencia' && modeloPreseleccionado ? new Set([modeloPreseleccionado]) : new Set()
+  ) // competencia: varias
   const [grupoComp, setGrupoComp] = useState('')
   const [esPrincipal, setEsPrincipal] = useState(false)
   const [notas, setNotas] = useState('')
@@ -107,7 +110,7 @@ export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
           {/* Username */}
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Username de Instagram *</label>
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
               <AtSign size={15} style={{ color: 'var(--muted)' }} />
               <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="username" disabled={loading} className="flex-1 bg-transparent text-sm outline-none" style={{ color: 'var(--foreground)' }} />
             </div>
@@ -118,7 +121,7 @@ export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
             <div>
               <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>¿De qué modelo es? *</label>
               {loadingModelos ? (
-                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
                   <Loader2 size={13} className="animate-spin" style={{ color: 'var(--muted)' }} /><span className="text-xs" style={{ color: 'var(--muted)' }}>Cargando...</span>
                 </div>
               ) : modelos.length === 0 ? (
@@ -126,7 +129,7 @@ export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {modelos.map(m => (
-                    <button key={m.id} type="button" onClick={() => setModeloId(m.id)} disabled={loading} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: modeloId === m.id ? 'var(--gold-15)' : '#0D0D14', color: modeloId === m.id ? 'var(--gold)' : 'var(--muted)', border: modeloId === m.id ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{m.nombre}</button>
+                    <button key={m.id} type="button" onClick={() => setModeloId(m.id)} disabled={loading} className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: modeloId === m.id ? 'var(--gold-15)' : 'var(--field)', color: modeloId === m.id ? 'var(--gold)' : 'var(--muted)', border: modeloId === m.id ? '1px solid var(--gold-25)' : '1px solid var(--border)' }}>{m.nombre}</button>
                   ))}
                 </div>
               )}
@@ -134,7 +137,7 @@ export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
           ) : (
             <div>
               <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Nombre del competidor *</label>
-              <input type="text" value={grupoComp} onChange={e => setGrupoComp(e.target.value)} placeholder="Ej: Agencia rival, nombre de la modelo..." disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+              <input type="text" value={grupoComp} onChange={e => setGrupoComp(e.target.value)} placeholder="Ej: Agencia rival, nombre de la modelo..." disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
               <p className="text-[10px] mt-1" style={{ color: 'rgba(139,139,158,0.6)' }}>Las cuentas con el mismo nombre se agrupan juntas</p>
             </div>
           )}
@@ -144,7 +147,7 @@ export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
             <div>
               <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Referencia de… <span style={{ color: 'rgba(139,139,158,0.6)' }}>(puedes elegir varias)</span></label>
               {loadingModelos ? (
-                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
                   <Loader2 size={13} className="animate-spin" style={{ color: 'var(--muted)' }} /><span className="text-xs" style={{ color: 'var(--muted)' }}>Cargando modelos...</span>
                 </div>
               ) : modelos.length === 0 ? (
@@ -154,7 +157,7 @@ export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
                   {modelos.map(m => {
                     const activa = modelosRef.has(m.id)
                     return (
-                      <button key={m.id} type="button" onClick={() => toggleModeloRef(m.id)} disabled={loading} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: activa ? 'var(--gold-15)' : '#0D0D14', color: activa ? 'var(--gold)' : 'var(--muted)', border: activa ? '1px solid rgba(201,168,76,0.35)' : '1px solid var(--border)' }}>
+                      <button key={m.id} type="button" onClick={() => toggleModeloRef(m.id)} disabled={loading} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all" style={{ backgroundColor: activa ? 'var(--gold-15)' : 'var(--field)', color: activa ? 'var(--gold)' : 'var(--muted)', border: activa ? '1px solid rgba(201,168,76,0.35)' : '1px solid var(--border)' }}>
                         {activa && <Check size={11} />}{m.nombre}
                       </button>
                     )
@@ -166,7 +169,7 @@ export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
           )}
 
           {/* Marcar como principal */}
-          <button type="button" onClick={() => setEsPrincipal(!esPrincipal)} disabled={loading} className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs w-full transition-all" style={{ backgroundColor: esPrincipal ? 'var(--gold-15)' : '#0D0D14', border: esPrincipal ? '1px solid var(--gold-25)' : '1px solid var(--border)', color: esPrincipal ? 'var(--gold)' : 'var(--muted)' }}>
+          <button type="button" onClick={() => setEsPrincipal(!esPrincipal)} disabled={loading} className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs w-full transition-all" style={{ backgroundColor: esPrincipal ? 'var(--gold-15)' : 'var(--field)', border: esPrincipal ? '1px solid var(--gold-25)' : '1px solid var(--border)', color: esPrincipal ? 'var(--gold)' : 'var(--muted)' }}>
             <Star size={13} fill={esPrincipal ? 'var(--gold)' : 'none'} />
             Cuenta principal (su foto será la de la carpeta)
           </button>
@@ -175,7 +178,7 @@ export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
           {tipo === 'competencia' && (
             <div>
               <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Notas (opcional)</label>
-              <textarea value={notas} onChange={e => setNotas(e.target.value)} placeholder="Por qué es relevante..." rows={2} disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-xs outline-none resize-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+              <textarea value={notas} onChange={e => setNotas(e.target.value)} placeholder="Por qué es relevante..." rows={2} disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-xs outline-none resize-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
             </div>
           )}
 
@@ -183,7 +186,7 @@ export default function AddCuentaModal({ tipo, onClose, onAdded }: Props) {
           {error && <p className="text-xs" style={{ color: '#F87171' }}>{error}</p>}
 
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onClose} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--muted)' }}>Cancelar</button>
+            <button type="button" onClick={onClose} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--muted)' }}>Cancelar</button>
             <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium disabled:opacity-70" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid rgba(201,168,76,0.3)', color: 'var(--gold)' }}>
               {loading && <Loader2 size={14} className="animate-spin" />}{loading ? 'Procesando...' : 'Añadir y sincronizar'}
             </button>

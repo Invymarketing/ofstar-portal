@@ -79,7 +79,7 @@ export default function ReferenciaModelosModal({ cuentaId, nombreCompetidor, onC
               const nombre = m.model_name || m.full_name
               const activa = seleccion.has(m.id)
               return (
-                <button key={m.id} onClick={() => toggle(m.id)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-all" style={{ backgroundColor: activa ? 'rgba(201,168,76,0.12)' : '#0D0D14', border: activa ? '1px solid rgba(201,168,76,0.35)' : '1px solid var(--border)' }}>
+                <button key={m.id} onClick={() => toggle(m.id)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-all" style={{ backgroundColor: activa ? 'rgba(201,168,76,0.12)' : 'var(--field)', border: activa ? '1px solid rgba(201,168,76,0.35)' : '1px solid var(--border)' }}>
                   <span className="text-sm" style={{ color: activa ? 'var(--foreground)' : 'var(--muted)' }}>{nombre}</span>
                   {activa && <Check size={15} style={{ color: 'var(--gold)' }} />}
                 </button>

@@ -146,36 +146,36 @@ function AddModeloModal({ onClose, onAdded }: { onClose: () => void; onAdded: ()
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Nombre *</label>
-            <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nombre de la modelo" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nombre de la modelo" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Nombre en OnlyFans</label>
-            <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder="Cómo aparece en OF (opcional)" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder="Cómo aparece en OF (opcional)" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Instagram</label>
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
               <AtSign size={15} style={{ color: 'var(--muted)' }} />
               <input type="text" value={igUsername} onChange={e => setIgUsername(e.target.value)} placeholder="username (opcional)" disabled={loading} className="flex-1 bg-transparent text-sm outline-none" style={{ color: 'var(--foreground)' }} />
             </div>
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Content Snare (opcional)</label>
-            <input type="url" value={contentSnare} onChange={e => setContentSnare(e.target.value)} placeholder="https://..." disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="url" value={contentSnare} onChange={e => setContentSnare(e.target.value)} placeholder="https://..." disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Notion (opcional)</label>
-            <input type="url" value={notion} onChange={e => setNotion(e.target.value)} placeholder="https://..." disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="url" value={notion} onChange={e => setNotion(e.target.value)} placeholder="https://..." disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Google Drive (opcional)</label>
-            <input type="url" value={drive} onChange={e => setDrive(e.target.value)} placeholder="https://..." disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="url" value={drive} onChange={e => setDrive(e.target.value)} placeholder="https://..." disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
           </div>
 
           {error && <p className="text-xs" style={{ color: '#F87171' }}>{error}</p>}
 
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onClose} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--muted)' }}>Cancelar</button>
+            <button type="button" onClick={onClose} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--muted)' }}>Cancelar</button>
             <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium disabled:opacity-70" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid rgba(201,168,76,0.3)', color: 'var(--gold)' }}>
               {loading && <Loader2 size={14} className="animate-spin" />} {loading ? 'Creando...' : 'Crear modelo'}
             </button>
@@ -223,40 +223,40 @@ function EditModeloModal({ modelo, onClose, onSaved }: { modelo: Modelo; onClose
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Nombre real *</label>
-            <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Nombre en OnlyFans</label>
-            <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder="Cómo aparece en OF" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="text" value={modelName} onChange={e => setModelName(e.target.value)} placeholder="Cómo aparece en OF" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
             <p className="text-[11px] mt-1" style={{ color: '#6B6B7E' }}>Este es el nombre que se ve en el portal y con el que se cruzan las ventas de Infloww.</p>
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Instagram</label>
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)' }}>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)' }}>
               <AtSign size={15} style={{ color: 'var(--muted)' }} />
               <input type="text" value={igUsername} onChange={e => setIgUsername(e.target.value)} placeholder="username" disabled={loading} className="flex-1 bg-transparent text-sm outline-none" style={{ color: 'var(--foreground)' }} />
             </div>
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Grupo de Telegram (chat id)</label>
-            <input type="text" value={telegramGroup} onChange={e => setTelegramGroup(e.target.value)} placeholder="-1003861192188" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="text" value={telegramGroup} onChange={e => setTelegramGroup(e.target.value)} placeholder="-1003861192188" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
             <p className="text-[11px] mt-1" style={{ color: '#6B6B7E' }}>El Group_Id_Principal del grupo oficial. Se usa para enviarle mensajes desde Programación de Telegram.</p>
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Carpeta de Drive del contenido (link o id)</label>
-            <input type="text" value={driveFolder} onChange={e => setDriveFolder(e.target.value)} placeholder="https://drive.google.com/drive/folders/…" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="text" value={driveFolder} onChange={e => setDriveFolder(e.target.value)} placeholder="https://drive.google.com/drive/folders/…" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
             <p className="text-[11px] mt-1" style={{ color: '#6B6B7E' }}>Donde la modelo sube su contenido. La ingesta lo detecta y programa solo.</p>
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--muted)' }}>Link de OnlyFans (trial)</label>
-            <input type="url" value={ofLink} onChange={e => setOfLink(e.target.value)} placeholder="https://onlyfans.com/…/trial/…" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+            <input type="url" value={ofLink} onChange={e => setOfLink(e.target.value)} placeholder="https://onlyfans.com/…/trial/…" disabled={loading} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
             <p className="text-[11px] mt-1" style={{ color: '#6B6B7E' }}>Se agrega al final del CTA de la noche.</p>
           </div>
 
           {error && <p className="text-xs" style={{ color: '#F87171' }}>{error}</p>}
 
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onClose} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50" style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--muted)' }}>Cancelar</button>
+            <button type="button" onClick={onClose} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50" style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--muted)' }}>Cancelar</button>
             <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium disabled:opacity-70" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid rgba(201,168,76,0.3)', color: 'var(--gold)' }}>
               {loading && <Loader2 size={14} className="animate-spin" />} {loading ? 'Guardando...' : 'Guardar cambios'}
             </button>

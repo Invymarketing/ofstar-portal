@@ -42,7 +42,7 @@ export default function FansPanel({ fans }: { fans: Fan[] }) {
         ))}
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar fan…"
           className="ml-auto rounded-lg px-3 py-1.5 text-xs"
-          style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+          style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
       </div>
 
       <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>

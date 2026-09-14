@@ -30,6 +30,7 @@
   --hover: rgba(17,23,16,.05);
   --gold-15: rgba(124,238,3,.16);
   --gold-25: rgba(124,238,3,.30);
+  --field: #ffffff;
   color-scheme: light;
 }
 
@@ -48,6 +49,7 @@
   --hover: rgba(242,246,236,.06);
   --gold-15: rgba(124,238,3,.14);
   --gold-25: rgba(124,238,3,.28);
+  --field: #0D0D14;
   color-scheme: dark;
 }
 

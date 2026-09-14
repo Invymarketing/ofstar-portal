@@ -35,7 +35,7 @@ export default function GestionUsuarios(
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState<string | null>(null)
 
-  const inputStyle = { backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
+  const inputStyle = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   function genPassword() {
     const p = Math.random().toString(36).slice(2, 6) + Math.random().toString(36).slice(2, 6).toUpperCase() + '!'
@@ -163,7 +163,7 @@ export default function GestionUsuarios(
                       defaultValue={u.role}
                       onChange={async (e) => { await cambiarRol(u.id, e.target.value as Rol); window.location.reload() }}
                       className="rounded-lg px-2 py-1 text-xs"
-                      style={{ backgroundColor: '#0D0D14', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                      style={{ backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
                       {rolesDisponibles.map((r) => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
                     </select>
                   )}

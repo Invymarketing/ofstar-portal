@@ -169,7 +169,7 @@ export default function BuscadorVideos({ tipo }: Props) {
       {!loading && filtrados.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {filtrados.slice(0, 100).map((reel, i) => (
-            <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group rounded-xl overflow-hidden transition-all" style={{ border: '1px solid var(--border)', backgroundColor: '#0D0D14' }}>
+            <a key={i} href={reel.url} target="_blank" rel="noopener noreferrer" className="group rounded-xl overflow-hidden transition-all" style={{ border: '1px solid var(--border)', backgroundColor: 'var(--field)' }}>
               <div className="relative w-full" style={{ aspectRatio: '9/16', backgroundColor: 'var(--border)' }}>
                 {reel.thumbnail_url ? (
                   // eslint-disable-next-line @next/next/no-img-element

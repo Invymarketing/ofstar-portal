@@ -7,6 +7,9 @@ import CompetenciaTab from './CompetenciaTab'
 
 export default function AnalyticsDashboard() {
   const [activeTab, setActiveTab] = useState<'propia' | 'competencia'>('propia')
+  // Cuando se abre el detalle de una cuenta ocultamos la cabecera global (título + pestañas)
+  // para que no se dupliquen con la barra lateral de dentro de la cuenta.
+  const [detalleAbierto, setDetalleAbierto] = useState(false)
 
   const tabStyle = (active: boolean) => ({
     backgroundColor: active ? 'var(--gold-15)' : 'transparent',
@@ -16,26 +19,30 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-15)' }}>
-            <BarChart3 size={18} style={{ color: 'var(--gold)' }} />
+      {!detalleAbierto && (
+        <>
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-15)' }}>
+                <BarChart3 size={18} style={{ color: 'var(--gold)' }} />
+              </div>
+              <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Instagram</h1>
+            </div>
+            <p className="text-sm ml-12" style={{ color: 'var(--muted)' }}>Métricas de cuentas propias y análisis de la competencia por modelo</p>
           </div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Instagram</h1>
-        </div>
-        <p className="text-sm ml-12" style={{ color: 'var(--muted)' }}>Métricas de cuentas propias y análisis de la competencia por modelo</p>
-      </div>
 
-      <div className="flex gap-1 p-1 rounded-xl mb-6 w-fit" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <button onClick={() => setActiveTab('propia')} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all" style={tabStyle(activeTab === 'propia')}>
-          <TrendingUp size={15} /> Cuentas propias
-        </button>
-        <button onClick={() => setActiveTab('competencia')} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all" style={tabStyle(activeTab === 'competencia')}>
-          <Users size={15} /> Competencia
-        </button>
-      </div>
+          <div className="flex gap-1 p-1 rounded-xl mb-6 w-fit" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <button onClick={() => setActiveTab('propia')} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all" style={tabStyle(activeTab === 'propia')}>
+              <TrendingUp size={15} /> Cuentas propias
+            </button>
+            <button onClick={() => setActiveTab('competencia')} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all" style={tabStyle(activeTab === 'competencia')}>
+              <Users size={15} /> Competencia
+            </button>
+          </div>
+        </>
+      )}
 
-      {activeTab === 'propia' && <GaleriaModelos key="propia" tipo="propia" />}
+      {activeTab === 'propia' && <GaleriaModelos key="propia" tipo="propia" onDetalleChange={setDetalleAbierto} />}
       {activeTab === 'competencia' && <CompetenciaTab />}
     </div>
   )
