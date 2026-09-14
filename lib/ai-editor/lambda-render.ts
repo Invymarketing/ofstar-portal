@@ -61,3 +61,15 @@ export async function pollLambdaRender(renderId: string, bucketName: string): Pr
   }
   return { done: false, progress: p.overallProgress ?? 0, outputUrl: null, error: null }
 }
+
+// URL firmada del vídeo editado (para descargarlo desde el servidor).
+export async function presignOutput(renderId: string, bucketName: string): Promise<string> {
+  const objectKey = `renders/${renderId}/out.mp4`
+  return await presignUrl({
+    region: REGION,
+    bucketName,
+    objectKey,
+    expiresInSeconds: 600,
+    checkIfObjectExists: false,
+  })
+}

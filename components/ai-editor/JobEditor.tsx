@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Sparkles, RotateCcw, Check, X, Clapperboard } from 'lucide-react'
+import { ArrowLeft, Loader2, Sparkles, RotateCcw, Check, X, Clapperboard, Download } from 'lucide-react'
 import { STATUS_LABEL } from '@/lib/ai-editor/types'
 
 type LogLine = { t: string; msg: string }
@@ -34,7 +34,6 @@ export default function JobEditor({ jobId }: { jobId: string }) {
   }, [jobId])
   useEffect(() => { cargar() }, [cargar])
 
-  // Motor del pipeline: avanzar los pasos rápidos, y sondear el render de Lambda.
   useEffect(() => {
     if (!data) return
     const s = data.job.status
@@ -88,7 +87,6 @@ export default function JobEditor({ jobId }: { jobId: string }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr] gap-4 items-start">
-        {/* Preview + timeline */}
         <div className="space-y-3">
           {(enReview || completado) && (
             <div className="flex gap-2">
@@ -115,9 +113,14 @@ export default function JobEditor({ jobId }: { jobId: string }) {
               <p className="text-xs px-6 text-center" style={{ color: 'var(--muted)' }}>No se pudo cargar el vídeo.</p>
             )}
           </div>
+
+          {hayEditado && (
+            <a href={`/api/ai-editor/jobs/${jobId}/download`} className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>
+              <Download size={16} /> Descargar vídeo editado
+            </a>
+          )}
         </div>
 
-        {/* Panel derecho */}
         <div className="space-y-3">
           <div className="rounded-2xl p-4 space-y-2" style={card}>
             <div>
