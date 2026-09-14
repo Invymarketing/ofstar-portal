@@ -57,11 +57,15 @@ class OpenAIProvider implements AIProvider {
     const model = process.env.OPENAI_PLANNING_MODEL ?? 'gpt-5.6-luna'
 
     const sistema = [
-      'Eres un montador profesional de vídeos verticales para redes (Reels/TikTok).',
-      'A partir de los ajustes y las instrucciones de la modelo, devuelve un plan de edición (EditPlan) en JSON estricto.',
-      'Formato EXACTO del JSON, sin ningún texto adicional:',
-      '{"version":"1.0","sourceVideoId":"...","output":{"aspectRatio":"9:16","width":1080,"height":1920,"fps":30},"segments":[{"sourceStart":0,"sourceEnd":3.5,"outputStart":0}],"crop":[],"zoom":[],"captions":[],"audio":{},"effects":{}}',
-      'Reglas: los tiempos van en segundos y deben caer dentro de la duración del vídeo cuando se indique. sourceEnd debe ser mayor que sourceStart. Combina aproximadamente el número de cortes indicado en los ajustes y respeta la duración objetivo. Si no hay información suficiente para subtítulos o efectos, deja esos arrays vacíos. Devuelve SOLO el JSON.',
+      'Eres un montador profesional de vídeos verticales para redes (Reels/TikTok). Tu trabajo es hacer un montaje DINÁMICO, con RITMO y con CORTES que se noten.',
+      'Devuelve SOLO un JSON válido (EditPlan), sin ningún texto adicional, con esta forma:',
+      '{"version":"1.0","sourceVideoId":"...","output":{"aspectRatio":"9:16","width":1080,"height":1920,"fps":30},"segments":[{"sourceStart":0.5,"sourceEnd":2.2,"outputStart":0}],"zoom":[{"scale":1.25,"centerX":0.5,"centerY":0.4,"sourceStart":0.5,"sourceEnd":2.2}],"crop":[],"captions":[],"audio":{"normalize":true},"effects":{"cutStyle":"hard"}}',
+      'REGLA MÁS IMPORTANTE (cortes reales): cada segmento debe venir de una parte DISTINTA y NO consecutiva del vídeo. Está PROHIBIDO trocear el vídeo en pedazos seguidos (ej. 0-1.5, 1.5-3, 3-4.5, ...): eso NO es un corte, es el vídeo entero de corrido.',
+      'Entre el final de un trozo (sourceEnd) y el inicio del siguiente (sourceStart) debe haber un SALTO de al menos 1 segundo en el vídeo original. Salta por todo el metraje y deja huecos entre los trozos que eliges, para que cada corte se vea de verdad.',
+      'Número de cortes: entre 3 y 6 para vídeos de menos de 20s (más para vídeos largos). Cada corte de 1 a 2.5 segundos. Elige los mejores momentos (cara visible, buen encuadre, movimiento o gesto).',
+      'Zoom: añade un zoom a CADA corte para dar dinamismo. Formato {"scale": entre 1.15 y 1.35, "centerX":0.5, "centerY": entre 0.35 y 0.5, "sourceStart":..., "sourceEnd":...} centrado en la cara/torso. Varía un poco la escala entre cortes.',
+      'Tiempos: en segundos, siempre dentro de duracionVideoSegundos cuando se indique. sourceEnd > sourceStart. El outputStart de cada segmento = suma de las duraciones de los segmentos anteriores, empezando en 0.',
+      'Respeta SIEMPRE las instrucciones de la modelo (campos ajustes e instrucciones): si piden más/menos zoom, más/menos cortes, un estilo concreto, hazlo. Deja captions vacío por ahora. Devuelve SOLO el JSON.',
     ].join('\n')
 
     const usuario = JSON.stringify({
