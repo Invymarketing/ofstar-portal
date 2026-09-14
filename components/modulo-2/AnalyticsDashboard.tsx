@@ -21,7 +21,7 @@ export default function AnalyticsDashboard() {
           <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--gold-15)', border: '1px solid var(--gold-15)' }}>
             <BarChart3 size={18} style={{ color: 'var(--gold)' }} />
           </div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Analytics & Referencias</h1>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Instagram</h1>
         </div>
         <p className="text-sm ml-12" style={{ color: 'var(--muted)' }}>Métricas de cuentas propias y análisis de la competencia por modelo</p>
       </div>

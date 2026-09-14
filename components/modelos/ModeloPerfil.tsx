@@ -1,19 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowLeft, UserCircle2, CalendarDays, ListTodo, BarChart3, Link2, Swords } from 'lucide-react'
+import { ArrowLeft, UserCircle2, CalendarDays, ListTodo, BarChart3, Link2 } from 'lucide-react'
 import HorarioModelo from '@/components/modelos/HorarioModelo'
 import MetricasModelo from '@/components/modelos/MetricasModelo'
 import Portada from '@/components/modelos/Portada'
-import CompetenciaModelo from '@/components/modelos/CompetenciaModelo'
 
-type TabKey = 'portada' | 'horario' | 'todo' | 'metricas' | 'competencia'
+type TabKey = 'portada' | 'horario' | 'todo' | 'metricas'
 const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
   { key: 'portada', label: 'Identidad', icon: UserCircle2 },
   { key: 'horario', label: 'Horario semanal', icon: CalendarDays },
   { key: 'todo', label: 'TO-DO List', icon: ListTodo },
   { key: 'metricas', label: 'Métricas RRSS', icon: BarChart3 },
-  { key: 'competencia', label: 'Competencia', icon: Swords },
 ]
 
 export default function ModeloPerfil({ modeloId, nombre, foto, onBack, soloIdentidad = false }: {
@@ -77,7 +75,6 @@ export default function ModeloPerfil({ modeloId, nombre, foto, onBack, soloIdent
                 <ContenidoSemana modeloId={modeloId} />
               </div>
             )}
-            {tab === 'competencia' && <CompetenciaModelo modeloId={modeloId} />}
           </div>
         </div>
       )}
