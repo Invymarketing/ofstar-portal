@@ -1,11 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { CalendarDays, MoreVertical, Trash2, Plus, ListTodo, Check, X, Upload, BookOpen, Link2, Clock, RotateCcw, Gauge, ChevronDown, ChevronUp, ImagePlus, Loader2 } from 'lucide-react'
+import { CalendarDays, MoreVertical, Trash2, Plus, Minus, Package, ListTodo, Check, X, Upload, BookOpen, Link2, Clock, RotateCcw, Gauge, ChevronDown, ChevronUp, ImagePlus, Loader2, Pencil } from 'lucide-react'
 
 interface Tarea { id: string; dia_semana: number; titulo: string }
-interface Todo { id: string; texto: string; hecho: boolean; enlace_subir?: string | null; enlace_guia?: string | null; descripcion?: string | null; imagenes?: string[] }
-interface Compromiso { total: number; completadas: number; pct: number }
+interface Todo { id: string; texto: string; hecho: boolean; cantidad_objetivo?: number | null; cantidad_hecha?: number | null; enlace_subir?: string | null; enlace_guia?: string | null; descripcion?: string | null; imagenes?: string[] }
+interface BovedaItem { id: string; nombre: string; cantidad: number }
+interface Compromiso { total: number; completadas: number; pct: number; unidadesObjetivo?: number; unidadesHechas?: number }
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const hrefOf = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`)
@@ -14,6 +15,10 @@ const colorPct = (p: number) => (p >= 80 ? '#22C55E' : p >= 50 ? 'var(--gold)' :
 export default function HorarioModelo({ modeloId, editable = true, seccion = 'ambos' }: { modeloId: string; editable?: boolean; seccion?: 'horario' | 'todo' | 'ambos' }) {
   const [tareas, setTareas] = useState<Tarea[]>([])
   const [todos, setTodos] = useState<Todo[]>([])
+  const [boveda, setBoveda] = useState<BovedaItem[]>([])
+  const [gestionBoveda, setGestionBoveda] = useState(false)
+  const [bovNombre, setBovNombre] = useState('')
+  const [bovCantidad, setBovCantidad] = useState(1)
   const [compromiso, setCompromiso] = useState<Compromiso | null>(null)
   const [cargando, setCargando] = useState(true)
   const [drafts, setDrafts] = useState<Record<number, string>>({})
@@ -34,6 +39,7 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
       const d = await r.json()
       setTareas(d.tareas ?? [])
       setTodos(d.todos ?? [])
+      setBoveda(d.boveda ?? [])
       setCompromiso(d.compromiso ?? null)
       setLimDia(d.limite?.dia ?? 0)
       setLimHora(d.limite?.hora ?? '16:00')
@@ -64,6 +70,25 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
     if (!texto) return
     setTodoDraft('')
     await post({ op: 'todoAdd', texto })
+  }
+
+  async function addFromBoveda(bovedaId: string) { await post({ op: 'todoAddBoveda', bovedaId }) }
+  async function setProgress(todoId: string, cantidad_hecha: number) { await post({ op: 'todoProgress', todoId, cantidad_hecha }) }
+  async function setObjetivo(todoId: string, cantidad_objetivo: number) { await post({ op: 'todoObjetivo', todoId, cantidad_objetivo }) }
+  async function bovedaAdd() {
+    const nombre = bovNombre.trim()
+    if (!nombre) return
+    setBovNombre(''); setBovCantidad(1)
+    await post({ op: 'bovedaAdd', nombre, cantidad: bovCantidad })
+  }
+  async function bovedaDel(bovedaId: string) { await post({ op: 'bovedaDel', bovedaId }) }
+
+  function editarObjetivo(t: Todo) {
+    const actual = Math.max(1, Number(t.cantidad_objetivo ?? 1))
+    const v = window.prompt('Cantidad objetivo de "' + t.texto + '":', String(actual))
+    if (v == null) return
+    const n = Math.round(Number(v))
+    if (Number.isFinite(n) && n >= 1) setObjetivo(t.id, n)
   }
 
   async function nuevaSemana() {
@@ -204,12 +229,52 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
             <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
               <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(compromiso.pct, 100)}%`, backgroundColor: colorPct(compromiso.pct) }} />
             </div>
-            <p className="text-[11px] mt-1.5" style={{ color: 'var(--muted)' }}>{compromiso.completadas}/{compromiso.total} objetivos completados · puntúa la cantidad y la puntualidad.</p>
+            <p className="text-[11px] mt-1.5" style={{ color: 'var(--muted)' }}>{compromiso.unidadesHechas ?? 0}/{compromiso.unidadesObjetivo ?? 0} unidades hechas · {compromiso.completadas}/{compromiso.total} objetivos completos.</p>
           </div>
         )}
 
+        {/* ===== BÓVEDA DE TAREAS ===== */}
+        <div className="rounded-xl p-3 mb-3" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--gold)' }}>
+              <Package size={13} /> Bóveda de tareas
+            </span>
+            {editable && (
+              <button onClick={() => setGestionBoveda((g) => !g)} className="text-[11px] px-2 py-0.5 rounded-md" style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}>
+                {gestionBoveda ? 'Hecho' : 'Gestionar'}
+              </button>
+            )}
+          </div>
+          {boveda.length === 0 && <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Aún no hay tipos de tarea.{editable ? ' Pulsa "Gestionar" para añadir (ej. Reels Instagram · 20).' : ''}</p>}
+          {boveda.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {boveda.map((bv) => (
+                <div key={bv.id} className="flex items-center rounded-lg overflow-hidden" style={{ border: '1px solid var(--gold-25)' }}>
+                  <button onClick={() => addFromBoveda(bv.id)} disabled={!editable} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium disabled:opacity-50" style={{ color: 'var(--gold)' }} title="Añadir a la lista de objetivos">
+                    <Plus size={12} /> {bv.nombre} <span style={{ color: 'var(--muted)' }}>·{bv.cantidad}</span>
+                  </button>
+                  {gestionBoveda && editable && (
+                    <button onClick={() => bovedaDel(bv.id)} className="px-1.5 self-stretch grid place-items-center" style={{ color: '#ef4444', borderLeft: '1px solid var(--gold-25)' }} aria-label="Quitar de la bóveda">
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {gestionBoveda && editable && (
+            <div className="flex items-center gap-1.5 mt-2">
+              <input value={bovNombre} onChange={(e) => setBovNombre(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') bovedaAdd() }} placeholder="Tipo de tarea (ej. Reels Instagram)" className="flex-1 rounded-lg px-2.5 py-1.5 text-xs outline-none" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+              <input type="number" min={1} value={bovCantidad} onChange={(e) => setBovCantidad(Math.max(1, Number(e.target.value) || 1))} className="w-16 rounded-lg px-2 py-1.5 text-xs outline-none" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--foreground)' }} title="Cantidad por defecto" />
+              <button onClick={bovedaAdd} className="shrink-0 grid place-items-center h-7 w-7 rounded-md active:scale-90" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }} title="Añadir a la bóveda"><Plus size={15} /></button>
+            </div>
+          )}
+        </div>
+
         <div className="flex flex-col gap-2 mb-3">
           {todos.map((t) => {
+            const objTodo = Math.max(1, Number(t.cantidad_objetivo ?? 1))
+            const hecTodo = Math.min(Math.max(0, Number(t.cantidad_hecha ?? 0)), objTodo)
             const tieneExtra = !!(t.descripcion || (t.imagenes && t.imagenes.length))
             const open = abierto === t.id
             return (
@@ -219,6 +284,14 @@ export default function HorarioModelo({ modeloId, editable = true, seccion = 'am
                   {t.hecho && <Check size={13} style={{ color: '#000' }} />}
                 </button>
                 <span className="flex-1 text-[15px]" style={{ color: t.hecho ? 'var(--muted)' : 'var(--gold)', textDecoration: t.hecho ? 'line-through' : 'none' }}>{t.texto}</span>
+                <div className="flex items-center gap-1 shrink-0 rounded-lg px-1 py-0.5 mr-1" style={{ border: '1px solid var(--border)' }}>
+                  <button onClick={() => setProgress(t.id, Math.max(0, hecTodo - 1))} className="h-6 w-6 grid place-items-center rounded-md active:scale-90" style={{ color: 'var(--muted)' }} aria-label="Menos"><Minus size={13} /></button>
+                  <span className="text-xs font-semibold tabular-nums px-0.5" style={{ color: hecTodo >= objTodo ? '#22C55E' : 'var(--foreground)' }}>{hecTodo}/{objTodo}</span>
+                  <button onClick={() => setProgress(t.id, Math.min(objTodo, hecTodo + 1))} className="h-6 w-6 grid place-items-center rounded-md active:scale-90" style={{ color: 'var(--gold)' }} aria-label="Más"><Plus size={13} /></button>
+                  {editable && (
+                    <button onClick={() => editarObjetivo(t)} className="h-6 w-6 grid place-items-center rounded-md opacity-50 hover:opacity-100" style={{ color: 'var(--muted)' }} title="Cambiar objetivo" aria-label="Objetivo"><Pencil size={12} /></button>
+                  )}
+                </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {t.enlace_subir && (
                     <a href={hrefOf(t.enlace_subir)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-80" style={{ border: '1px solid var(--gold-25)', color: 'var(--gold)' }}>
