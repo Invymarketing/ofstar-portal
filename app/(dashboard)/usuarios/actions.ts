@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-const ROLES = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo', 'creativo', 'marketing_manager', 'content_manager'] as const
+const ROLES = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo', 'creativo', 'marketing_manager', 'content_manager', 'director_creativo'] as const
 type Rol = (typeof ROLES)[number]
 
 async function requireGestor() {
@@ -92,6 +92,25 @@ export async function cambiarRol(id: string, role: Rol) {
 
   revalidatePath('/usuarios')
   revalidatePath('/modulo-4')
+}
+
+export async function cambiarPassword(id: string, password: string) {
+  const { role: actorRole } = await requireGestor()
+  if (!password || password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres')
+  const admin = createAdminClient()
+
+  const { data: target } = await admin.from('profiles').select('role').eq('id', id).single()
+  if (actorRole !== 'admin' && target?.role === 'admin') {
+    throw new Error('Solo un admin puede cambiar la contraseña de un admin')
+  }
+  if (actorRole === 'team_leader' && target?.role !== 'chatter') {
+    throw new Error('Un team leader solo puede gestionar chatters')
+  }
+
+  const { error } = await admin.auth.admin.updateUserById(id, { password })
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/usuarios')
 }
 
 export async function editarNombre(id: string, nombre: string) {

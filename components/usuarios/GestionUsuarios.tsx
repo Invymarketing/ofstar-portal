@@ -1,15 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { crearUsuario, cambiarRol, toggleUsuario, eliminarUsuario, editarNombre } from '@/app/(dashboard)/usuarios/actions'
-import { UserPlus, Trash2, Power, Pencil } from 'lucide-react'
+import { crearUsuario, cambiarRol, toggleUsuario, eliminarUsuario, editarNombre, cambiarPassword } from '@/app/(dashboard)/usuarios/actions'
+import { UserPlus, Trash2, Power, Pencil, Key, X } from 'lucide-react'
 
-type Rol = 'admin' | 'manager' | 'team_leader' | 'chatter' | 'va' | 'modelo' | 'creativo' | 'marketing_manager' | 'content_manager'
-const ROLES: Rol[] = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo', 'creativo', 'marketing_manager', 'content_manager']
+// Genera una contraseña fácil de dictar: sin caracteres confusos (0/O, 1/l/I)
+function generarPassword(): string {
+  const may = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
+  const min = 'abcdefghijkmnpqrstuvwxyz'
+  const num = '23456789'
+  const pick = (s: string, n: number) => Array.from({ length: n }, () => s[Math.floor(Math.random() * s.length)]).join('')
+  return pick(may, 1) + pick(min, 5) + pick(num, 3) + '!'
+}
+
+type Rol = 'admin' | 'manager' | 'team_leader' | 'chatter' | 'va' | 'modelo' | 'creativo' | 'marketing_manager' | 'content_manager' | 'director_creativo'
+const ROLES: Rol[] = ['admin', 'manager', 'team_leader', 'chatter', 'va', 'modelo', 'creativo', 'marketing_manager', 'content_manager', 'director_creativo']
 const ROL_LABEL: Record<Rol, string> = {
   admin: 'Admin', manager: 'Manager', team_leader: 'Team Leader',
-  chatter: 'Chatter', va: 'VA', modelo: 'Modelo', creativo: 'Director Creativo',
-  marketing_manager: 'Marketing Manager', content_manager: 'Content Manager',
+  chatter: 'Chatter', va: 'VA', modelo: 'Modelo', creativo: 'Directora Creativa',
+  marketing_manager: 'Marketing Manager', content_manager: 'Content Manager', director_creativo: 'Director Creativo',
 }
 
 interface Usuario { id: string; full_name: string; role: string; email: string; activo: boolean }
@@ -38,8 +47,21 @@ export default function GestionUsuarios(
   const inputStyle = { backgroundColor: 'var(--field)', border: '1px solid var(--border)', color: 'var(--foreground)' } as const
 
   function genPassword() {
-    const p = Math.random().toString(36).slice(2, 6) + Math.random().toString(36).slice(2, 6).toUpperCase() + '!'
-    setPassword(p)
+    setPassword(generarPassword())
+  }
+
+  // Aviso persistente con la nueva contraseña tras restablecer (para copiarla)
+  const [pwdReset, setPwdReset] = useState<{ nombre: string; pwd: string } | null>(null)
+
+  async function restablecer(u: Usuario) {
+    if (!confirm(`¿Restablecer la contraseña de ${u.full_name}? Se generará una nueva.`)) return
+    const nueva = generarPassword()
+    try {
+      await cambiarPassword(u.id, nueva)
+      setPwdReset({ nombre: u.full_name, pwd: nueva })
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al restablecer la contraseña')
+    }
   }
 
   async function crear(e: React.FormEvent) {
@@ -133,6 +155,21 @@ export default function GestionUsuarios(
         </div>
       </form>
 
+      {/* Aviso con la contraseña recién restablecida */}
+      {pwdReset && (
+        <div className="rounded-2xl border p-4 flex items-center gap-3" style={{ backgroundColor: 'var(--gold-15)', borderColor: 'var(--gold-25)' }}>
+          <Key size={16} style={{ color: 'var(--gold)' }} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm" style={{ color: 'var(--foreground)' }}>
+              Nueva contraseña de <b>{pwdReset.nombre}</b>: <span className="font-mono font-bold" style={{ color: 'var(--gold)' }}>{pwdReset.pwd}</span>
+            </p>
+            <p className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>Cópiala y envíasela. No caduca; puede cambiarla luego. Este aviso solo se muestra ahora.</p>
+          </div>
+          <button onClick={() => { navigator.clipboard?.writeText(pwdReset.pwd).catch(() => {}) }} className="text-xs px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'var(--gold)', color: '#0D0D14' }}>Copiar</button>
+          <button onClick={() => setPwdReset(null)} style={{ color: 'var(--muted)' }} title="Cerrar"><X size={16} /></button>
+        </div>
+      )}
+
       {/* Lista */}
       <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
         <div className="px-4 py-2.5 text-xs font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
@@ -178,6 +215,11 @@ export default function GestionUsuarios(
                     {!bloqueado && (
                       <button title="Editar nombre" onClick={() => renombrar(u)} style={{ color: 'var(--muted)' }}>
                         <Pencil size={15} />
+                      </button>
+                    )}
+                    {!bloqueado && (
+                      <button title="Restablecer contraseña" onClick={() => restablecer(u)} style={{ color: 'var(--muted)' }}>
+                        <Key size={15} />
                       </button>
                     )}
                     {!bloqueado && (
