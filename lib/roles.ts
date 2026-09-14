@@ -3,14 +3,13 @@ import type { UserRole } from '@/types'
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Administrador',
   manager: 'Manager',
-  creativo: 'Directora Creativa',
+  creativo: 'Director Creativo',
   team_leader: 'Team Leader',
   chatter: 'Chatter',
   va: 'Asistente Virtual',
   modelo: 'Modelo',
   marketing_manager: 'Marketing Manager',
   content_manager: 'Content Manager',
-  director_creativo: 'Director Creativo',
 }
 
 export const ROLE_COLORS: Record<UserRole, string> = {
@@ -23,7 +22,6 @@ export const ROLE_COLORS: Record<UserRole, string> = {
   modelo: 'text-pink-400 border-pink-400',
   marketing_manager: 'text-cyan-400 border-cyan-400',
   content_manager: 'text-orange-400 border-orange-400',
-  director_creativo: 'text-fuchsia-400 border-fuchsia-400',
 }
 
 // Routes each role can access (beyond the dashboard home)
@@ -41,7 +39,6 @@ export const ROLE_ACCESS: Record<UserRole, string[]> = {
   modelo: [],
   marketing_manager: ['/modelos'],
   content_manager: ['/modelos'],
-  director_creativo: ['/modelos'],
 }
 
 export function canAccessRoute(role: UserRole, pathname: string): boolean {

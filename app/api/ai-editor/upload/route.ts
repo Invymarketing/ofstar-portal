@@ -6,7 +6,7 @@ import { STORAGE_BUCKET } from '@/lib/ai-editor/storage'
 // Este endpoint YA NO recibe el archivo: el vídeo se sube directo del navegador
 // a Supabase Storage (URL firmada). Aquí solo se registra el video_asset.
 
-const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager']
+const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'content_manager']
 
 function sanitize(name: string) {
   const base = name.split('/').pop()?.split('\\').pop() ?? 'video'

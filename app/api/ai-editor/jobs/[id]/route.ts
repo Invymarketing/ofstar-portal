@@ -7,7 +7,7 @@ import { JOB_STATUS_FLOW, STATUS_LABEL, type JobStatus } from '@/lib/ai-editor/t
 import type { EditPlan, EditPlanOutput } from '@/lib/ai-editor/edit-plan'
 import { startLambdaRender, pollLambdaRender, lambdaConfigured } from '@/lib/ai-editor/lambda-render'
 
-const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager']
+const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'content_manager']
 
 async function guard() {
   const supabase = await createClient()

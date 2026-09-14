@@ -6,7 +6,7 @@ import AiEditor from '@/components/ai-editor/AiEditor'
 
 export const metadata = { title: 'AI Video Editor — Skeilab' }
 
-const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager']
+const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'content_manager']
 
 export default async function AiEditorPage() {
   const supabase = await createClient()

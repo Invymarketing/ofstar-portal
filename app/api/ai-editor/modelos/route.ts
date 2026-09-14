@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager']
+const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'content_manager']
 
 export async function GET() {
   const supabase = await createClient()

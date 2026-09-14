@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getRecordSource, airtableConfigured } from '@/lib/ai-editor/airtable'
 
-const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager']
+const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'content_manager']
 
 async function guard() {
   const supabase = await createClient()

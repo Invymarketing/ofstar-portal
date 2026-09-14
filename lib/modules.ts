@@ -90,7 +90,7 @@ export const MODULES: ModuleDefinition[] = [
     id: 15, slug: 'modulo-15', name: 'Turnos',
     description: 'Fichaje de turnos y breaks, con panel de tiempo en vivo.',
     icon: 'Calendar', phase: 8, area: 'chatting',
-    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va', 'creativo', 'content_manager', 'marketing_manager', 'director_creativo'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'team_leader', 'chatter', 'va', 'creativo', 'content_manager', 'marketing_manager'], isBuilt: true,
   },
   {
     id: 16, slug: 'modulo-16', name: 'Rendimiento',
@@ -144,7 +144,7 @@ export const MODULES: ModuleDefinition[] = [
     id: 24, slug: 'ai-editor', name: 'AI Video Editor',
     description: 'Editor de vídeo con IA: sube un vídeo, elige el perfil de la modelo y genera el montaje.',
     icon: 'Clapperboard', phase: 8, area: 'herramientas',
-    allowedRoles: ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager'], isBuilt: true,
+    allowedRoles: ['admin', 'manager', 'creativo', 'content_manager'], isBuilt: true,
   },
 ]
 

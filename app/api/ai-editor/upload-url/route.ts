@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { STORAGE_BUCKET } from '@/lib/ai-editor/storage'
 
-const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager']
+const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'content_manager']
 
 function sanitize(name: string) {
   const base = name.split('/').pop()?.split('\\').pop() ?? 'video'

@@ -99,7 +99,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
 
   const abierta = flyout ? areasConMods.find((a) => a.key === flyout.key) : null
 
-  const verModelos = ['admin', 'manager', 'team_leader', 'chatter', 'creativo', 'marketing_manager', 'content_manager', 'director_creativo'].includes(role)
+  const verModelos = ['admin', 'manager', 'team_leader', 'chatter', 'creativo', 'marketing_manager', 'content_manager'].includes(role)
 
   return (
     <>

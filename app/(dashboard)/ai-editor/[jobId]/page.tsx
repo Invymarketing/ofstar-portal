@@ -5,7 +5,7 @@ import JobEditor from '@/components/ai-editor/JobEditor'
 
 export const metadata = { title: 'Editor — Skeilab' }
 
-const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'director_creativo', 'content_manager']
+const EDITOR_ROLES = ['admin', 'manager', 'creativo', 'content_manager']
 
 export default async function JobPage({ params }: { params: Promise<{ jobId: string }> }) {
   const supabase = await createClient()
